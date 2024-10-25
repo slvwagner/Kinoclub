@@ -512,7 +512,7 @@ for (ii in 1:length(c_Date)) {
     pull()
   c_Kinofoerder_gratis
   
-  if(!c_Kinofoerder_gratis){ # Kinoföderer müssen abgerechnet werden 
+  if(!c_Kinofoerder_gratis){ # Kinoförderer müssen abgerechnet werden 
     df_temp <- df_Eintritt |>
       filter(Datum == c_Date[ii], Zahlend) |>
       bind_rows(
