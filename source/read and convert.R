@@ -466,7 +466,9 @@ df_Verleiher_Rechnnung <- bind_rows(l_verleiherabgaben)|>
     df_Verleiher_Rechnnung|>
     filter(is.na(`Link Datum`))
     )|>
-  mutate(`keine Verleiherrechnung` = if_else(is.na(Betrag), T, F))
+  mutate(`keine Verleiherrechnung` = if_else(is.na(Betrag), T, F))|>
+  arrange(Datum)
+
 
 #############################################################
 # error handling
