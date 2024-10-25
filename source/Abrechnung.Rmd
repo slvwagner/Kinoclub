@@ -54,7 +54,10 @@ df_temp|>
 ```
 
 ```{r echo=FALSE}
-if(df_Verleiher_Rechnnung$`keine Verleiherrechnung`[ii]) {
+df_temp <- df_keine_Rechnnung|>
+  filter(Datum == c_Date[ii])
+
+if(nrow(df_temp) > 0) {
   writeLines("Achtung es gibt noch keine Verleiherabrechnung für diesen Film. Deshalb fehlen die Reklame- und Portokosten.\nDer Gewinn kann sich deshalb noch ändern.")
 }
 
@@ -113,13 +116,25 @@ df_temp|>
 #### Verleiherrechnung
 
 ```{r echo=FALSE}
-if(df_Verleiher_Rechnnung$`keine Verleiherrechnung`[ii]) {
+df_temp <- df_keine_Rechnnung|>
+  filter(Datum == c_Date[ii])
+
+if(nrow(df_temp) > 0) {
   writeLines("Achtung es gibt noch keine Verleiherabrechnung für diesen Film.")
 }else{
-  df_Verleiher_Rechnnung |>
-    slice(ii) |>
-    select(Firmennamen, Betrag)|>
+  df_temp <-df_Verleiher_Rechnnung |>
+    slice(ii)|>
+    mutate(`Link Datum` = ymd(`Link Datum`))
+  df_temp
+  
+  df_temp|>
+    select(Verleiher, Betrag)|>
     knitr::kable(digits = 2)
+  
+  paste("Dieser Film wird zusammen mit diesem Datum", 
+        paste0(lubridate::day(df_temp$`Link Datum`),".",lubridate::month(df_temp$`Link Datum`),".",lubridate::year(df_temp$`Link Datum`)), 
+        "abgerechnet.")|>
+    writeLines()
 }
 ```
 
@@ -155,7 +170,10 @@ df_temp|>
 #### Reklamematerial und Porto
 
 ```{r echo=FALSE}
-if(df_Verleiher_Rechnnung$`keine Verleiherrechnung`[ii]) {
+df_temp <- df_keine_Rechnnung|>
+  filter(Datum == c_Date[ii])
+
+if(nrow(df_temp) > 0) {
   writeLines("Achtung es gibt noch keine Verleiherabrechnung für diesen Film. Deshalb fehlen die Reklame- und Portokosten.")
   }
 ```
