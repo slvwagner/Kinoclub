@@ -222,7 +222,6 @@ c_linkDatum <- df_Eintritt |>
   filter(Datum == c(c_Date[ii]), Zahlend) |>
   distinct(`Link Datum`) |>
   pull()
-c_linkDatum
 
 Eventeinnahmen <- Einnahmen_und_Ausgaben$Einnahmen|>
   filter(Kategorie == Einnahmen_und_Ausgaben$dropdown$`drop down`[1], 
