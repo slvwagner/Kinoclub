@@ -411,22 +411,25 @@ if(nrow(df_temp)>0){
 # auf die gelinkten Filme aufteilen (Link im Excel file: .../Kinoklub/Input/Verleiherabgaben.xlsx ) 
 ########################################################################
 
+df_Verleiher_Rechnnung <- df_Eintritt|>
+  distinct(Datum,`Suisa Nummer`,.keep_all = T)
+
 df_Verleiher_Rechnnung <- left_join(
-  df_Eintritt|>
-    group_by(Datum,`Suisa Nummer`, Filmtitel, `Kinoförderer gratis?`)|>
+  df_Verleiher_Rechnnung,
+  df_Verleiher_Rechnnung|>
+    group_by( `Suisa Nummer`)|>
+    filter(!is.na(`Link Datum`))|>
     reframe(Umsatz = sum(Umsatz)),
-  df_Eintritt|>
-    group_by(`Link Datum`, `Suisa Nummer`, Filmtitel, `Kinoförderer gratis?`)|>
-    reframe(Umsatz = sum(Umsatz)),
-  by = join_by(`Suisa Nummer`, Filmtitel, `Kinoförderer gratis?`))|>
+  join_by(`Suisa Nummer`)
+  )|>
   mutate(
     Verteilprodukt = if_else(!is.na(`Link Datum`),
-                                  Umsatz.x/Umsatz.y,
-                                  1),
+                             Umsatz.x/Umsatz.y,
+                             1),
     Umsatz.x = NULL,
     # Umsatz.y = NULL,
-    `Link Datum` = factor(`Link Datum`)   
-    )|>
+    `Link Datum` = factor(`Link Datum`)
+  )|>
   rename(`Umsatz total pro Abrechnung` = Umsatz.y)
 
 # Verleiherabgaben sind im Dropdown zu findens
@@ -438,44 +441,17 @@ df_Verleiher_Rechnnung <- df_Verleiher_Rechnnung|>
             )|>
   filter(!is.na(`Suisa Nummer`))
 
-# Verleiherabgaben verteilen
-l_verleiherabgaben <- list()
-
-for (ii in 1:length(df_Verleiher_Rechnnung$`Link Datum`|>levels())) {
-  l_verleiherabgaben[[ii]] <- df_Verleiher_Rechnnung|>
-    filter(`Link Datum` == levels(df_Verleiher_Rechnnung$`Link Datum`)[ii])
-  
-  c_Betrag <- l_verleiherabgaben[[ii]]|>
-    filter(!is.na(Betrag))|>
-    select(Betrag)|>
-    pull()
-  c_Betrag
-  
-  l_verleiherabgaben[[ii]] <- bind_rows(
-    l_verleiherabgaben[[ii]]|>
-    filter(!is.na(Betrag)),
-    l_verleiherabgaben[[ii]]|>
-      filter(is.na(Betrag))|>
-      mutate(Betrag = c_Betrag)
-    )|>
-    mutate(Betrag = Betrag * Verteilprodukt)
-}
-
-df_Verleiher_Rechnnung <- bind_rows(l_verleiherabgaben)|>
-  bind_rows(
-    df_Verleiher_Rechnnung|>
-    filter(is.na(`Link Datum`))
-    )|>
-  mutate(`keine Verleiherrechnung` = if_else(is.na(Betrag), T, F))|>
-  arrange(Datum)
+df_Verleiher_Rechnnung <-  df_Verleiher_Rechnnung|>
+  mutate(`keine Verleiherrechnung` = if_else(is.na(Betrag), T, F))
 
 
 #############################################################
 # error handling
 # keine Rechnung vorhanden
 df_keine_Rechnnung <- df_Verleiher_Rechnnung|>
-  filter(`keine Verleiherrechnung`)
-
+  mutate(`keine Verleiherrechnung` = if_else(is.na(Betrag), T, F))|>
+  filter(`keine Verleiherrechnung`)|>
+  filter(is.na(`Link Datum`))
 df_keine_Rechnnung
 
 # error handling, keine Verleiherrechnung
@@ -487,8 +463,6 @@ if(nrow(df_keine_Rechnnung)>0) {
   )
   )  
 }
-
-
 
 ########################################################################
 # Gewinn/Verlust Eintitt
@@ -505,13 +479,16 @@ for (ii in 1:length(c_Date)) {
   # Filtern nach Datum 
   df_temp <- df_Eintritt |>
     filter(Datum == c_Date[ii], Zahlend)
+  df_temp
   
   # Soll gemeinsam mit einem anderen Datum abgerechnet werden?
   c_linkDatum <- distinct(df_temp, `Link Datum`)|>pull()
+  
   if(!is.na(c_linkDatum)){
     df_temp <- df_Eintritt |>
       filter(Datum %in% c(c_Date[ii], c_linkDatum), Zahlend)
   }
+  df_temp
   
   # Kinoförderer dürfen nicht bei jedem Verleiher als gratis abgerechnet werden und müssen anders behandelt werden. 
   c_Kinofoerder_gratis <- df_Eintritt|>
@@ -643,10 +620,14 @@ for (ii in 1:length(c_Date)) {
   ##################################################
   # Berechnung der Abgaben
   # Verleiherrechnung vorhanden ?
-  c_Verleiherrechnung <- df_Verleiher_Rechnnung |> 
-    filter(Datum == c_Date[ii])|>
+  c_Verleiherrechnung <- df_Verleiher_Rechnnung|>
+    distinct(Datum,`Suisa Nummer`,.keep_all = T)|> 
+    filter(Datum == c(c_Date[ii]))|>
     select(`keine Verleiherrechnung`)|>
     pull()
+  c_Verleiherrechnung
+  
+  c_Verleiherrechnung <- c_Verleiherrechnung[1]
   
   c_Verleiherrechnung
   
