@@ -578,7 +578,7 @@ for (ii in 1:length(c_Date)) {
   c_Umsatz
   
   l_Abgaben[[ii]] <- df_temp
-  l_Abgaben[[ii]]
+  df_temp <- l_Abgaben[[ii]]
   
   c_suisaabzug <- (distinct(df_Eintritt |> 
                               filter(Datum == c_Date[ii]), `SUISA-Vorabzug`) |>
@@ -637,7 +637,7 @@ for (ii in 1:length(c_Date)) {
   
   c_Verleiherrechnung
   
-  # Wemm keine Verleiherrechnung vorhanden ist muss die MWST der Verleiherrechnung berechnet werden.
+  # Wenn keine Verleiherrechnung vorhanden ist muss die MWST der Verleiherrechnung berechnet werden.
   if (c_Verleiherrechnung) {
     # Mehrwertsteuer auf der Verleiherrechnung
     c_MWST_Abzug <-
