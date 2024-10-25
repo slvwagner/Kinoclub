@@ -217,18 +217,31 @@ Filmvorführungen|>
 
 Beiträge von Mitveranstalter, Sponsoring for diesen Event.
 ```{r}
-Eventeinnahmen <- Einnahmen_und_Ausgaben$Einnahmen|>
-  filter(Kategorie == Einnahmen_und_Ausgaben$dropdown$`drop down`[1], Datum == c_Datum)|>
-  select(Bezeichnung, Betrag)|>
-  rename(`Betrag [CHF]` = Betrag)
+# Soll gemeinsam mit einem anderen Datum abgerechnet werden ?
+c_linkDatum <- df_Eintritt |>
+  filter(Datum == c(c_Date[ii]), Zahlend) |>
+  distinct(`Link Datum`) |>
+  pull()
+c_linkDatum
 
+Eventeinnahmen <- Einnahmen_und_Ausgaben$Einnahmen|>
+  filter(Kategorie == Einnahmen_und_Ausgaben$dropdown$`drop down`[1], 
+         Datum %in% c(c_Date[ii], c_linkDatum))|>
+  select(Bezeichnung, Betrag)|>
+  mutate(`Betrag [CHF]` = Betrag * c_verteilprodukt[ii],
+         Betrag = NULL)
+
+```
+
+
+```{r}
 Eventeinnahmen|>
   knitr::kable(digits = 2)
 ```
 
 ```{r}
 Eventeinnahmen <- Eventeinnahmen|>
-  reframe(`Summe [CHF]` = sum(`Betrag [CHF]`,na.rm = T))
+  reframe(`Summe [CHF]` = sum(`Betrag [CHF]`,na.rm = T) * c_verteilprodukt[ii])
 
 Eventeinnahmen|>
   knitr::kable()
@@ -241,9 +254,11 @@ Alle Ausgaben die für diesen Event, z.B. Ausgaben für Spezialverkaufsartikel, 
 
 ```{r}
 Eventausgaben <- Einnahmen_und_Ausgaben$Ausgaben|>
-  filter(Kategorie == Einnahmen_und_Ausgaben$dropdown$`drop down`[1], Spieldatum == c_Datum)|>
+  filter(Kategorie == Einnahmen_und_Ausgaben$dropdown$`drop down`[1], 
+         Spieldatum %in% c(c_Date[ii], c_linkDatum))|>
   select(Bezeichnung, Betrag)|>
-  rename(`Betrag [CHF]` = Betrag)
+  mutate(`Betrag [CHF]` = Betrag * c_verteilprodukt[ii],
+         Betrag = NULL)
 
 Eventausgaben|>
   knitr::kable(digits = 2)

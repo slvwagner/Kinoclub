@@ -759,46 +759,55 @@ df_GV_Kiosk
 ########################################################################
 
 ii <- 12
+c_Date[ii]
+
 l_GV_Vorfuehrung <- list()
+l_verteilprodukt <- list()
 for (ii in 1:length(c_Date)) {
   # Soll gemeinsam mit einem anderen Datum abgerechnet werden?
   c_linkDatum <- df_Eintritt |>
     filter(Datum == c(c_Date[ii]), Zahlend)|>
     distinct(`Link Datum`)|>
     pull()
+  c_linkDatum
 
   if(!is.na(c_linkDatum)){
     c_verteilprodukt <- df_Verleiher_Rechnnung|>
       filter(Datum == c(c_Date[ii]))|>
-      select(Verteilprodukt)
+      select(Verteilprodukt)|>
+      pull()
     c_verteilprodukt
   }else{
     c_verteilprodukt <- 1
   }
+  l_verteilprodukt[[ii]] <- c_verteilprodukt
   
   # Eventausgaben
   df_Eventausgaben <- Einnahmen_und_Ausgaben$Ausgaben |>
-    filter(Spieldatum == c_Date[ii], Kategorie == Einnahmen_und_Ausgaben$dropdown$`drop down`[1])
+    filter(Kategorie == Einnahmen_und_Ausgaben$dropdown$`drop down`[1])|> # Kategorie Event
+    filter(Spieldatum %in% c(c_Date[ii], c_linkDatum))|>
+    mutate(Betrag = Betrag * c_verteilprodukt)
   df_Eventausgaben
   
   # Sind Event Ausgaben vorhanden
   if(nrow(df_Eventausgaben) < 1) {
     c_Eventausgaben <- 0
   } else {
-    c_Eventausgaben <- sum(df_Eventausgaben$Betrag, na.rm = T)*c_verteilprodukt
+    c_Eventausgaben <- sum(df_Eventausgaben$Betrag, na.rm = T)
   }
   
   # Eventeinnahmen
   df_Eventeinnahmen <- Einnahmen_und_Ausgaben$Einnahmen |>
     filter(Kategorie == Einnahmen_und_Ausgaben$dropdown$`drop down`[1])|> # Kategorie Event
-    filter(Datum %in% c(c_Date[ii], c_linkDatum))
+    filter(Datum %in% c(c_Date[ii], c_linkDatum))|>
+    mutate(Betrag = Betrag * c_verteilprodukt)
   df_Eventeinnahmen
   
   # Sind Event einnahmen vorhanden
   if(nrow(df_Eventeinnahmen) < 1) {
     c_Eventeinnahmen <- 0
   } else {
-    c_Eventeinnahmen <- sum(df_Eventeinnahmen$Betrag, na.rm = T) * c_verteilprodukt
+    c_Eventeinnahmen <- sum(df_Eventeinnahmen$Betrag, na.rm = T)
   }
   
   df_temp <- df_show|>filter(Datum == c_Date[ii])
@@ -810,11 +819,12 @@ for (ii in 1:length(c_Date)) {
     Ende = df_temp$Ende,
     `Suisa Nummer` = c_suisa_nr[ii],
     Filmtitel = df_temp$Filmtitel,
-    `Gewinn/Verlust [CHF]` =round5Rappen(
+    `Gewinn/Verlust [CHF]` = round5Rappen(
       l_GV_Kiosk[[ii]]$Gewinn + l_GV[[ii]]$`Gewinn/Verlust [CHF]` + pull(df_manko_uerberschuss|>filter(Datum == c_Date[ii])) - c_Eventausgaben + c_Eventeinnahmen
     )
   )
 }
+c_verteilprodukt <- unlist(l_verteilprodukt)
 
 df_GV_Vorfuehrung <- l_GV_Vorfuehrung |>
   bind_rows() 
