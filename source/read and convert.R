@@ -569,8 +569,6 @@ for (ii in 1:length(c_Date)) {
   # minimale Abgaben an den Verleiher
   # gemeinsame Abrechnung ?
   if(!is.na(c_linkDatum)){
-    print("Gemeinsame Abrechnung")
-
     c_Verleiher_garantie <- df_verleiherabgaben |>
       filter(Datum %in% c(c_Date[ii], c_linkDatum))|>
       select(`Minimal Abzug`)|>
