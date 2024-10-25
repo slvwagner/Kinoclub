@@ -162,7 +162,9 @@ df_temp <- df_GV_Eintritt|>
 df_temp|>
   rename(`SUISA-Vorabzug [CHF]` = `SUISA-Abzug [CHF]`)|>
   select(`SUISA-Vorabzug [CHF]`, `Verleiher-Abzug [CHF]`)|>
-    knitr::kable(digits = 2)
+  mutate(`Verleiher-Abzug [CHF]` = `Verleiher-Abzug [CHF]` * c_verteilprodukt[ii])|>
+  knitr::kable(digits = 2)
+
 ```
 
 
@@ -179,10 +181,18 @@ if(nrow(df_temp) > 0) {
 ```
 
 ```{r echo=FALSE}
+
+c_linkDatum <- df_Eintritt |>
+  filter(Datum == c(c_Date[ii]), Zahlend) |>
+  distinct(`Link Datum`) |>
+  pull()
+
 df_GV_Eintritt|>
-  filter(Datum == c_Datum & `Suisa Nummer` == c_suisa)|>
+  filter(Datum %in% c(c_Datum, c_linkDatum) & `Suisa Nummer` == c_suisa)|>
   select(`Sonstige Kosten [CHF]`)|>
-  rename(`Reklamematerial und Porto [CHF]` = `Sonstige Kosten [CHF]`)|>
+  mutate(`Reklamematerial und Porto [CHF]` = `Sonstige Kosten [CHF]` * c_verteilprodukt[ii],
+         `Sonstige Kosten [CHF]` = NULL)|>
+  filter(!is.na(`Reklamematerial und Porto [CHF]`))|>
   knitr::kable(digits = 2)
 ```
 
@@ -191,6 +201,7 @@ df_GV_Eintritt|>
 df_GV_Eintritt|>
   slice(ii)|>
   select(`MWST auf die Verleiherrechnung [CHF]`)|>
+  mutate(`MWST auf die Verleiherrechnung [CHF]` = `MWST auf die Verleiherrechnung [CHF]` * c_verteilprodukt[ii])|>
   knitr::kable(digits = 2)
 ```
 
@@ -266,7 +277,7 @@ Eventausgaben|>
 
 ```{r}
 Eventausgaben <- Eventausgaben|>
-  reframe(`Summe [CHF]` = sum(`Betrag [CHF]`,na.rm = T))
+  reframe(`Summe [CHF]` = sum(`Betrag [CHF]`,na.rm = T)|>round5Rappen())
 
 Eventausgaben|>
   knitr::kable()
@@ -275,8 +286,8 @@ Eventausgaben|>
 ### Differenz
 ```{r}
 df_temp <- tibble(Bezeichnung = c("Einnahmen","Ausgaben"),
-       `Betrag [CHF]` = c(Eventeinnahmen|>pull(),
-                          -Eventausgaben|>pull()
+       `Betrag [CHF]` = c(Eventeinnahmen|>pull()|>round5Rappen(),
+                          -Eventausgaben|>pull()|>round5Rappen()
                           )
        )
 
