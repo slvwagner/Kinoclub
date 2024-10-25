@@ -435,6 +435,7 @@ df_Verleiher_Rechnnung <- left_join(
 # Verleiherabgaben sind im Dropdown zu findens
 df_Verleiher_Rechnnung <- df_Verleiher_Rechnnung|>
   full_join(Einnahmen_und_Ausgaben[["Ausgaben"]] |>
+              select(1:5)|>
               filter(Kategorie == Einnahmen_und_Ausgaben[["dropdown"]]$`drop down`[5])|> # Kategorie: Verleiher
               select(-Datum,-Kategorie),
             by = c("Datum" = "Spieldatum")
@@ -714,11 +715,6 @@ df_temp <- df_GV_Eintritt|>
   select(Datum, `Suisa Nummer`, Filmtitel, `Minimal Abzug`)|>
   filter(!is.na(`Minimal Abzug`))
 
-df_temp$Datum %in% df_keine_Rechnnung$Datum
-
-df_temp|>
-  filter(Datum %in% df_keine_Rechnnung$Datum)
-
 if(nrow(df_temp) > 0 ) {
   warning(
     paste0(paste0("\nDer Verleiherrechnungsbetrag ist kleiner als die minimal vereibarte mindest Garantie: ",
@@ -740,7 +736,7 @@ for (ii in 1:length(c_Date)) {
   df_temp <- df_show|>filter(Datum == c_Date[ii])
   
   l_GV_Kiosk[[ii]] <- df_Kiosk|>
-    filter(Datum == c_Date[ii])|>
+    filter(Datum %in% c(c_Date[ii], c_linkDatum))|>
     reframe(Kassiert = sum(Kassiert, na.rm = T),
             Gewinn = sum(Gewinn, na.rm = T))|>
     mutate(Datum = c_Date[ii],
@@ -762,27 +758,47 @@ df_GV_Kiosk
 # Gewinn Filmvorführung
 ########################################################################
 
-ii <- 4
+ii <- 12
 l_GV_Vorfuehrung <- list()
 for (ii in 1:length(c_Date)) {
+  # Soll gemeinsam mit einem anderen Datum abgerechnet werden?
+  c_linkDatum <- df_Eintritt |>
+    filter(Datum == c(c_Date[ii]), Zahlend)|>
+    distinct(`Link Datum`)|>
+    pull()
+
+  if(!is.na(c_linkDatum)){
+    c_verteilprodukt <- df_Verleiher_Rechnnung|>
+      filter(Datum == c(c_Date[ii]))|>
+      select(Verteilprodukt)
+    c_verteilprodukt
+  }else{
+    c_verteilprodukt <- 1
+  }
+  
+  # Eventausgaben
   df_Eventausgaben <- Einnahmen_und_Ausgaben$Ausgaben |>
     filter(Spieldatum == c_Date[ii], Kategorie == Einnahmen_und_Ausgaben$dropdown$`drop down`[1])
   df_Eventausgaben
   
+  # Sind Event Ausgaben vorhanden
   if(nrow(df_Eventausgaben) < 1) {
     c_Eventausgaben <- 0
   } else {
-    c_Eventausgaben <- sum(df_Eventausgaben$Betrag, na.rm = T)
+    c_Eventausgaben <- sum(df_Eventausgaben$Betrag, na.rm = T)*c_verteilprodukt
   }
   
+  # Eventeinnahmen
   df_Eventeinnahmen <- Einnahmen_und_Ausgaben$Einnahmen |>
-    filter(Datum == c_Date[ii], Kategorie == Einnahmen_und_Ausgaben$dropdown$`drop down`[1])
+    filter(Kategorie == Einnahmen_und_Ausgaben$dropdown$`drop down`[1])|> # Kategorie Event
+    filter(Datum %in% c(c_Date[ii], c_linkDatum))
   df_Eventeinnahmen
   
+  # Sind Event einnahmen vorhanden
   if(nrow(df_Eventeinnahmen) < 1) {
     c_Eventeinnahmen <- 0
   } else {
-    c_Eventeinnahmen <- sum(df_Eventeinnahmen$Betrag, na.rm = T)
+    c_Eventeinnahmen <- sum(df_Eventeinnahmen$Betrag, na.rm = T) * c_verteilprodukt
   }
   
   df_temp <- df_show|>filter(Datum == c_Date[ii])
