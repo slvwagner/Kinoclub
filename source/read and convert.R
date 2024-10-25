@@ -502,19 +502,27 @@ l_GV <- list()
 l_Abgaben <- list()
 ii <- 1
 for (ii in 1:length(c_Date)) {
+  # Filtern nach Datum 
+  df_temp <- df_Eintritt |>
+    filter(Datum == c_Date[ii], Zahlend)
   
-  ######################################################################
+  # Soll gemeinsam mit einem anderen Datum abgerechnet werden?
+  c_linkDatum <- distinct(df_temp, `Link Datum`)|>pull()
+  if(!is.na(c_linkDatum)){
+    df_temp <- df_Eintritt |>
+      filter(Datum %in% c(c_Date[ii], c_linkDatum), Zahlend)
+  }
+  
   # Kinoförderer dürfen nicht bei jedem Verleiher als gratis abgerechnet werden und müssen anders behandelt werden. 
   c_Kinofoerder_gratis <- df_Eintritt|>
     filter(Datum == c_Date[ii])|>
     distinct(`Kinoförderer gratis?`)|>
     mutate(`Kinoförderer gratis?` = if_else(`Kinoförderer gratis?` == "ja", T, F))|>
     pull()
-  c_Kinofoerder_gratis
+  c_Kinofoerder_gratis 
   
-  if(!c_Kinofoerder_gratis){ # Kinoförderer müssen abgerechnet werden 
-    df_temp <- df_Eintritt |>
-      filter(Datum == c_Date[ii], Zahlend) |>
+  if(!c_Kinofoerder_gratis){ 
+    df_temp <- df_temp |>
       bind_rows(
         df_Eintritt |>
           filter(Datum == c_Date[ii], Platzkategorie %in% df_P_kat_verechnen$Kinoförderer )|>
@@ -524,10 +532,10 @@ for (ii in 1:length(c_Date)) {
           )
       )|>
       mutate(Umsatz = if_else(is.na(Abrechnungspreis), Umsatz, Abrechnungspreis *  Anzahl))|>
-      select(-Abrechnungspreis)
-    df_temp
+      select(-Abrechnungspreis)|>
+      arrange(Datum)
     
-    c_Besucher <- df_temp|>
+    c_Besucher <- df_Eintritt|>
       reframe(Anzahl = sum(Anzahl))|>
       pull()
     c_Besucher
@@ -540,16 +548,11 @@ for (ii in 1:length(c_Date)) {
     
     ##Brutto
     c_Brutto <- df_temp |>
-      filter(Datum == c_Date[ii]) |>
       reframe(Umsatz = sum(Umsatz)) |>
       pull()
     c_Brutto
     
   } else { # Kinoföderer sind gratis
-    
-    df_temp <- df_Eintritt |>
-      filter(Datum == c_Date[ii], Zahlend) 
-    df_temp
     
     c_Besucher <- df_Eintritt |>
       filter(Datum == c_Date[ii]) |>
@@ -565,39 +568,48 @@ for (ii in 1:length(c_Date)) {
     
     ##Brutto
     c_Brutto <- df_temp |>
-      filter(Datum == c_Date[ii]) |>
       reframe(Umsatz = sum(Umsatz)) |>
       pull()
     c_Brutto
   } 
   
-  c_Umsatz <- df_Eintritt |>
-    filter(Datum == c_Date[ii]) |>
+  c_Umsatz <- df_temp |>
     reframe(Umsatz = sum(Umsatz)) |>
     pull()
   c_Umsatz
   
   l_Abgaben[[ii]] <- df_temp
-  df_temp <- l_Abgaben[[ii]]
   
   c_suisaabzug <- (distinct(df_Eintritt |> 
                               filter(Datum == c_Date[ii]), `SUISA-Vorabzug`) |>
                      pull()) / 100
   c_suisaabzug
-  
+
   ## Netto 3
   c_Netto3 <- c_Brutto - round5Rappen(c_Brutto * c_suisaabzug)
   c_Netto3
   
-  df_Eintritt|> filter(Datum == c_Date[ii])
-  
   # minimale Abgaben an den Verleiher
-  c_Verleiher_garantie <- df_verleiherabgaben |>
-    filter(Datum == c_Date[ii])|>
-    select(`Minimal Abzug`)|>
-    pull()
+  # gemeinsame Abrechnung ?
+  if(!is.na(c_linkDatum)){
+    print("Gemeinsame Abrechnung")
+
+    c_Verleiher_garantie <- df_verleiherabgaben |>
+      filter(Datum %in% c(c_Date[ii], c_linkDatum))|>
+      select(`Minimal Abzug`)|>
+      pull()
+    c_Verleiher_garantie <- c_Verleiher_garantie[1]
+    
+  }else{
+
+    c_Verleiher_garantie <- df_verleiherabgaben |>
+      filter(Datum == c_Date[ii])|>
+      select(`Minimal Abzug`)|>
+      pull()
+  }
   c_Verleiher_garantie
   
+  # error handling
   if(length(c_Verleiher_garantie) > 1) {
     print(df_verleiherabgaben |>
             filter(Datum == c_Date[ii]))
@@ -611,6 +623,7 @@ for (ii in 1:length(c_Date)) {
   
   ##################################################
   # Abzug fix oder prozentual 
+  # Definition in der Datei: .../Kinoklub/Input/Verleiherabgaben.xlsx
   if(is.na(c_verleiherabzug_prozent)) { # Abzug fix
     c_Verleiherabzug <- distinct(df_Eintritt |> 
                                    filter(Datum == c_Date[ii]), `Abzug fix [CHF]`
@@ -706,7 +719,7 @@ df_GV_Eintritt
 ###
 df_Abgaben <- l_Abgaben|>
   bind_rows()|>
-  bind_rows(df_Eintritt|> # 
+  bind_rows(df_temp|> # 
               filter(!Zahlend, !(Platzkategorie %in% df_P_kat_verechnen$Kinoförderer )))|>
   mutate(Verkaufspreis = if_else(Platzkategorie == df_P_kat_verechnen$Kinoförderer, df_P_kat_verechnen$Verkaufspreis, Verkaufspreis)
   )
