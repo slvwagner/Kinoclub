@@ -304,4 +304,4 @@ remove(df_Mapping_Einkaufspreise,l_Kiosk, l_Einkaufspreise,
        c_path, c_fileDate, c_files)
 
 ## User interaction
-writeLines("\nKiosk data read")
+writeLines("\nKiosk eingelesen")
