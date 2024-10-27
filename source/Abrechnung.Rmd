@@ -6,6 +6,8 @@ output:
 ---
 
 ```{r setup, include=FALSE}
+library(tidyverse)
+library(lubridate)
 knitr::opts_chunk$set(echo = FALSE)
 act_date <- Sys.time()|>as.Date()
 act_date <- paste0(day(act_date),".", month(act_date),".", year(act_date))
@@ -14,7 +16,7 @@ act_date <- paste0(day(act_date),".", month(act_date),".", year(act_date))
 Bericht wurde am `r act_date` erstellt.
 
 ```{r variablen, include=FALSE}
-ii <- 22
+ii <- 12
 ```
 
 ```{r echo=FALSE}
@@ -23,6 +25,16 @@ df_mapping <- tibble(Datum = c_Date)|>
          index = row_number())
 
 c_Datum <- c_Date[ii]
+
+c_verteilprodukt <- df_Abrechnung|>
+  filter(Datum == c_Date[ii])|>
+  select(Verteilprodukt)|>
+  pull()
+
+ c_linkDatum <- df_Abrechnung|>
+  filter(Datum == c_Date[ii])|>
+   select(`Link Datum`)|>
+   pull()
 
 c_suisa <- df_show|>
   filter(Datum == c_Date[ii])|>
@@ -122,19 +134,19 @@ df_temp <- df_keine_Rechnnung|>
 if(nrow(df_temp) > 0) {
   writeLines("Achtung es gibt noch keine Verleiherabrechnung für diesen Film.")
 }else{
-  df_temp <-df_Verleiher_Rechnnung |>
-    slice(ii)|>
-    mutate(`Link Datum` = ymd(`Link Datum`))
+  df_temp <-df_Abrechnung |>
+    filter(Datum %in% c(c_Date[ii], c_linkDatum))|>
+    mutate(Firmennamen = Firmennamen[!is.na(Firmennamen)])|>
+    filter(Datum == c_Date[ii])
   df_temp
-  
-  df_temp|>
-    select(Verleiher, Betrag)|>
-    knitr::kable(digits = 2)
-  
   paste("Dieser Film wird zusammen mit diesem Datum", 
         paste0(lubridate::day(df_temp$`Link Datum`),".",lubridate::month(df_temp$`Link Datum`),".",lubridate::year(df_temp$`Link Datum`)), 
         "abgerechnet.")|>
     writeLines()
+  
+  df_temp|>
+    select(Firmennamen, Verleiherrechnungsbetrag)|>
+    knitr::kable()
 }
 ```
 
@@ -154,7 +166,7 @@ Der Abgabeprozentsatz ist für jeden Film und Spielwoche mit dem jeweiligen Verl
 df_temp <- df_GV_Eintritt|>
   filter(Datum == c_Datum & `Suisa Nummer` == c_suisa)|>
   mutate(`Total Abgaben [CHF]` = sum(`SUISA-Abzug [CHF]`,`Verleiher-Abzug [CHF]`,na.rm = T))|>
-    select(-Datum,-Anfang,-`Suisa Nummer`,-Filmtitel)|>
+  select(-Datum,-Anfang,-`Suisa Nummer`,-Filmtitel)|>
   rename(`Umsatz [CHF]` = Brutto)
 ```
 
@@ -162,7 +174,7 @@ df_temp <- df_GV_Eintritt|>
 df_temp|>
   rename(`SUISA-Vorabzug [CHF]` = `SUISA-Abzug [CHF]`)|>
   select(`SUISA-Vorabzug [CHF]`, `Verleiher-Abzug [CHF]`)|>
-  mutate(`Verleiher-Abzug [CHF]` = `Verleiher-Abzug [CHF]` * c_verteilprodukt[ii])|>
+  mutate(`Verleiher-Abzug [CHF]` = `Verleiher-Abzug [CHF]` * c_verteilprodukt)|>
   knitr::kable(digits = 2)
 
 ```
@@ -188,9 +200,9 @@ c_linkDatum <- df_Eintritt |>
   pull()
 
 df_GV_Eintritt|>
-  filter(Datum %in% c(c_Datum, c_linkDatum) & `Suisa Nummer` == c_suisa)|>
+  filter(Datum %in% c(c_Datum) & `Suisa Nummer` == c_suisa)|>
   select(`Sonstige Kosten [CHF]`)|>
-  mutate(`Reklamematerial und Porto [CHF]` = `Sonstige Kosten [CHF]` * c_verteilprodukt[ii],
+  mutate(`Reklamematerial und Porto [CHF]` = `Sonstige Kosten [CHF]` * c_verteilprodukt,
          `Sonstige Kosten [CHF]` = NULL)|>
   filter(!is.na(`Reklamematerial und Porto [CHF]`))|>
   knitr::kable(digits = 2)
@@ -201,7 +213,7 @@ df_GV_Eintritt|>
 df_GV_Eintritt|>
   slice(ii)|>
   select(`MWST auf die Verleiherrechnung [CHF]`)|>
-  mutate(`MWST auf die Verleiherrechnung [CHF]` = `MWST auf die Verleiherrechnung [CHF]` * c_verteilprodukt[ii])|>
+  mutate(`MWST auf die Verleiherrechnung [CHF]` = `MWST auf die Verleiherrechnung [CHF]` * c_verteilprodukt)|>
   knitr::kable(digits = 2)
 ```
 
@@ -251,7 +263,7 @@ Eventeinnahmen|>
 
 ```{r}
 Eventeinnahmen <- Eventeinnahmen|>
-  reframe(`Summe [CHF]` = sum(`Betrag [CHF]`,na.rm = T) * c_verteilprodukt[ii])
+  reframe(`Summe [CHF]` = sum(`Betrag [CHF]`,na.rm = T) * c_verteilprodukt)
 
 Eventeinnahmen|>
   knitr::kable()
@@ -267,7 +279,7 @@ Eventausgaben <- Einnahmen_und_Ausgaben$Ausgaben|>
   filter(Kategorie == Einnahmen_und_Ausgaben$dropdown$`drop down`[1], 
          Spieldatum %in% c(c_Date[ii], c_linkDatum))|>
   select(Bezeichnung, Betrag)|>
-  mutate(`Betrag [CHF]` = Betrag * c_verteilprodukt[ii],
+  mutate(`Betrag [CHF]` = Betrag * c_verteilprodukt,
          Betrag = NULL)
 
 Eventausgaben|>
