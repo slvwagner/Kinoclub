@@ -273,7 +273,9 @@ try(c_raw <- list.files(pattern = "Shows", recursive = T)|>
       suppressWarnings(),
     outFile = "error.log"
 )
-if(length(list.files(pattern = "error.log"))>0) stop("\nEs sind nicht alle shows vorhanden: \nDatei .../Kinoklub/input/advance tickets/Shows.txt nicht gefunden. \nBitte herunterladen und abspeichern.")
+if(length(list.files(pattern = "error.log"))>0) {
+  stop("\nEs sind nicht alle shows vorhanden: \nDatei .../Kinoklub/input/advance tickets/Shows.txt nicht gefunden. \nBitte herunterladen und abspeichern.")
+  }
 
 c_select <- tibble(found = str_detect(c_raw, "Tag"))|>
   mutate(index = row_number(),

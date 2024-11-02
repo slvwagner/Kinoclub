@@ -52,17 +52,58 @@ df_Abrechnung <- df_Abrechnung|>
     by = join_by(`Suisa Nummer`)
   )
 
+# Berechnung der Netto 3 und verteilter Umsatz für gemeinsame Abrechnungen
+# Berechnugn der Verleiherabgaben, MWST, Reklame , Porto und Versand
 df_Abrechnung <- df_Abrechnung|>
   mutate(Verteilprodukt = if_else(!is.na(Umsatz_), Umsatz / Umsatz_, 1),
          Verleiherrechnungsbetrag_verteilt = Verleiherrechnungsbetrag * Verteilprodukt)|>
   arrange(desc(Datum))|>
   mutate(`SUISA-Vorabzug [CHF]` = Umsatz_ * (`SUISA-Vorabzug`/100)*Verteilprodukt,
-         `SUISA-Vorabzug [CHF]` = if_else(is.na(`SUISA-Vorabzug [CHF]`),
+         `SUISA-Vorabzug [CHF]` = if_else(is.na(Umsatz_),
                                           Umsatz * (`SUISA-Vorabzug`/100),
-                                          `SUISA-Vorabzug [CHF]`
+                                          Umsatz_ * (`SUISA-Vorabzug`/100)
                                           ),
-         `Netto 3` = (Umsatz - `SUISA-Vorabzug [CHF]`)*Verteilprodukt
+         `Netto 3` = if_else(is.na(Umsatz_), Umsatz - `SUISA-Vorabzug [CHF]`,Umsatz_ - `SUISA-Vorabzug [CHF]`),
+         Verleiherabgaben = if_else(is.na(`Abzug fix [CHF]`), 
+                                    `Netto 3` * `Abzug [%]` / 100,
+                                    `Abzug fix [CHF]`
+                                    ),
+         Verleiherabgaben = if_else(Verleiherabgaben <= `Minimal Abzug` & !is.na(`Minimal Abzug`),
+                                    `Minimal Abzug`,
+                                    Verleiherabgaben ),
+         `MWST auf Verleiherabgaben` = if_else(is.na(Verleiherrechnungsbetrag),
+                                               round5Rappen(Verleiherabgaben - (Verleiherabgaben / (1 + (c_MWST / 100)))),
+                                               Verleiherabgaben * c_MWST / 100),
+         `Reklame, Porto, Versand` = if_else(is.na(Verleiherrechnungsbetrag),
+                                             NA,
+                                             Verleiherrechnungsbetrag - (Verleiherabgaben  + `MWST auf Verleiherabgaben`))
          )
+
+# Gewinn Verlust sind unterschiedlich zu berechnen wenn Verleiherrechnung vorhanden ist.
+df_Abrechnung <- df_Abrechnung|>
+  mutate(Umsatz_ =  if_else(is.na(Umsatz_),
+                            Umsatz,
+                            Umsatz_),
+         `Gewinn / Verlust` = if_else(is.na(Verleiherrechnungsbetrag),
+                                      (Verleiherabgaben + `MWST auf Verleiherabgaben`),
+                                      Umsatz_-Verleiherrechnungsbetrag
+                                      )
+         )
+
+# Verteilen bei gemeinsamer Abrechnung 
+df_temp <- df_Abrechnung|>
+  select(`SUISA-Vorabzug [CHF]`, `Netto 3`, Verleiherabgaben, `MWST auf Verleiherabgaben`, `Reklame, Porto, Versand`, `Gewinn / Verlust`)|>
+  apply(2, function(x){
+    x*df_Abrechnung$Verteilprodukt
+  })|>
+  as_tibble()
+
+names(df_temp) <- paste0(names(df_temp),"_verteilt")
+df_temp
+
+df_Abrechnung <- df_Abrechnung|>
+  bind_cols(df_temp)
+
 
 #############################################################
 # error handling
@@ -100,6 +141,24 @@ if(nrow(df_temp)>0) {
                  )
           )  
 }
+
+
+
+########################################################################
+# error handling
+# Es darf nur einen Eintrag pro Film geben in der Abrechnung
+df_temp <- df_Abrechnung|>
+  group_by(Datum)|>
+  reframe(n = n())|>
+  left_join(df_Abrechnung|>
+              select(Datum, Filmtitel, `Suisa Nummer`),
+            by = join_by(Datum))|>
+  filter(n > 1)
+
+if(nrow(df_temp) > 1) {
+  print(df_temp)
+  stop("In der Datei .../input/Verleiherabgaben.xlsx gibt es mehrere Filme am selben Datum")}
+
 
 ########################################################################
 # Gewinn/Verlust Eintitt
