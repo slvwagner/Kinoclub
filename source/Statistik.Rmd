@@ -908,4 +908,3 @@ df_temp|>
   labs(title = "Umsatz pro zahlender Gast aus Kioskverkäufen",y = "Kumulierter Umsatz [CHF]")+
   my_template
 ```
-
