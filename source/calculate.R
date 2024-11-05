@@ -1,179 +1,248 @@
 
 source("source/read and convert.R")
 
+#########################################################################################################
+# Kinotickes
+#########################################################################################################
 df_Kinopreise <- df_Eintritt|>
   distinct(Platzkategorie, .keep_all = T)|>
   select(Platzkategorie, Verkaufspreis)
-
 df_Kinopreise
 
 #########################################################################################################
-# Einnahmen und Abgaben von mehreren Events verhältnismässig nach Besucherzahlen 
-# auf die gelinkten Filme aufteilen (Link im Excel file: .../Kinoklub/Input/Verleiherabgaben.xlsx ) 
+# Ticketabrechnung vorbereiten
 #########################################################################################################
 df_Abrechnung <- df_Eintritt|>
   distinct(Datum, `Suisa Nummer`, .keep_all = TRUE)|>
   select(-(4:8))|>
-  select(-Adresse, -PLZ, -Ort, -Titel, -Verleiher)|>
+  left_join(df_show|>
+              select(Datum, `Suisa Nummer`, Anfang, Ende),
+            by = join_by(Datum, `Suisa Nummer`))|>
   left_join( # Verleiherrechnungen 
     Einnahmen_und_Ausgaben[["Ausgaben"]]|>
       filter(Kategorie == Einnahmen_und_Ausgaben[["dropdown"]]$`drop down`[5])|> # suchen nach den Verleiher Einträgen
       select(-Kategorie,-Datum, -Bezeichnung)|>
-      select(1:4)|>
+      select(1:2)|>
       rename(Verleiherrechnungsbetrag = Betrag,
              Datum = Spieldatum),
     by = join_by(Datum)
-  )#|>
-  # mutate(`Kinoförderer gratis?` = if_else(`Kinoförderer gratis?` == "nein",F,T))
+  )
 df_Abrechnung
 
 #########################################################################################################
-# join `Kinoförderer gratis?`
-df_Eintritt <- df_Abrechnung|>
-  select(Datum, `Suisa Nummer`, Filmtitel, `Kinoförderer gratis?`)|>
-  left_join(df_Eintritt,
-            by = join_by(Datum, `Suisa Nummer`, Filmtitel, `Kinoförderer gratis?`))
-
-df_Eintritt <- df_Eintritt|>
-  mutate(`Kinoförderer gratis?` = if_else(`Kinoförderer gratis?` == "nein", F, T),
-         Zahlend = if_else(Verkaufspreis>0, T, F))
-
-# Kinoförderer müssen abgerechnet werden für "Netto 3" Umsatz
+# Je nach Verleiher müssen die Kinoförderer als Umsatz abgerechnet werden. 
+# Für die Berechnung von "Netto 3" müssen die Kinoförder als Umsatz verrechnet werden.
+# Netto 3 = Umsatz minus SUISA-Vorabzug.
+#########################################################################################################
 df_Eintritt <- bind_rows(
   df_Eintritt|>
-  filter(!`Kinoförderer gratis?`)|>
-  mutate(`Umsatz für Netto3` = if_else(Platzkategorie == df_P_kat_verechnen$Kinoförderer,
-                                       Anzahl * df_P_kat_verechnen$Verkaufspreis,
-                                       Umsatz )
-  )|>
-  select(Datum, `Suisa Nummer`, Filmtitel, `Kinoförderer gratis?`, `Link Datum`, Platzkategorie, Verkaufspreis, Anzahl, Umsatz, `Umsatz für Netto3`, Zahlend),
-  
+    filter(!`Kinoförderer gratis?`)|>
+    mutate(`Umsatz für Netto3` = if_else(Platzkategorie == df_P_kat_verechnen$Kinoförderer,
+                                         Anzahl * df_P_kat_verechnen$Verkaufspreis,
+                                         Umsatz
+                                         )
+    ),
   df_Eintritt|>
     filter(`Kinoförderer gratis?`)|>
-    mutate(`Umsatz für Netto3` = Umsatz)|>
-    select(Datum, `Suisa Nummer`, Filmtitel, `Kinoförderer gratis?`, `Link Datum`, Platzkategorie, Verkaufspreis, Anzahl, Umsatz, `Umsatz für Netto3`, Zahlend)
-)
-
-
+    mutate(`Umsatz für Netto3` = Umsatz)
+)|>
+  arrange(desc(Datum))
 
 #########################################################################################################
-# Verleiherrechnung
+# Abrechnungsperiode erstellen
+#########################################################################################################
+l_abrechnung <- list()
+for (ii in 1:length(c_Date)) {
+  l_abrechnung[[ii]] <- list(Abrechnung = df_Abrechnung|>
+                               filter(Datum %in% c(c_Date[ii], df_Abrechnung$`Link Datum`[ii])),
+                             Tickets = df_Eintritt|>
+                               filter(Datum %in% c(c_Date[ii], df_Abrechnung$`Link Datum`[ii])),
+                             Kiosk = tibble(),
+                             Eventeinnahmen = tibble(),
+                             Eventausgaben = tibble()
+                             )
+}
+names(l_abrechnung) <- c_Date
 
-df_Abrechnung <- df_Abrechnung|>
-  left_join(df_Eintritt|>
-              group_by(Datum, `Suisa Nummer`)|>
-              reframe(Umsatz = sum(Umsatz),
-                      `Umsatz für Netto3` = sum(`Umsatz für Netto3`)),
-            by = join_by(Datum, `Suisa Nummer`)
+#########################################################################################################
+# Einnahmen und Abgaben von mehreren Events verhältnismässig nach Umsatzzahlen 
+# auf die gelinkten Filme aufteilen (Link im Excel file: .../Kinoklub/Input/Verleiherabgaben.xlsx ) 
+#########################################################################################################
+ii <- 1
+
+for (ii in 1:length(c_Date)) {
+  ########################################################################
+  # Tickets
+  ########################################################################
+  # Verleiherrechnung vorhanden?
+  if(l_abrechnung[[ii]]$Abrechnung$Verleiherrechnungsbetrag|>sum(na.rm = T) > 0) {
+    # Gemeinsame Abrechnung (Datum und link Datum): Verleiherrechnung wir auch auf dem Linkdatum eingetragen
+    c_Verleiherrechnungsbetrag <- l_abrechnung[[ii]]$Abrechnung$Verleiherrechnungsbetrag[!is.na(l_abrechnung[[ii]]$Abrechnung$Verleiherrechnungsbetrag)]
+    l_abrechnung[[ii]]$Abrechnung$Verleiherrechnungsbetrag <- rep(c_Verleiherrechnungsbetrag, length(l_abrechnung[[ii]]$Abrechnung$Verleiherrechnungsbetrag))
+  }else{
+    # Error handling: Keine Verleiherrechnung vorhanden
+    warning(paste0("\nAchtung für die diesen Film \"", l_abrechnung[[ii]]$Abrechnung$Filmtitel,"\" am ",
+                   day(l_abrechnung[[ii]]$Abrechnung$Datum),".",month(l_abrechnung[[ii]]$Abrechnung$Datum),".", lubridate::year(l_abrechnung[[ii]]$Abrechnung$Datum)," gibt es keine Verleiherrechnung.",
+                   "\nBitte korrigieren in der Datei:",
+                   "\n.../Kinokulb/input/Einnahmen und Ausgaben.xlsx\n")
             )
-
-
-#########################################################################################################
-# Gemeinsame Abrechnung 
-
-df_Abrechnung <- df_Abrechnung |>
-  left_join(
-    df_Abrechnung |>
-      group_by(`Suisa Nummer`) |>
-      filter(!is.na(`Link Datum`)) |>
-      reframe(
-        Verleiherrechnungsbetrag_ = sum(Verleiherrechnungsbetrag, na.rm = T)
-      ),
-    join_by(`Suisa Nummer`)
-  )|>
-  mutate(
-    Verleiherrechnungsbetrag = if_else(
-      is.na(Verleiherrechnungsbetrag),
-      Verleiherrechnungsbetrag_ ,
-      Verleiherrechnungsbetrag
-    )
-  ) |>
-  select(-Verleiherrechnungsbetrag_) |>
-  mutate(`keine Verleiherrechnung` = if_else(is.na(Verleiherrechnungsbetrag), T, F),
-         `Kinoförderer gratis?` = if_else(`Kinoförderer gratis?` == "nein", F, T))
-df_Abrechnung
-
-#########################################################################################################
-# Berechung des Verteilerproduktes
-df_Abrechnung <- df_Abrechnung|>
-  left_join(
-    df_Abrechnung|>
-      filter(!is.na(`Link Datum`))|>
-      group_by(`Suisa Nummer`)|>
-      reframe(Umsatz_ = sum(Umsatz),
-              `Umsatz für Netto3_` = sum(`Umsatz für Netto3`)),
-    by = join_by(`Suisa Nummer`)
-  )|>
-  mutate(Verteilprodukt = if_else(!is.na(Umsatz_), Umsatz / Umsatz_, 1),
-         Verteilprodukt = if_else(`Kinoförderer gratis?`, Umsatz, `Umsatz für Netto3` /  `Umsatz für Netto3_`), # Kinoförderer gratis?
-         Verleiherrechnungsbetrag_verteilt = Verleiherrechnungsbetrag * Verteilprodukt)|>
-  mutate(Umsatz_ = if_else(is.na(Umsatz_),
-                           Umsatz,
-                           Umsatz_),
-  `Umsatz für Netto3` = if_else(is.na(!`Umsatz für Netto3_`),
-                                `Umsatz für Netto3`,
-                                `Umsatz für Netto3_`)
-  )|>
-  mutate(`Umsatz für Netto3` = if_else(is.na(`Umsatz für Netto3_`),
-                                        `Umsatz für Netto3`,
-                                        `Umsatz für Netto3_`)
-  )|>
-  arrange(desc(Datum))
-
-# Netto 3, suisa-vorabzug
-df_Abrechnung <-  df_Abrechnung|>
-  mutate(Verteilprodukt = if_else(!is.na(`Kinoförderer gratis?`), 
-                                  Umsatz / Umsatz_, 
-                                  `Umsatz für Netto3` / `Umsatz für Netto3_`),
-         Verleiherrechnungsbetrag_verteilt = Verleiherrechnungsbetrag * Verteilprodukt,
-         `Umsatz für Netto3_` = NULL,
-         `SUISA-Vorabzug [CHF]` = `Umsatz für Netto3` * (`SUISA-Vorabzug` / 100),
-         Verleiherabgaben = if_else(is.na(`Abzug [%]`),
-                                    `Abzug fix [CHF]`- `SUISA-Vorabzug [CHF]`,
-                                    (`Umsatz für Netto3` - `SUISA-Vorabzug [CHF]`)* `Abzug [%]` / 100)
-         )|>
-  arrange(desc(Datum))
-
-########################################################################
-# Gewinn/Verlust Eintitt
-########################################################################
-df_Abrechnung <- df_Abrechnung|>
-  mutate(MWST = if_else(`keine Verleiherrechnung`,
-                        round5Rappen(Verleiherabgaben - (Verleiherabgaben / (1 + (c_MWST / 100)))),
-                        Verleiherabgaben * c_MWST / 100),
-         `Gewinn/Verlust [CHF]` = (Umsatz_ - Verleiherabgaben - MWST) * Verteilprodukt # Der Gewinn wird verteilt
-         )|>
-  left_join(df_show,
-            by = join_by(Datum, Filmtitel, `Suisa Nummer`))|>
-  mutate(`Sonstige Kosten [CHF]` = Verleiherrechnungsbetrag - MWST)
+  }
   
+  # Berechnung Umsatz für Netto3 (für gemeinsame Abrechnung verwendet)
+  l_abrechnung[[ii]]$Abrechnung <- 
+    bind_cols(
+      l_abrechnung[[ii]]$Abrechnung,
+      l_abrechnung[[ii]]$Tickets|>
+        group_by(Datum)|>
+        reframe(Umsatz = sum(Umsatz),
+                `Umsatz für Netto3` = sum(`Umsatz für Netto3`))|>
+        select(-Datum)
+    )  
+  
+  # Ticketumsatz für Verteilprodukt berechnen
+  l_abrechnung[[ii]]$Abrechnung <- 
+    bind_cols(l_abrechnung[[ii]]$Abrechnung,
+              l_abrechnung[[ii]]$Abrechnung|>
+                reframe(`Umsatz total`= sum(Umsatz),
+                        `Umsatz für Netto3 total`= sum(`Umsatz für Netto3`))
+              )
 
-names(df_Abrechnung)
+  c_suisa_vorabzug <- 
+    l_abrechnung[[ii]]$Tickets|>
+    distinct(`SUISA-Vorabzug`)|>
+    pull()
+  c_suisa_vorabzug
+  
+  c_minimal_abzug <- 
+    l_abrechnung[[ii]]$Tickets|>
+    distinct(`Minimal Abzug`)|>
+    pull()
+  c_minimal_abzug
+  
+  c_abzug_prozent <- 
+    l_abrechnung[[ii]]$Tickets|>
+    distinct(`Abzug [%]`)|>
+    pull()
+  c_abzug_prozent
+  
+  c_abzug_fix <- 
+    l_abrechnung[[ii]]$Tickets|>
+    distinct(`Abzug fix [CHF]`)|>
+    pull()
+  c_abzug_fix
+  
+  c_Verleiherrechnungsbetrag <- l_abrechnung[[ii]]$Abrechnung|>
+    distinct(Verleiherrechnungsbetrag)|>
+    pull()
+  
+  ########################################################################
+  # Berechnen Verteilerproduckt (Verteilprodukt ist vom Netto3 abhängig)
+  # Netto3 = Umsatz - suisa vorabzug
+  # MWST
+  # Verleiherabgaben  
+  ########################################################################
+  
+  if(l_abrechnung[[ii]]$Abrechnung$`Abzug fix [CHF]`|>sum(na.rm = T) > 0){
+    l_abrechnung[[ii]]$Abrechnung <-  l_abrechnung[[ii]]$Abrechnung|>
+      mutate(Verteilprodukt = `Umsatz für Netto3` / `Umsatz für Netto3 total`,
+             Netto3 = `Umsatz für Netto3 total`- (`Umsatz für Netto3 total` * `SUISA-Vorabzug` / 100),
+             Verleiherabgaben = if_else(is.na(c_abzug_prozent), # Prozentualer oder fixer Verleiherabzug
+                                        c_abzug_fix,
+                                        Netto3[1] * c_abzug_prozent / 100 # Prozentualerabzug
+             ),
+             `MWST [CHF]` = if_else(is.na(Verleiherrechnungsbetrag),
+                                    (Verleiherabgaben * c_MWST /100)* Verteilprodukt,
+                                    (Verleiherabgaben - Verleiherabgaben / (1 + (c_MWST / 100))) * Verteilprodukt
+             ),
+             `Sonstige Kosten [CHF]` = (Verleiherrechnungsbetrag - (Verleiherabgaben - `MWST [CHF]`)) * Verteilprodukt,
+             `Gewinn/Verlust [CHF]` = (Umsatz - (Verleiherabgaben * Verteilprodukt)) * Verteilprodukt
+      )
+  }else{
+    l_abrechnung[[ii]]$Abrechnung  <- l_abrechnung[[ii]]$Abrechnung|>
+      mutate(Verteilprodukt = `Umsatz für Netto3` / `Umsatz für Netto3 total`,
+             Netto3 = `Umsatz für Netto3 total`- (`Umsatz für Netto3 total` * `SUISA-Vorabzug` / 100),
+             Verleiherabgaben = if_else(is.na(c_abzug_prozent), # Prozentualer oder fixer Verleiherabzug
+                                        c_abzug_fix,
+                                        Netto3[1] * c_abzug_prozent / 100 # Prozentualerabzug
+             ),
+             Verleiherabgaben = if_else(Verleiherabgaben > c_minimal_abzug,
+                                        Verleiherabgaben * Verteilprodukt,
+                                        c_minimal_abzug * Verteilprodukt
+             ),
+             `MWST [CHF]` = if_else(is.na(Verleiherrechnungsbetrag),
+                                    (Verleiherabgaben * c_MWST /100)* Verteilprodukt,
+                                    (Verleiherabgaben - Verleiherabgaben / (1 + (c_MWST / 100))) * Verteilprodukt
+             ),
+             `Sonstige Kosten [CHF]` = (Verleiherrechnungsbetrag - (Verleiherabgaben - `MWST [CHF]`)) * Verteilprodukt,
+             `Gewinn/Verlust [CHF]` = (Umsatz - (Verleiherabgaben * Verteilprodukt)) * Verteilprodukt
+      )
+  }
 
-df_Abrechnung|>
-  select(Datum ,Filmtitel,
-         `Suisa Nummer`, "Minimal Abzug" ,"Abzug [%]","Abzug fix [CHF]", Umsatz, `Umsatz für Netto3`,`SUISA-Vorabzug [CHF]`, Verleiherabgaben )
+  df_Verteilprodukt <- l_abrechnung[[ii]]$Abrechnung|>
+    select(Datum, Verteilprodukt)
+  df_Verteilprodukt
 
-df_GV_Eintritt <- df_Abrechnung
+  ########################################################################
+  # Eventeinnahmen (werden verteilt bei gemeinsamer Abrechnung)
+  ########################################################################
+  l_abrechnung[[ii]]$Eventeinnahmen <-
+    Einnahmen_und_Ausgaben$Einnahmen|>
+    filter(Datum == c_Date[ii])|>
+    mutate(Betrag = df_Verteilprodukt|>
+             filter(Datum %in% c(df_Verteilprodukt$Datum ,c_Date[ii]))|>
+             select(Verteilprodukt)|>
+             pull() * Betrag
+           )
 
-#############################################################
-# error handling
-# keine Rechnung vorhanden
-df_keine_Rechnnung <- df_Abrechnung|>
-  filter(`keine Verleiherrechnung`)
-df_keine_Rechnnung
-
-# error handling, keine Verleiherrechnung
-if(nrow(df_keine_Rechnnung)>0) {
-  warning(paste0("\nAchtung für die diesen Film \"", df_keine_Rechnnung$Filmtitel,"\" am ",
-                 day(df_keine_Rechnnung$Datum),".",month(df_keine_Rechnnung$Datum),".", lubridate::year(df_keine_Rechnnung$Datum)," gibt es keine Verleiherrechnung.",
-                 "\nBitte korrigieren in der Datei:",
-                 "\n.../Kinokulb/input/Einnahmen und Ausgaben.xlsx\n"
-  )
-  )  
+  ########################################################################
+  # Eventausgaben (werden verteilt bei gemeinsamer Abrechnung)
+  ########################################################################
+  l_abrechnung[[ii]]$Eventausgaben <-
+    Einnahmen_und_Ausgaben$Ausgaben |>
+    filter(Datum %in% c(df_Verteilprodukt$Datum ,c_Date[ii]))|>
+    mutate(Betrag = df_Verteilprodukt|>
+             filter(Datum == c_Date[ii])|>
+             select(Verteilprodukt)|>
+             pull() * Betrag
+           )
+  
+  ########################################################################
+  # Gewinn Kiosk (wird nie verteilt, da der Verkauf pro Datum erfolgt)
+  ########################################################################
+  l_abrechnung[[ii]]$Kiosk <- 
+    df_Kiosk|>
+    filter(Datum %in% c(c_Date[ii]))|>
+    reframe(Kassiert = sum(Kassiert, na.rm = T),
+            Gewinn = sum(Gewinn, na.rm = T))|>
+    mutate(Datum = c_Date[ii],
+           `Suisa Nummer` = c_suisa_nr[ii]
+    )|>
+    left_join(df_show|>
+                select(Datum, Filmtitel),
+              by = join_by(Datum)
+              )
+  
+  ########################################################################
+  # Gewinn Filmvorführung
+  ########################################################################
+  l_abrechnung[[ii]]$Abrechnung <- l_abrechnung[[ii]]$Abrechnung|>
+    mutate(Datum = l_abrechnung[[ii]]$Abrechnung$Datum,
+           `Suisa Nummer` = l_abrechnung[[ii]]$Abrechnung$`Suisa Nummer`,
+           Filmtitel = l_abrechnung[[ii]]$Abrechnung$Filmtitel,
+           `Gewinn Tickets [CHF]`= l_abrechnung[[ii]]$Abrechnung$`Gewinn/Verlust [CHF]`,
+           `Gewinn Kiosk [CHF]` = l_abrechnung[[ii]]$Kiosk$Gewinn,
+           Eventeinnahmen = l_abrechnung[[ii]]$Eventeinnahmen|>
+             reframe(sum(Betrag))|>
+             pull() * df_Verteilprodukt$Verteilprodukt,
+           Eventausgaben = l_abrechnung[[ii]]$Eventausgaben|>reframe(sum(Betrag))|>
+             pull() * df_Verteilprodukt$Verteilprodukt,
+           `Gewinn/Verlust [CHF]` = `Gewinn Tickets [CHF]` + `Gewinn Kiosk [CHF]`+ Eventeinnahmen - Eventausgaben
+    )|>
+    filter(Datum == c_Date[ii])
 }
 
-#############################################################
+
+########################################################################
 # error handling
 # Verleiherrechnungbetrag ist kleiner als minimaler Abzug.
 df_temp <- df_Abrechnung|>
@@ -194,7 +263,6 @@ if(nrow(df_temp)>0) {
 }
 
 
-
 ########################################################################
 # error handling
 # Es darf nur einen Eintrag pro Film geben in der Abrechnung
@@ -211,80 +279,58 @@ if(nrow(df_temp) > 1) {
   stop("In der Datei .../input/Verleiherabgaben.xlsx gibt es mehrere Filme am selben Datum")}
 
 
-########################################################################
-# Gewinn Kiosk
-########################################################################
-
-ii <- 3
-l_GV_Kiosk <- list()
-for (ii in 1:length(c_Date)) {
-  df_temp <- df_show|>filter(Datum == c_Date[ii])
-  
-  l_GV_Kiosk[[ii]] <- df_Kiosk|>
-    filter(Datum %in% c(c_Date[ii]))|>
-    reframe(Kassiert = sum(Kassiert, na.rm = T),
-            Gewinn = sum(Gewinn, na.rm = T))|>
-    mutate(Datum = c_Date[ii],
-           `Suisa Nummer` = c_suisa_nr[ii]
-    )
-  l_GV_Kiosk[[ii]]
-}
-l_GV_Kiosk
-
-df_GV_Kiosk <- l_GV_Kiosk|>
-  bind_rows()|>
-  left_join(df_show, by = join_by(Datum, `Suisa Nummer`))|>
-  select( Datum,Anfang, `Suisa Nummer`, Filmtitel, Kassiert, Gewinn)
-
-df_GV_Kiosk
 
 
 ########################################################################
-# Gewinn Filmvorführung
+# summary Eintritt
 ########################################################################
-
-ii <- 12
-c_Date[ii]
-
-l_GV_Vorfuehrung <- list()
-l_verteilprodukt <- list()
-for (ii in 1:length(c_Date)) {
-  l_GV_Vorfuehrung[[ii]] <- df_Abrechnung|>
-    filter(Datum == c_Date[ii])
-  l_verteilprodukt[[ii]] <- df_Abrechnung|>
-    filter(Datum == c_Date[ii])|>
-    select(Verteilprodukt)|>
-    pull()
-}
-
-df_GV_Vorfuehrung <- l_GV_Vorfuehrung |>
-  bind_rows() 
-
-df_GV_Vorfuehrung
-########################################################################
-# write to Excel
-########################################################################
-
-
 df_s_Eintritt <- df_Eintritt|>
   group_by(Datum, Filmtitel, `Suisa Nummer`)|>
   reframe(Besucher = sum(Anzahl))
 df_s_Eintritt
 
+########################################################################
+# write to Excel
+########################################################################
+df_test <- l_abrechnung|>
+  lapply(function(x){
+    x$Abrechnung
+  })|>
+  bind_rows()
+
 list(Shows = df_show,
      Eintritte = df_Eintritt,
      `Abrechnung Werbung` = df_s_Eintritt,
-     # `Gewinn Verlust Eintritt` = df_GV_Eintritt
-     Kiosk = df_Kiosk,
-     `Gewinn Kiosk` = df_GV_Kiosk,
-     `Gewinn Verlust Vorführung` = df_GV_Vorfuehrung,
+     `Gewinn Verlust Eintritt` = 
+       l_abrechnung|>
+       lapply(function(x){
+         x$Abrechnung
+       })|>
+       bind_rows()|>
+       distinct(Datum, `Suisa Nummer`,.keep_all = T),
+     `Gewinn Kiosk` = 
+       l_abrechnung|>
+       lapply(function(x){
+         x$Kiosk
+       })|>
+       bind_rows()|>
+       left_join(df_show,
+                 by = join_by(Datum, `Suisa Nummer`)
+                 )|>
+       select(-Saal,-Version,-Alter),
+     `Gewinn Verlust Vorführung` = 
+       l_abrechnung|>
+       lapply(function(x){
+         x$Abrechnung
+         })|>
+       bind_rows(),
      Verleiherabgaben  = df_verleiherabgaben,
      Einkaufspreise = df_Einkaufspreise,
      Spezialpreisekiosk = Spezialpreisekiosk,
      Ticketpreise = df_Kinopreise,
      Ausgaben = Einnahmen_und_Ausgaben[["Ausgaben"]],
      Einnahmen = Einnahmen_und_Ausgaben[["Einnahmen"]]
-)|>
+     )|>
   write.xlsx(file="output/Data/Auswertung.xlsx", asTable = TRUE)
 
 # remove(l_Eintritt,  m, c_raw, l_GV, l_GV_Kiosk, c_Besucher,  df_Eventausgaben,

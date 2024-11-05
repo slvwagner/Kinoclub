@@ -56,7 +56,7 @@ if(nrow(df_temp)>0) {
 }
 
 ########################################################################
-# Eintrittabrechnung aus Advanced Tickets konvertieren
+# Funktion zur Eintrittabrechnung für Advanced Tickets files
 ########################################################################
 convert_data_Film_txt <- function(c_fileName) {
   l_data <- list()
@@ -172,7 +172,7 @@ convert_data_Film_txt <- function(c_fileName) {
 }
 
 ########################################################################
-# Eintritt aus Advance Tickets
+# Eintritt aus Advanced Tickets
 ########################################################################
 
 c_files <- list.files(pattern = "Eintritte", recursive = T)
@@ -348,7 +348,11 @@ df_verleiherabgaben <- readxl::read_excel(c_file,c_sheets[1])|>
   left_join(readxl::read_excel(c_file,c_sheets[2]), by = "Verleiher")
 
 df_Eintritt <- df_Eintritt|>
-  left_join(df_verleiherabgaben, by = c(`Suisa Nummer` = "Suisa", "Datum"))
+  left_join(df_verleiherabgaben|>
+              select(-Titel, -Adresse, -PLZ, -Ort),
+            by = c(`Suisa Nummer` = "Suisa", "Datum"))|>
+  mutate(`Kinoförderer gratis?` = if_else(`Kinoförderer gratis?` == "nein", F, T),
+         Zahlend = if_else(Verkaufspreis>0, T, F))
 df_Eintritt
 
 ########################################################################
@@ -407,6 +411,10 @@ if(nrow(df_temp)>0){
               "\n.../Kinoklub/input/Verleiherabgaben.xlsx")
   )
 }
+
+remove(l_Eintritt, l_Abos, l_raw,
+       m, n_kiosk,n_Film, df_spez_preis_na 
+       )
 
 ########################################################################
 # user interaction
