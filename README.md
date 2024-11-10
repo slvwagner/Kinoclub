@@ -1,4 +1,4 @@
-Script Version: 2024 V1.12
+Script Version: 2024 V1.13
  
 ## Kinoklub 
 
@@ -415,5 +415,7 @@ zusätzlich werden alle Fimvorschläge als Excel ausgegeben
 2024 V1.9 Filmvorschläge from Wordpress   \
 2024 V1.10 PowerBi script  \
 2024 V1.11 WordPress Filmvorschläge auswerten  \
+2024 V1.12 Verleiherrechnung nur erstellen falls nötig (Kinoförder Gratis => nein, in Verleiherabgaben.xlsx)  \
+2024 V1.13 Gemeinsame Abrechnung über Link Datum in Excel file "Verleiherabgaben.xlsx"  \
 
 
