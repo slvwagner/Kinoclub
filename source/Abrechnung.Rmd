@@ -226,7 +226,7 @@ Filmvorführungen|>
 
 Beiträge von Mitveranstalter, Sponsoring for diesen Event.
 ```{r}
-Eventeinnahmen <- l_abrechnung[[ii]]$Eventausgaben|>
+Eventeinnahmen <- l_abrechnung[[ii]]$Eventeinnahmen|>
   select(Datum, Bezeichnung, Betrag)|>
   rename(`Betrag [CHF]` = Betrag)
 ```
@@ -239,7 +239,8 @@ Eventeinnahmen|>
 
 ```{r}
 Eventeinnahmen <- Eventeinnahmen|>
-  reframe(`Summe [CHF]` = sum(`Betrag [CHF]`,na.rm = T))
+  reframe(`Summe [CHF]` = sum(`Betrag [CHF]`,na.rm = T)|>round5Rappen()|>round(2)
+          )
 
 Eventeinnahmen|>
   knitr::kable()
@@ -262,7 +263,8 @@ Eventausgaben|>
 
 ```{r}
 Eventausgaben <- Eventausgaben|>
-  reframe(`Summe [CHF]` = sum(`Betrag [CHF]`,na.rm = T))
+  reframe(`Summe [CHF]` = sum(`Betrag [CHF]`,na.rm = T)|>round5Rappen()|>round(2)
+          )
 
 Eventausgaben|>
   knitr::kable()
