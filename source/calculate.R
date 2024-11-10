@@ -198,7 +198,7 @@ for (ii in 1:length(c_Date)) {
     filter(Datum == c_Date[ii])
 }
 
-l_abrechnung$`2024-10-11`
+
 
 l_abrechnung[[1]]
 l_abrechnung[[12]]

@@ -333,14 +333,7 @@ Verkaufsartikel ohne Lieferant.
 
 
 ```{r echo=FALSE}
-df_temp3 <- df_Kiosk|>
-  filter(Datum == c_Datum, 
-         is.na(Artikel)
-         )|>
-  left_join(df_show|>
-              select(Datum, Filmtitel),
-            by = join_by(Datum)
-            )
+df_temp3 <- df_spez_preis_na
 
 if(df_temp3|>nrow()){
   paste0(

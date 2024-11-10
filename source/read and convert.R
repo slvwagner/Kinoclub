@@ -416,7 +416,7 @@ if(nrow(df_temp)>0){
 }
 
 remove(l_Eintritt, l_Abos, l_raw,
-       m, n_kiosk,n_Film, df_spez_preis_na 
+       m, n_kiosk,n_Film 
        )
 
 #########################################################################################################
