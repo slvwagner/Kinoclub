@@ -23,6 +23,7 @@ df_Eintritt <- bind_rows(
 #########################################################################################################
 # Abrechnungsperiode erstellen
 #########################################################################################################
+l_keineRechnung <- list()
 l_abrechnung <- list()
 for (ii in 1:length(c_Date)) {
   l_abrechnung[[ii]] <- list(Abrechnung = df_Abrechnung|>
@@ -49,6 +50,10 @@ for (ii in 1:length(c_Date)) {
                    "\nBitte korrigieren in der Datei:",
                    "\n.../Kinokulb/input/Einnahmen und Ausgaben.xlsx\n")
     )
+    # Rechnungen vorhanden (wird im Bericht verwendet) 
+    l_keineRechnung[[ii]] <- tibble(Datum = l_abrechnung[[ii]]$Abrechnung$Datum ,
+                                    Filmtitel = l_abrechnung[[ii]]$Abrechnung$Filmtitel)
+    
   }
   ########################################################################
   # Berechnung Umsatz für Netto3 (für gemeinsame Abrechnung verwendet)
@@ -64,6 +69,9 @@ for (ii in 1:length(c_Date)) {
     )
 }
 names(l_abrechnung) <- c_Date
+
+df_keine_Rechnnung <- l_keineRechnung|>
+  bind_rows()
 
 #########################################################################################################
 # Einnahmen und Abgaben von mehreren Events verhältnismässig nach Umsatzzahlen 

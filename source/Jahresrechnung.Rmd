@@ -46,35 +46,37 @@ df_temp|>
 #### Suisaabgaben
 
 ```{r}
-df_GV_Eintritt|>
+df_temp <- df_Abrechnung|>
   arrange(Datum)|>
   mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))|>
-  select(Datum,Filmtitel,`SUISA-Abzug [CHF]`)|>
+  select(Datum, Filmtitel, `SUISA-Vorabzug [CHF]`)
+
+df_temp|>
   knitr::kable()
 ```
 
 
 ```{r}
-df_GV_Eintritt|>
-  select(Datum, Filmtitel, `SUISA-Abzug [CHF]`)|>
-  reframe(`Summe [CHF]` = sum(`SUISA-Abzug [CHF]`, na.rm = T))|>
+df_temp|>
+  reframe(`Summe [CHF]` = sum(`SUISA-Vorabzug [CHF]`, na.rm = T))|>
   knitr::kable()
 ```
 
 #### Verleiherabgaben
 
 ```{r}
-df_GV_Eintritt|>
+df_temp <- df_Abrechnung|>
   arrange(Datum)|>
   mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))|>
-  select(Datum,Filmtitel,`Verleiher-Abzug [CHF]`)|>
+  select(Datum,Filmtitel, `Verleiherabzug [CHF]`)
+
+df_temp|>
   knitr::kable()
 ```
 
 ```{r}
-df_GV_Eintritt|>
-  select(Datum, Filmtitel, `Verleiher-Abzug [CHF]`)|>
-  reframe(`Summe [CHF]` = sum(`Verleiher-Abzug [CHF]`)|>round5Rappen())|>
+df_temp|>
+  reframe(`Summe [CHF]` = sum(`Verleiherabzug [CHF]`)|>round5Rappen())|>
   knitr::kable()
 ```
 
@@ -82,13 +84,13 @@ df_GV_Eintritt|>
 #### Nebenkosten
 Die Nebenkosten enthalten Porto und Verpackung sowie Filmplakate. 
 ```{r echo=FALSE}
-if(sum(df_keine_Rechnnung$`keine Verleiherrechnung`)>0) {
+if(nrow(df_keine_Rechnnung)>0) {
   writeLines("Achtung es sind noch nicht alle Filmabrechnungen vorhanden. Die Sonstigen Ausgaben können sich demnach noch ändern.")
 }
 ```
 
 ```{r}
-df_temp <- df_GV_Eintritt|>
+df_temp <- df_Abrechnung|>
   arrange(Datum)|>
   mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))|>
   select(Datum,Filmtitel,`Sonstige Kosten [CHF]`)
@@ -96,35 +98,31 @@ df_temp <- df_GV_Eintritt|>
 
 ```{r}
 df_temp|>
-  mutate(`Sonstige Kosten [CHF]` = `Sonstige Kosten [CHF]`|>round5Rappen())|>
   knitr::kable()
 ```
 
 
 ```{r}
-df_GV_Eintritt|>
-  select(Datum, Filmtitel, `Sonstige Kosten [CHF]`)|>
-  mutate(`Sonstige Kosten [CHF]` = `Sonstige Kosten [CHF]`|>round5Rappen())|>
-  reframe(`Summe [CHF]` = sum(`Sonstige Kosten [CHF]`,na.rm = T)|>round5Rappen())|>
+df_temp|>
+  reframe(`Summe [CHF]` = sum(`Sonstige Kosten [CHF]`,na.rm = T)
+          )|>
   knitr::kable()
 ```
 
 #### MWST auf Verleiherleistungen
 ```{r}
-tibble(Bezeichnung = "MWST auf Verleiherleistungen",
-       df_GV_Eintritt |>
-         select(`MWST auf die Verleiherrechnung [CHF]`) |>
-         reframe(`Betrag [CHF]` = sum(`MWST auf die Verleiherrechnung [CHF]`)|>round5Rappen())
-) |>
+df_temp <- df_Abrechnung|>
+  select(Datum, Filmtitel, `Suisa Nummer`, `MWST [CHF]`)
+df_temp|>
   knitr::kable()
 ```
 
 
 ### Differenz
 ```{r}
-Filmvorführungen <- df_GV_Eintritt|>
-  select(Datum, Filmtitel, `Gewinn/Verlust [CHF]`)|>
-  reframe(`Summe [CHF]` = sum(`Gewinn/Verlust [CHF]`, na.rm = T)|>round5Rappen())
+Filmvorführungen <- df_Abrechnung|>
+  select(Datum, Filmtitel, `Gewinn/Verlust Tickets [CHF]`)|>
+  reframe(`Summe [CHF]` = sum(`Gewinn/Verlust Tickets [CHF]`, na.rm = T))
 
 Filmvorführungen|>
   knitr::kable(digits = 2)
@@ -645,7 +643,7 @@ Sonstiges|>
 ## Gewinn / Verlust
 
 ```{r echo=FALSE}
-if(sum(df_keine_Rechnnung$`keine Verleiherrechnung`)>0) {
+if(nrow(df_keine_Rechnnung)>0) {
   writeLines("Achtung es sind noch nicht alle Filmabrechnungen vorhanden. Die Einnahmen aus dem Ticketverkauf werden sich noch ändern.")
 }
 
