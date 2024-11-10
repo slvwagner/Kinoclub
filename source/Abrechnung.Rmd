@@ -135,18 +135,13 @@ if(nrow(df_temp) > 0) {
   writeLines("Achtung es gibt noch keine Verleiherabrechnung für diesen Film.")
 }else{
   df_temp <-df_Abrechnung |>
-    filter(Datum %in% c(c_Date[ii], c_linkDatum))|>
-    mutate(Firmennamen = Firmennamen[!is.na(Firmennamen)])|>
-    filter(Datum == c_Date[ii])
+    filter(Datum %in% c(c_Date[ii]))
   df_temp
+  
   paste("Dieser Film wird zusammen mit diesem Datum", 
         paste0(lubridate::day(df_temp$`Link Datum`),".",lubridate::month(df_temp$`Link Datum`),".",lubridate::year(df_temp$`Link Datum`)), 
         "abgerechnet.")|>
     writeLines()
-  
-  df_temp|>
-    select(Firmennamen, Verleiherrechnungsbetrag)|>
-    knitr::kable()
 }
 ```
 
@@ -163,18 +158,14 @@ c_Verleiher_garantie <- df_verleiherabgaben|>
 Für diesen Film muss an den Verleiher **`r c_verleiherabgaben`%** des Ticket-Umsatz gezahlt werden. Die minimale Abgaben an den Verleiher ist **`r c_Verleiher_garantie`.- [CHF].**
 Der Abgabeprozentsatz ist für jeden Film und Spielwoche mit dem jeweiligen Verleiher verhandelt.
 ```{r echo=FALSE}
-df_temp <- df_GV_Eintritt|>
+df_temp <- df_Abrechnung|>
   filter(Datum == c_Datum & `Suisa Nummer` == c_suisa)|>
-  mutate(`Total Abgaben [CHF]` = sum(`SUISA-Abzug [CHF]`,`Verleiher-Abzug [CHF]`,na.rm = T))|>
-  select(-Datum,-Anfang,-`Suisa Nummer`,-Filmtitel)|>
-  rename(`Umsatz [CHF]` = Brutto)
+  mutate(`Total Abgaben [CHF]` = sum(`SUISA-Vorabzug [CHF]`,`Verleiherabzug [CHF]`,na.rm = T))|>
+  select(-Datum,-Anfang,-`Suisa Nummer`,-Filmtitel, `Umsatz [CHF]`)
 ```
 
 ```{r}
 df_temp|>
-  rename(`SUISA-Vorabzug [CHF]` = `SUISA-Abzug [CHF]`)|>
-  select(`SUISA-Vorabzug [CHF]`, `Verleiher-Abzug [CHF]`)|>
-  mutate(`Verleiher-Abzug [CHF]` = `Verleiher-Abzug [CHF]` * c_verteilprodukt)|>
   knitr::kable(digits = 2)
 
 ```
@@ -194,13 +185,8 @@ if(nrow(df_temp) > 0) {
 
 ```{r echo=FALSE}
 
-c_linkDatum <- df_Eintritt |>
-  filter(Datum == c(c_Date[ii]), Zahlend) |>
-  distinct(`Link Datum`) |>
-  pull()
-
-df_GV_Eintritt|>
-  filter(Datum %in% c(c_Datum) & `Suisa Nummer` == c_suisa)|>
+df_Abrechnung|>
+  filter(Datum %in% c(c_Datum))|>
   select(`Sonstige Kosten [CHF]`)|>
   mutate(`Reklamematerial und Porto [CHF]` = `Sonstige Kosten [CHF]` * c_verteilprodukt,
          `Sonstige Kosten [CHF]` = NULL)|>
@@ -210,10 +196,9 @@ df_GV_Eintritt|>
 
 #### MWST auf Verleiherrechnung
 ```{r}
-df_GV_Eintritt|>
-  slice(ii)|>
-  select(`MWST auf die Verleiherrechnung [CHF]`)|>
-  mutate(`MWST auf die Verleiherrechnung [CHF]` = `MWST auf die Verleiherrechnung [CHF]` * c_verteilprodukt)|>
+df_Abrechnung|>
+  filter(Datum == c_Date[ii])|>
+  select(`MWST [CHF]`)|>
   knitr::kable(digits = 2)
 ```
 
@@ -221,10 +206,10 @@ df_GV_Eintritt|>
 
 ### Differenz
 ```{r}
-Filmvorführungen <- df_GV_Eintritt|>
+Filmvorführungen <- df_Abrechnung|>
   distinct(Datum,.keep_all = T)|>
   filter(Datum == c_Date[ii])|>
-  select(`Gewinn/Verlust [CHF]`)
+  select(`Gewinn/Verlust Tickets [CHF]`)
 ```
 
 
@@ -246,12 +231,8 @@ c_linkDatum <- df_Eintritt |>
   distinct(`Link Datum`) |>
   pull()
 
-Eventeinnahmen <- Einnahmen_und_Ausgaben$Einnahmen|>
-  filter(Kategorie == Einnahmen_und_Ausgaben$dropdown$`drop down`[1], 
-         Datum %in% c(c_Date[ii], c_linkDatum))|>
-  select(Bezeichnung, Betrag)|>
-  mutate(`Betrag [CHF]` = Betrag * c_verteilprodukt[ii],
-         Betrag = NULL)
+Eventeinnahmen <- df_Abrechnung_Eventeinnahmen|>
+  filter(Datum %in% c(c_Date[ii], c_linkDatum))
 
 ```
 
@@ -263,7 +244,7 @@ Eventeinnahmen|>
 
 ```{r}
 Eventeinnahmen <- Eventeinnahmen|>
-  reframe(`Summe [CHF]` = sum(`Betrag [CHF]`,na.rm = T) * c_verteilprodukt)
+  reframe(`Summe [CHF]` = sum(`Betrag [CHF]`,na.rm = T))
 
 Eventeinnahmen|>
   knitr::kable()
@@ -275,12 +256,9 @@ Eventeinnahmen|>
 Alle Ausgaben die für diesen Event, z.B. Ausgaben für Spezialverkaufsartikel, Deko, Flyer, ...  \
 
 ```{r}
-Eventausgaben <- Einnahmen_und_Ausgaben$Ausgaben|>
-  filter(Kategorie == Einnahmen_und_Ausgaben$dropdown$`drop down`[1], 
-         Spieldatum %in% c(c_Date[ii], c_linkDatum))|>
-  select(Bezeichnung, Betrag)|>
-  mutate(`Betrag [CHF]` = Betrag * c_verteilprodukt,
-         Betrag = NULL)
+Eventausgaben <- df_Abrechnung_Eventausgaben|>
+  filter(Datum %in% c(c_Date[ii], c_linkDatum))|>
+  select(Bezeichnung, `Betrag [CHF]`)
 
 Eventausgaben|>
   knitr::kable(digits = 2)
@@ -289,7 +267,7 @@ Eventausgaben|>
 
 ```{r}
 Eventausgaben <- Eventausgaben|>
-  reframe(`Summe [CHF]` = sum(`Betrag [CHF]`,na.rm = T)|>round5Rappen())
+  reframe(`Summe [CHF]` = sum(`Betrag [CHF]`,na.rm = T))
 
 Eventausgaben|>
   knitr::kable()
@@ -344,7 +322,8 @@ df_temp1|>
 ```{r}
 df_temp1 <- df_temp1|>
   filter(!is.na(Lieferant))|>
-  reframe(`Summe [CHF]` = sum(`Gewinn [CHF]`, na.rm = T)|>round5Rappen())
+  reframe(`Summe [CHF]` = sum(`Gewinn [CHF]`, na.rm = T)
+          |>round5Rappen())
 
 df_temp1|>
   knitr::kable()
@@ -355,21 +334,22 @@ df_temp1|>
 
 Verkaufsartikel ohne Lieferant.
 
-```{r echo=FALSE}
-df_temp3 <- df_spez_preis_na|>
-  filter(Datum == c_Datum)
 
-df_temp3 <- df_spez_preis_na
+<!-- ```{r echo=FALSE} -->
+<!-- df_temp3 <- df_spez_preis_na|> -->
+<!--   filter(Datum == c_Datum) -->
 
-if(df_temp3|>nrow()){
-  paste0(
-      "Für die Filmvorführung ", df_temp3$Filmtitel, " am ", day(df_temp3$Datum),".",month(df_temp3$Datum),".", year(df_temp3$Datum), 
-      " wurde der Artikel ", df_temp3$Verkaufsartikel," nicht definiert.",
-      "\nBitte korrigieren in der Datei:","\n.../Kinoklub/input/Spezialpreisekiosk.xlsx\n"
-  )|>
-    writeLines()
-}
-```
+<!-- df_temp3 <- df_spez_preis_na -->
+
+<!-- if(df_temp3|>nrow()){ -->
+<!--   paste0( -->
+<!--       "Für die Filmvorführung ", df_temp3$Filmtitel, " am ", day(df_temp3$Datum),".",month(df_temp3$Datum),".", year(df_temp3$Datum),  -->
+<!--       " wurde der Artikel ", df_temp3$Verkaufsartikel," nicht definiert.", -->
+<!--       "\nBitte korrigieren in der Datei:","\n.../Kinoklub/input/Spezialpreisekiosk.xlsx\n" -->
+<!--   )|> -->
+<!--     writeLines() -->
+<!-- } -->
+<!-- ``` -->
 
 
 
@@ -406,22 +386,23 @@ if(df_temp2$`Summe [CHF]` > 0) {
 
 ```
 
-```{r echo=FALSE}
-if(df_temp3|>nrow()){
-  paste0(
-      "Für die Filmvorführung ", df_temp3$Filmtitel, " am ", day(df_temp3$Datum),".",month(df_temp3$Datum),".", year(df_temp3$Datum), 
-      " wurde der Artikel ", df_temp3$Verkaufsartikel," nicht definiert.",
-      "\nBitte korrigieren in der Datei:","\n.../Kinoklub/input/Spezialpreisekiosk.xlsx\n"
-  )|>
-    writeLines()
-  
-  df_temp <- Einnahmen_und_Ausgaben$Ausgaben|>
-  filter(Spieldatum == c_Datum, Kategorie == Einnahmen_und_Ausgaben$dropdown$`drop down`[1])
-  if(nrow(df_temp) == 0) writeLines("\n Es sind keine Eventausgaben vorhanden mit denen die Spezialverkaufsartikel bezahlt wurden!")
 
-}
+<!-- ```{r echo=FALSE} -->
+<!-- if(df_temp3|>nrow()){ -->
+<!--   paste0( -->
+<!--       "Für die Filmvorführung ", df_temp3$Filmtitel, " am ", day(df_temp3$Datum),".",month(df_temp3$Datum),".", year(df_temp3$Datum),  -->
+<!--       " wurde der Artikel ", df_temp3$Verkaufsartikel," nicht definiert.", -->
+<!--       "\nBitte korrigieren in der Datei:","\n.../Kinoklub/input/Spezialpreisekiosk.xlsx\n" -->
+<!--   )|> -->
+<!--     writeLines() -->
 
-```
+<!--   df_temp <- Einnahmen_und_Ausgaben$Ausgaben|> -->
+<!--   filter(Spieldatum == c_Datum, Kategorie == Einnahmen_und_Ausgaben$dropdown$`drop down`[1]) -->
+<!--   if(nrow(df_temp) == 0) writeLines("\n Es sind keine Eventausgaben vorhanden mit denen die Spezialverkaufsartikel bezahlt wurden!") -->
+
+<!-- } -->
+
+<!-- ``` -->
 
 
 ### Differenz

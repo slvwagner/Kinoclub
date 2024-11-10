@@ -309,12 +309,12 @@ if(c_run_single){
 
     # Ändern des Templates Titel Filmname
     index <- (1:length(c_raw))[c_raw|>str_detect("Abrechnung Filmvorführung")]
-    c_temp1 <- df_GV_Vorfuehrung|>
-      filter(Datum == df_GV_Vorfuehrung$Datum[ii])|>
+    c_temp1 <- df_Abrechnung|>
+      filter(Datum == df_Abrechnung$Datum[ii])|>
       mutate(Anfang = paste0(lubridate::hour(Anfang),":", lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(SPC,"0")),
              Datum = paste0(day(Datum),".",month(Datum),".",year(Datum))
       )|>
-      rename(`Total Gewinn [CHF]`=`Gewinn/Verlust [CHF]`)|>
+      rename(`Total Gewinn [CHF]`= `Gewinn/Verlust Filmvorführungen [CHF]`)|>
       select(Filmtitel)|>
       pull()
 

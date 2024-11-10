@@ -64,17 +64,21 @@ df_show|>
 
 ### Eintritte und Umsatz
 ```{r}
-df_temp <- df_Abgaben|>
-  filter(Datum == c_Datum)
+ c_linkDatum <- df_Abrechnung|>
+  filter(Datum == c_Date[ii])|>
+   select(`Link Datum`)|>
+   pull()
+
+df_temp <- df_Abrechnung|>
+  filter(Datum %in%c(c_Datum, c_linkDatum))
 
 c_suisa_prozent <- df_temp|>
   distinct(`SUISA-Vorabzug`)|>
   pull()
 
-df_temp <- df_temp|>
-  select(Platzkategorie, Verkaufspreis, Anzahl, Umsatz)|>
-  rename(`Umsatz [CHF]` = Umsatz,
-         `Verkaufspreis [CHF]` = Verkaufspreis)
+df_temp <- df_Abrechnung_tickes|>
+  filter(Datum %in%c(c_Datum))|>
+  select(Platzkategorie, `Verkaufspreis [CHF]`, Anzahl, `Umsatz [CHF]`)
 
 df_temp|>
   knitr::kable()
