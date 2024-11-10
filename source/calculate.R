@@ -219,14 +219,15 @@ df_Abrechnung <- bind_cols(
       c_temp <- x$Abrechnung|>
         select((ncol(x$Abrechnung)-10):ncol(x$Abrechnung))|>
         as_vector()|>
-        round5Rappen()
+        round5Rappen()|>
+        round(2)
       as.data.frame(c_temp)|>
         t()|>
         as_tibble()
     })|>
     bind_rows()
-)
-df_Abrechnung
+)|>
+  rename(`Umsatz [CHF]` = Umsatz)
 
 ##############################################################################
 # Abrechnung Tickets erstellen (für Berichte verwendet)
@@ -239,7 +240,11 @@ df_Abrechnung_tickes <- l_abrechnung|>
   rename(`Verkaufspreis [CHF]` = Verkaufspreis,
          `Umsatz [CHF]` = Umsatz,
          `Umsatz für Netto3 [CHF]` = `Umsatz für Netto3`
-         )
+         )|>
+  left_join(df_show|>
+              select(`Suisa Nummer`, Datum, Anfang, Ende),
+            by = join_by(Datum, `Suisa Nummer`))
+
 df_Abrechnung_tickes
 
 ##############################################################################
@@ -252,7 +257,11 @@ df_Abrechnung_kiosk <- l_abrechnung|>
   bind_rows()|>
   rename(`Kassiert [CHF]` = Kassiert,
          `Gewinn [CHF]` = Gewinn
-         )
+         )|>
+  left_join(df_show|>
+              select(`Suisa Nummer`, Datum, Anfang, Ende),
+            by = join_by(Datum, `Suisa Nummer`)
+            )
 df_Abrechnung_kiosk
 
 ##############################################################################
@@ -292,7 +301,8 @@ list(`Abrechnung Werbung` = df_Besucherzahlen,
      `Abrechnung Kiosk` = df_Abrechnung_kiosk,
      `Abrechnung Eventeinnahmen` = df_Abrechnung_Eventeinnahmen,
      `Abrechnung Eventausgaben` = df_Abrechnung_Eventausgaben,
-     `Abrechnung Überschuss/Manko` = df_manko_uerberschuss
+     `Abrechnung Überschuss/Manko` = df_manko_uerberschuss,
+     `Abrechnung Filmvorführung` = df_Abrechnung
        )|>
   write.xlsx(file="output/Data/Auswertung.xlsx", asTable = TRUE)
 

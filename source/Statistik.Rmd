@@ -18,16 +18,16 @@ Bericht wurde am `r act_date` erstellt.
 
 ### Gewinn/Verlust aus Filmvorführung
 
+
 ```{r}
-df_temp <- df_GV_Vorfuehrung |>
+df_temp <- df_Abrechnung |>
   arrange(desc(Datum)) |>
   mutate(Datum_display = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)),
          Anfang = paste0(lubridate::hour(Anfang), ":", 
                          lubridate::minute(Anfang) |> as.character() |> formatC(width = 2, flag = "0")|>str_replace(SPC%R%"0", "00")
-                         ),
-         `Gewinn/Verlust [CHF]` = round(`Gewinn/Verlust [CHF]`, 2)
+                         )
   ) |>
-  select(Datum, Datum_display, Anfang, `Suisa Nummer`, Filmtitel, `Gewinn/Verlust [CHF]`, -Ende)
+  select(Datum, Datum_display, Anfang, `Suisa Nummer`, Filmtitel, `Gewinn/Verlust Filmvorführungen [CHF]`)
 ```
 
 
@@ -48,7 +48,7 @@ DT::datatable(df_temp,
 
 ```{r}
 df_temp|>
-  reframe(`Gewinn/Verlust [CHF]` = sum(`Gewinn/Verlust [CHF]`))|>
+  reframe(`Gewinn/Verlust [CHF]` = sum(`Gewinn/Verlust Filmvorführungen [CHF]`))|>
   knitr::kable()
 ```
 
@@ -64,8 +64,9 @@ n|>
 
 ```{r}
 mean_median <- df_temp|>
-  reframe(`Durchschnittlicher Gewinn pro Vorführung [CHF]` = mean(`Gewinn/Verlust [CHF]`)|>round5Rappen(),
-          `Median Gewinn pro Vorführung [CHF]` = median(`Gewinn/Verlust [CHF]`)|>round5Rappen())
+  reframe(`Durchschnittlicher Gewinn pro Vorführung [CHF]` = mean(`Gewinn/Verlust Filmvorführungen [CHF]`)|>round5Rappen()|>round(2),
+          `Median Gewinn pro Vorführung [CHF]` = median(`Gewinn/Verlust Filmvorführungen [CHF]`)|>round5Rappen()|>round(2)
+          )
 
 mean_median|>
   knitr::kable()
@@ -109,7 +110,7 @@ df_temp <- m|>
   # mutate(Datum = Datum|>dmy())|>
   mutate(weekday = weekdays(Datum)|>factor(levels = c("Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag")))|>
   group_by(weekday, `Time Range`)|>
-  reframe(d_gewinn = sum(`Gewinn/Verlust [CHF]`) / n(),
+  reframe(d_gewinn = sum(`Gewinn/Verlust Filmvorführungen [CHF]`) / n(),
           d_gewinn = round5Rappen(d_gewinn)
           )|> 
   mutate(`Time Range` = factor(`Time Range`, levels = timeRange[length(timeRange):1])
@@ -155,9 +156,9 @@ Es kann also von einem Gewinn von `r Gewinn_pro_Vorführung` [CHF] x `r shows_pe
 
 
 ```{r }
-df_temp <- df_GV_Vorfuehrung|>
+df_temp <- df_Abrechnung|>
   arrange(Datum)|>
-  mutate(cumsum = cumsum(`Gewinn/Verlust [CHF]`))
+  mutate(cumsum = cumsum(`Gewinn/Verlust Filmvorführungen [CHF]`))
 
 s <- (Gewinn_pro_Vorführung * shows_per_year)/365
 ```
@@ -185,19 +186,17 @@ df_temp|>
 Der Erfolg berechnet sich aus dem Gewinn der Eintritte und des Kiosks. 
 
 ```{r}
-df_temp <- df_GV_Eintritt|>
-  select(Datum, Anfang, `Suisa Nummer`, Filmtitel, Brutto, `Gewinn/Verlust [CHF]`)|>
-  rename(`Umsatz [CHF]` = Brutto)|>
+df_temp <- df_Abrechnung|>
+  # select(Datum, Anfang, `Suisa Nummer`, Filmtitel, Brutto, )|>
+  # rename(`Umsatz [CHF]` = Brutto)|>
   arrange(desc(Datum))|>
   mutate(Datum_display = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)),
-         Anfang = paste0(lubridate::hour(Anfang), ":", 
+         Anfang = paste0(lubridate::hour(Anfang), ":",
                          lubridate::minute(Anfang) |> as.character() |> formatC(width = 2, flag = "0")|>str_replace(SPC%R%"0", "00")
-                         ),
-         `Gewinn/Verlust [CHF]` = round(`Gewinn/Verlust [CHF]`, 2)
-  ) 
-
-df_temp <- df_temp|>
-  select(Datum, Datum_display,Anfang, `Suisa Nummer`, Filmtitel, `Umsatz [CHF]`, `Gewinn/Verlust [CHF]`)
+                         )
+         # `Gewinn/Verlust [CHF]` = round(`Gewinn/Verlust [CHF]`, 2)
+  )|>
+  select(Datum, Datum_display,Anfang, `Suisa Nummer`, Filmtitel, `Umsatz [CHF]`, `Gewinn/Verlust Tickets [CHF]`)
 
 ```
 
@@ -219,7 +218,7 @@ DT::datatable(df_temp,
 
 ```{r}
 df_temp|>
-  reframe(`Gewinn/Verlust [CHF]` = sum(`Gewinn/Verlust [CHF]`))|>
+  reframe(`Gewinn/Verlust [CHF]` = sum(`Gewinn/Verlust Tickets [CHF]`))|>
   knitr::kable()
 ```
 
@@ -270,18 +269,18 @@ df_temp|>
 
 ### Prognose
 ```{r fig.width=10}
-df_temp <- df_GV_Eintritt|>
-  select(Datum, Anfang, Filmtitel, Brutto, `Gewinn/Verlust [CHF]`)|>
-  rename(`Umsatz [CHF]` = Brutto)|>
+df_temp <- df_Abrechnung|>
+  select(Datum, Anfang, Filmtitel, `Umsatz [CHF]`, `Gewinn/Verlust Tickets [CHF]`)|>
+  # rename(`Umsatz [CHF]` = Brutto)|>
   arrange(Datum)
 df_temp <- df_temp|>
   arrange(Datum)|>
-  mutate(cumsum = cumsum(`Gewinn/Verlust [CHF]`))
+  mutate(cumsum = cumsum(`Gewinn/Verlust Tickets [CHF]`))
 
-if(df_temp$`Gewinn/Verlust [CHF]`|>mean() > df_temp$`Gewinn/Verlust [CHF]`|>median()){
-  gewinn <- df_temp$`Gewinn/Verlust [CHF]`|>median()
+if(df_temp$`Gewinn/Verlust Tickets [CHF]`|>mean() > df_temp$`Gewinn/Verlust Tickets [CHF]`|>median()){
+  gewinn <- df_temp$`Gewinn/Verlust Tickets [CHF]`|>median()
 }else{
-  gewinn <- df_temp$`Gewinn/Verlust [CHF]`|>mean()
+  gewinn <- df_temp$`Gewinn/Verlust Tickets [CHF]`|>mean()
 }
 
 s <- (gewinn * shows_per_year)/365
@@ -484,20 +483,28 @@ df_temp|>
 
 ### Filmabgaben
 ```{r echo=FALSE}
-df_temp <- df_GV_Eintritt|>
-  select(Datum, Anfang, Filmtitel, Brutto, `SUISA-Abzug [CHF]`,`Verleiher-Abzug [CHF]`)|>
+df_temp <- df_Abrechnung|>
+  select(Datum, Anfang, Filmtitel, `Umsatz [CHF]`, `SUISA-Vorabzug [CHF]`,`Verleiherabzug [CHF]`, `MWST [CHF]`)|>
+  arrange(desc(Datum))
+```
+
+
+```{r echo=FALSE}
+df_temp <- df_Abrechnung|>
+  arrange(desc(Datum))|>
+  mutate(Datum_display = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)),
+         Anfang = paste0(lubridate::hour(Anfang),":", 
+                         lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(SPC,"0"))
+         # `SUISA-Abzug [CHF]` = round(`SUISA-Vorabzug [CHF]`,2),
+         # `Verleiher-Abzug [CHF]` = round(`Verleiherabzug [CHF]`,2)
+         )|>
+  select(Datum, Datum_display, Anfang, Filmtitel, `Umsatz [CHF]`, `SUISA-Vorabzug [CHF]`,`MWST [CHF]`,`Verleiherabzug [CHF]`)|>
   arrange(desc(Datum))
 ```
 
 
 ```{r echo=FALSE}
 df_temp|>
-  mutate(Datum_display = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)),
-         Anfang = paste0(lubridate::hour(Anfang),":", 
-                         lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(SPC,"0")),
-         `SUISA-Abzug [CHF]` = round(`SUISA-Abzug [CHF]`,2),
-         `Verleiher-Abzug [CHF]` = round(`Verleiher-Abzug [CHF]`,2))|>
-  select(Datum, Datum_display, Anfang, Filmtitel, Brutto, `SUISA-Abzug [CHF]`,`Verleiher-Abzug [CHF]`)|>
   DT::datatable(
     df_temp,
     options = list(columnDefs = list(
@@ -511,9 +518,10 @@ df_temp|>
 
 
 ```{r echo=FALSE}
-df_GV_Eintritt|>
-  reframe(`Abgabe and die SUISA [CHF]` = sum(`SUISA-Abzug [CHF]`),
-          `Abgaben and den Verleiher [CHF]` = sum(`Verleiher-Abzug [CHF]`)
+df_temp|>
+  reframe(`Abgabe and die SUISA [CHF]` = sum(`SUISA-Vorabzug [CHF]`),
+          `Abgaben and den Verleiher [CHF]` = sum(`MWST [CHF]`),
+          `MWST [CHF]` = sum(`MWST [CHF]`)
           )|>
   knitr::kable()
 
@@ -523,12 +531,12 @@ df_GV_Eintritt|>
 ```{r fig.width=10}
 df_temp <- df_temp|>
   arrange(Datum)|>
-  mutate(cumsum = cumsum(`Verleiher-Abzug [CHF]`))
+  mutate(cumsum = cumsum(`Verleiherabzug [CHF]`))
 
-if(df_temp$`Verleiher-Abzug [CHF]`|>mean() > df_temp$`Verleiher-Abzug [CHF]`|>median()){
-  gewinn <- df_temp$`Verleiher-Abzug [CHF]`|>mean()
+if(df_temp$`Verleiherabzug [CHF]`|>mean() > df_temp$`Verleiherabzug [CHF]`|>median()){
+  gewinn <- df_temp$`Verleiherabzug [CHF]`|>mean()
 }else{
-  gewinn <- df_temp$`Verleiher-Abzug [CHF]`|>median()
+  gewinn <- df_temp$`Verleiherabzug [CHF]`|>median()
 }
 
 s <- (gewinn * shows_per_year)/365
@@ -551,21 +559,21 @@ df_temp|>
 
 ### Kiosk-Gewinn pro Vorführung 
 ```{r echo=FALSE}
-df_temp <- df_GV_Kiosk|>
+df_temp <- df_Abrechnung_kiosk|>
   arrange(desc(Datum))|> 
-  rename(`Umsatz [CHF]` = Kassiert,
-         `Kiosk Gewinn [CHF]` = Gewinn)|>
+  rename(`Umsatz [CHF]` = `Kassiert [CHF]`,
+         `Kiosk Gewinn [CHF]` = `Gewinn [CHF]`)|>
   mutate(Datum_display = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)))|>
   mutate(Anfang = paste0(lubridate::hour(Anfang),":", 
                          lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>
                            str_replace(SPC,"0"))
-         )
+         )|> 
+  select(Datum, Datum_display, Anfang,`Suisa Nummer`, Filmtitel, `Umsatz [CHF]`, `Kiosk Gewinn [CHF]`)
 ```
 
 
 ```{r echo=FALSE}
-df_temp|> 
-  select(Datum, Datum_display, Anfang,`Suisa Nummer`, Filmtitel, `Umsatz [CHF]`, `Kiosk Gewinn [CHF]`)|>
+df_temp|>
     DT::datatable(
     df_temp,
     options = list(columnDefs = list(
@@ -578,9 +586,9 @@ df_temp|>
 ```
 
 ```{r echo=FALSE}
-df_GV_Kiosk|>
-  reframe(`Umsatz [CHF]` = sum(Kassiert),
-          `Kiosk Gewinn [CHF]` = sum(Gewinn)
+df_temp|>
+  reframe(`Umsatz [CHF]` = sum(`Umsatz [CHF]`),
+          `Kiosk Gewinn [CHF]` = sum(`Kiosk Gewinn [CHF]`)
           )|>
   knitr::kable()
 
@@ -630,14 +638,14 @@ df_temp|>
 
 ### Prognose
 ```{r fig.width=10}
-df_temp <- df_GV_Kiosk|>
+df_temp <- df_Abrechnung_kiosk|>
   arrange(Datum)|>
-  mutate(cumsum = cumsum(Gewinn))
+  mutate(cumsum = cumsum(`Gewinn [CHF]`))
 
-if(df_temp$`Gewinn`|>mean() > df_temp$`Gewinn`|>median()){
-  gewinn <- df_temp$`Gewinn`|>median()
+if(df_temp$`Gewinn [CHF]`|>mean() > df_temp$`Gewinn [CHF]`|>median()){
+  gewinn <- df_temp$`Gewinn [CHF]`|>median()
 }else{
-  gewinn <- df_temp$`Gewinn`|>mean()
+  gewinn <- df_temp$`Gewinn [CHF]`|>mean()
 }
 
 s <- (gewinn * shows_per_year)/365
