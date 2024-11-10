@@ -72,23 +72,16 @@ names(l_abrechnung) <- c_Date
 
 df_keine_Rechnnung <- l_keineRechnung|>
   bind_rows()
+df_keine_Rechnnung
 
 #########################################################################################################
 # Einnahmen und Abgaben von mehreren Events verhältnismässig nach Umsatzzahlen 
 # auf die gelinkten Filme aufteilen (Link im Excel file: .../Kinoklub/Input/Verleiherabgaben.xlsx ) 
 #########################################################################################################
-ii <- 28
-c_Date[ii]
-for(ii in 1:length(c_Date)) if(c_Date[ii] == as.Date("2024-01-25")) break
-ii
-c_Date[ii]
-
-c_Date
-
+ii <- 12
 l_abrechnung[[ii]]
 
 for (ii in 1:length(c_Date)) {
-  
   l_abrechnung[[ii]]$Abrechnung <- l_abrechnung[[ii]]$Abrechnung|>
     mutate(Verteilprodukt = if_else(`Kinoförderer gratis?`, # Das Verteilprodukt muss anders berechnet werden wenn die Kinoförderer verrechnet werden müssen
                                     Umsatz / sum(Umsatz),
@@ -115,7 +108,7 @@ for (ii in 1:length(c_Date)) {
            )
   l_abrechnung[[ii]]$Abrechnung|>
     select(7,11:ncol(l_abrechnung[[ii]]$Abrechnung))
-
+  
   ########################################################################
   # Extract Verteilprodukt
   ########################################################################
@@ -124,7 +117,7 @@ for (ii in 1:length(c_Date)) {
   df_Verteilprodukt
 
   ########################################################################
-  # Eventeinnahmen (werden verteilt bei gemeinsamer Abrechnung)
+  # Eventeinnahmen (Jede Einnahme wird verteilt bei gemeinsamer Abrechnung)
   ########################################################################
   l_abrechnung[[ii]]$Eventeinnahmen <-
     Einnahmen_und_Ausgaben$Einnahmen|>
@@ -138,12 +131,12 @@ for (ii in 1:length(c_Date)) {
   l_abrechnung[[ii]]$Eventeinnahmen
   
   ########################################################################
-  # Eventausgaben (werden verteilt bei gemeinsamer Abrechnung)
+  # Eventausgaben (Jede Ausgabe wird verteilt bei gemeinsamer Abrechnung)
   ########################################################################
   l_abrechnung[[ii]]$Eventausgaben <-
     Einnahmen_und_Ausgaben$Ausgaben |>
     filter(Kategorie == "Event",
-           Datum %in% c(df_Verteilprodukt$Datum ,c_Date[ii]))|>
+           Spieldatum %in% c(df_Verteilprodukt$Datum ,c_Date[ii]))|>
     mutate(Betrag = df_Verteilprodukt|>
              filter(Datum == c_Date[ii])|>
              select(Verteilprodukt)|>
@@ -181,8 +174,6 @@ for (ii in 1:length(c_Date)) {
   ########################################################################
   # Verteilen für gemeinsame Abrechnung
   ########################################################################
-  l_abrechnung[[ii]]
-
   l_abrechnung[[ii]]$Abrechnung <- l_abrechnung[[ii]]$Abrechnung|>
     mutate(`Umsatz für Netto3` = NULL,
            `SUISA-Vorabzug [CHF]` = `SUISA-Vorabzug [CHF]` * Verteilprodukt,
@@ -206,6 +197,8 @@ for (ii in 1:length(c_Date)) {
   l_abrechnung[[ii]]$Abrechnung <- l_abrechnung[[ii]]$Abrechnung|>
     filter(Datum == c_Date[ii])
 }
+
+l_abrechnung$`2024-10-11`
 
 l_abrechnung[[1]]
 l_abrechnung[[12]]
@@ -319,9 +312,14 @@ list(`Abrechnung Werbung` = df_Besucherzahlen,
 ########################################################################
 # user interaction
 ########################################################################
-remove(df_temp, df_Verteilprodukt, c_Verleiherrechnungsbetrag, file_datum, p, 
-       c_test, c_sheets, c_suisa_nr, c_path, c_names, c_raw, c_lenght, c_files, c_fileDate, c_file,
-       l_abrechnung)
+# remove(df_temp, df_Verteilprodukt, c_Verleiherrechnungsbetrag, file_datum, p, 
+#        c_test, c_sheets, c_suisa_nr, c_path, c_names, c_raw, c_lenght, c_files, c_fileDate, c_file,
+#        )
 
 writeLines("Berechnungen erfolgt")
+
+
+df_verleiherabgaben
+Einnahmen_und_Ausgaben$Ausgaben|>
+  filter(Datum == as.Date("2024-10-11"))
 

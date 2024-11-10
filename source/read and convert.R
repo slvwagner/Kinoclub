@@ -39,8 +39,11 @@ Einnahmen_und_Ausgaben[["Ausgaben"]] <- Einnahmen_und_Ausgaben[["Ausgaben"]]|>
   mutate(Spieldatum = as.Date(Spieldatum),
          Datum = as.Date(Datum))
 
-Einnahmen_und_Ausgaben[["Einnahmen"]] <- Einnahmen_und_Ausgaben[["Einnahmen"]]|>
-  mutate(Datum = as.Date(Datum))
+# Einnahmen_und_Ausgaben[["Einnahmen"]] <- Einnahmen_und_Ausgaben[["Einnahmen"]]|>
+#   mutate(Datum = as.Date(Datum))
+
+Einnahmen_und_Ausgaben$Ausgaben|>
+  filter(Spieldatum == as.Date("2024-10-11"))
 
 # Datachecking 
 df_temp <- Einnahmen_und_Ausgaben[["Ausgaben"]]|>

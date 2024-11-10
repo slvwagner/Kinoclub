@@ -226,15 +226,9 @@ Filmvorführungen|>
 
 Beiträge von Mitveranstalter, Sponsoring for diesen Event.
 ```{r}
-# Soll gemeinsam mit einem anderen Datum abgerechnet werden ?
-c_linkDatum <- df_Eintritt |>
-  filter(Datum == c(c_Date[ii]), Zahlend) |>
-  distinct(`Link Datum`) |>
-  pull()
-
-Eventeinnahmen <- df_Abrechnung_Eventeinnahmen|>
-  filter(Datum %in% c(c_Date[ii], c_linkDatum))
-
+Eventeinnahmen <- l_abrechnung[[ii]]$Eventausgaben|>
+  select(Datum, Bezeichnung, Betrag)|>
+  rename(`Betrag [CHF]` = Betrag)
 ```
 
 
@@ -257,9 +251,9 @@ Eventeinnahmen|>
 Alle Ausgaben die für diesen Event, z.B. Ausgaben für Spezialverkaufsartikel, Deko, Flyer, ...  \
 
 ```{r}
-Eventausgaben <- df_Abrechnung_Eventausgaben|>
-  filter(Datum %in% c(c_Date[ii], c_linkDatum))|>
-  select(Bezeichnung, `Betrag [CHF]`)
+Eventausgaben <- l_abrechnung[[ii]]$Eventausgaben|>
+  select(Datum, Bezeichnung, Betrag)|>
+  rename(`Betrag [CHF]` = Betrag)
 
 Eventausgaben|>
   knitr::kable(digits = 2)
