@@ -384,22 +384,22 @@ if(df_temp2$`Summe [CHF]` > 0) {
 ```
 
 
-<!-- ```{r echo=FALSE} -->
-<!-- if(df_temp3|>nrow()){ -->
-<!--   paste0( -->
-<!--       "Für die Filmvorführung ", df_temp3$Filmtitel, " am ", day(df_temp3$Datum),".",month(df_temp3$Datum),".", year(df_temp3$Datum),  -->
-<!--       " wurde der Artikel ", df_temp3$Verkaufsartikel," nicht definiert.", -->
-<!--       "\nBitte korrigieren in der Datei:","\n.../Kinoklub/input/Spezialpreisekiosk.xlsx\n" -->
-<!--   )|> -->
-<!--     writeLines() -->
+```{r echo=FALSE}
+if(df_temp3|>nrow()){
+  paste0(
+      "Für die Filmvorführung ", df_temp3$Filmtitel, " am ", day(df_temp3$Datum),".",month(df_temp3$Datum),".", year(df_temp3$Datum),
+      " wurde der Artikel ", df_temp3$Verkaufsartikel," nicht definiert.",
+      "\nBitte korrigieren in der Datei:","\n.../Kinoklub/input/Spezialpreisekiosk.xlsx\n"
+  )|>
+    writeLines()
 
-<!--   df_temp <- Einnahmen_und_Ausgaben$Ausgaben|> -->
-<!--   filter(Spieldatum == c_Datum, Kategorie == Einnahmen_und_Ausgaben$dropdown$`drop down`[1]) -->
-<!--   if(nrow(df_temp) == 0) writeLines("\n Es sind keine Eventausgaben vorhanden mit denen die Spezialverkaufsartikel bezahlt wurden!") -->
+  df_temp <- Einnahmen_und_Ausgaben$Ausgaben|>
+  filter(Spieldatum == c_Datum, Kategorie == Einnahmen_und_Ausgaben$dropdown$`drop down`[1])
+  if(nrow(df_temp) == 0) writeLines("\n Es sind keine Eventausgaben vorhanden mit denen die Spezialverkaufsartikel bezahlt wurden!")
 
-<!-- } -->
+}
 
-<!-- ``` -->
+```
 
 
 ### Differenz
