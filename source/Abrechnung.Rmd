@@ -336,7 +336,11 @@ Verkaufsartikel ohne Lieferant.
 df_temp3 <- df_Kiosk|>
   filter(Datum == c_Datum, 
          is.na(Artikel)
-         )
+         )|>
+  left_join(df_show|>
+              select(Datum, Filmtitel),
+            by = join_by(Datum)
+            )
 
 if(df_temp3|>nrow()){
   paste0(
