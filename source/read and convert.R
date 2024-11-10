@@ -416,6 +416,34 @@ remove(l_Eintritt, l_Abos, l_raw,
        m, n_kiosk,n_Film, df_spez_preis_na 
        )
 
+#########################################################################################################
+# Ticketabrechnung vorbereiten
+#########################################################################################################
+df_Abrechnung <- df_Eintritt|>
+  distinct(Datum, `Suisa Nummer`, .keep_all = TRUE)|>
+  select(-(4:8))|>
+  left_join(df_show|>
+              select(Datum, `Suisa Nummer`, Anfang, Ende),
+            by = join_by(Datum, `Suisa Nummer`))|>
+  left_join( # Verleiherrechnungen 
+    Einnahmen_und_Ausgaben[["Ausgaben"]]|>
+      filter(Kategorie == Einnahmen_und_Ausgaben[["dropdown"]]$`drop down`[5])|> # suchen nach den Verleiher Einträgen
+      select(-Kategorie,-Datum, -Bezeichnung)|>
+      select(1:2)|>
+      rename(Verleiherrechnungsbetrag = Betrag,
+             Datum = Spieldatum),
+    by = join_by(Datum)
+  )
+df_Abrechnung
+
+#########################################################################################################
+# Kinotickes
+#########################################################################################################
+df_Kinopreise <- df_Eintritt|>
+  distinct(Platzkategorie, .keep_all = T)|>
+  select(Platzkategorie, Verkaufspreis)
+df_Kinopreise
+
 ########################################################################
 # user interaction
 ########################################################################
