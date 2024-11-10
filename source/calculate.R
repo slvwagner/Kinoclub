@@ -1,7 +1,6 @@
 
 source("source/read and convert.R")
 
-
 #########################################################################################################
 # Je nach Verleiher müssen die Kinoförderer als Umsatz abgerechnet werden. 
 # Für die Berechnung von "Netto 3" müssen die Kinoförder als Umsatz verrechnet werden.
@@ -204,7 +203,10 @@ l_abrechnung[[1]]
 l_abrechnung[[12]]
 l_abrechnung[[29]]
 
+##############################################################################
+# Abrechnung Filmvorführung erstellen (für Berichte verwendet)
 # Runden aller [CHF]  Beträge
+##############################################################################
 df_Abrechnung <- bind_cols(
   l_abrechnung|>
     lapply(function(x){
@@ -224,75 +226,74 @@ df_Abrechnung <- bind_cols(
     })|>
     bind_rows()
 )
+df_Abrechnung
 
+##############################################################################
+# Abrechnung Tickets erstellen (für Berichte verwendet)
+##############################################################################
+df_Abrechnung_tickes <- l_abrechnung|>
+  lapply(function(x){
+    x$Tickets
+  })|>
+  bind_rows()|>
+  rename(`Verkaufspreis [CHF]` = Verkaufspreis,
+         `Umsatz [CHF]` = Umsatz,
+         `Umsatz für Netto3 [CHF]` = `Umsatz für Netto3`
+         )
+df_Abrechnung_tickes
+
+##############################################################################
+# Abrechnung Kiosk erstellen  (für Berichte verwendet) 
+##############################################################################
+df_Abrechnung_kiosk <- l_abrechnung|>
+  lapply(function(x){
+    x$Kiosk
+  })|>
+  bind_rows()|>
+  rename(`Kassiert [CHF]` = Kassiert,
+         `Gewinn [CHF]` = Gewinn
+         )
+df_Abrechnung_kiosk
+
+##############################################################################
+# Abrechnung Events erstellen (für Berichte verwendet)
+##############################################################################
+df_Abrechnung_Eventeinnahmen <- l_abrechnung|>
+  lapply(function(x){
+    x$Eventeinnahmen
+  })|>
+  bind_rows()|>
+  select(Datum, Bezeichnung, Betrag)|>
+  rename(`Betrag [CHF]` = Betrag)
+df_Abrechnung_Eventeinnahmen
+
+df_Abrechnung_Eventausgaben <- l_abrechnung|>
+  lapply(function(x){
+    x$Eventausgaben
+  })|>
+  bind_rows()|>
+  select(Datum, Bezeichnung, Betrag)|>
+  rename(`Betrag [CHF]` = Betrag)
+df_Abrechnung_Eventausgaben
 
 ########################################################################
-# error handling
-# Verleiherrechnungbetrag ist kleiner als minimaler Abzug.
-df_temp <- df_Abrechnung|>
-  mutate(`Minimal Abzug unterschritten` = `Minimal Abzug`> Verleiherrechnungsbetrag,
-         `Minimal Abzug unterschritten` = if_else(is.na(`Minimal Abzug unterschritten`), F, `Minimal Abzug unterschritten`)
-         )|>
-  select(Datum, Filmtitel, `Minimal Abzug unterschritten`)|>
-  filter(`Minimal Abzug unterschritten`)
-
-# error handling, keine Verleiherrechnung
-if(nrow(df_temp)>0) {
-  warning(paste0("\nAchtung für die diesen Film \"", df_temp$Filmtitel,"\" am ",
-                 day(df_temp$Datum),".",month(df_temp$Datum),".", lubridate::year(df_temp$Datum)," gibt es keine Verleiherrechnung.",
-                 "\nBitte korrigieren in der Datei:",
-                 "\n.../Kinokulb/input/Einnahmen und Ausgaben.xlsx\n"
-                 )
-          )  
-}
-
-
+# summary Eintritt (für Berichte verwendet)
 ########################################################################
-# error handling
-# Es darf nur einen Eintrag pro Film geben in der Abrechnung
-df_temp <- df_Abrechnung|>
-  group_by(Datum)|>
-  reframe(n = n())|>
-  left_join(df_Abrechnung|>
-              select(Datum, Filmtitel, `Suisa Nummer`),
-            by = join_by(Datum))|>
-  filter(n > 1)
-
-if(nrow(df_temp) > 1) {
-  print(df_temp)
-  stop("In der Datei .../input/Verleiherabgaben.xlsx gibt es mehrere Filme am selben Datum")}
-
-
-
-
-########################################################################
-# summary Eintritt
-########################################################################
-df_s_Eintritt <- df_Eintritt|>
+df_Besucherzahlen <- df_Eintritt|>
   group_by(Datum, Filmtitel, `Suisa Nummer`)|>
   reframe(Besucher = sum(Anzahl))
-df_s_Eintritt
+df_Besucherzahlen
 
 ########################################################################
 # write to Excel
 ########################################################################
-df_test <- l_abrechnung|>
-  lapply(function(x){
-    x$Abrechnung
-  })|>
-  bind_rows()
-
-list(Shows = df_show,
-     Eintritte = df_Eintritt,
-     `Abrechnung Werbung` = df_s_Eintritt,
-     `Gewinn Verlust Vorführung` = df_Abrechnung,
-     Verleiherabgaben  = df_verleiherabgaben,
-     Einkaufspreise = df_Einkaufspreise,
-     Spezialpreisekiosk = Spezialpreisekiosk,
-     Ticketpreise = df_Kinopreise,
-     Ausgaben = Einnahmen_und_Ausgaben[["Ausgaben"]],
-     Einnahmen = Einnahmen_und_Ausgaben[["Einnahmen"]]
-     )|>
+list(`Abrechnung Werbung` = df_Besucherzahlen,
+     `Abrechnung Tickets` = df_Abrechnung_tickes,
+     `Abrechnung Kiosk` = df_Abrechnung_kiosk,
+     `Abrechnung Eventeinnahmen` = df_Abrechnung_Eventeinnahmen,
+     `Abrechnung Eventausgaben` = df_Abrechnung_Eventausgaben,
+     `Abrechnung Überschuss/Manko` = df_manko_uerberschuss
+       )|>
   write.xlsx(file="output/Data/Auswertung.xlsx", asTable = TRUE)
 
 
@@ -300,8 +301,9 @@ list(Shows = df_show,
 ########################################################################
 # user interaction
 ########################################################################
-remove(df_temp, df_test, df_Verteilprodukt, c_Verleiherrechnungsbetrag, file_datum, p, 
-       c_test, c_sheets, c_suisa_nr, c_path, c_names, c_raw, c_lenght, c_files, c_fileDate, c_file)
+remove(df_temp, df_Verteilprodukt, c_Verleiherrechnungsbetrag, file_datum, p, 
+       c_test, c_sheets, c_suisa_nr, c_path, c_names, c_raw, c_lenght, c_files, c_fileDate, c_file,
+       l_abrechnung)
 
 writeLines("Berechnungen erfolgt")
 

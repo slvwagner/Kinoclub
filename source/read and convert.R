@@ -436,6 +436,43 @@ df_Abrechnung <- df_Eintritt|>
   )
 df_Abrechnung
 
+########################################################################
+# error handling
+# Verleiherrechnungbetrag ist kleiner als minimaler Abzug.
+df_temp <- df_Abrechnung|>
+  mutate(`Minimal Abzug unterschritten` = `Minimal Abzug`> Verleiherrechnungsbetrag,
+         `Minimal Abzug unterschritten` = if_else(is.na(`Minimal Abzug unterschritten`), F, `Minimal Abzug unterschritten`)
+  )|>
+  select(Datum, Filmtitel, `Minimal Abzug unterschritten`)|>
+  filter(`Minimal Abzug unterschritten`)
+
+# error handling, keine Verleiherrechnung
+if(nrow(df_temp)>0) {
+  warning(paste0("\nAchtung für die diesen Film \"", df_temp$Filmtitel,"\" am ",
+                 day(df_temp$Datum),".",month(df_temp$Datum),".", lubridate::year(df_temp$Datum)," gibt es keine Verleiherrechnung.",
+                 "\nBitte korrigieren in der Datei:",
+                 "\n.../Kinokulb/input/Einnahmen und Ausgaben.xlsx\n"
+  )
+  )  
+}
+
+
+########################################################################
+# error handling
+# Es darf nur einen Eintrag pro Film geben in der Abrechnung
+df_temp <- df_Abrechnung|>
+  group_by(Datum)|>
+  reframe(n = n())|>
+  left_join(df_Abrechnung|>
+              select(Datum, Filmtitel, `Suisa Nummer`),
+            by = join_by(Datum))|>
+  filter(n > 1)
+
+if(nrow(df_temp) > 1) {
+  print(df_temp)
+  stop("In der Datei .../input/Verleiherabgaben.xlsx gibt es mehrere Filme am selben Datum")}
+
+
 #########################################################################################################
 # Kinotickes
 #########################################################################################################
