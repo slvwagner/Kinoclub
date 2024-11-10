@@ -136,12 +136,13 @@ if(nrow(df_temp) > 0) {
 }else{
   df_temp <-df_Abrechnung |>
     filter(Datum %in% c(c_Date[ii]))
-  df_temp
   
-  paste("Dieser Film wird zusammen mit diesem Datum", 
+  if(!is.na(df_temp$`Link Datum`)){
+    paste("Dieser Film wird zusammen mit diesem Datum", 
         paste0(lubridate::day(df_temp$`Link Datum`),".",lubridate::month(df_temp$`Link Datum`),".",lubridate::year(df_temp$`Link Datum`)), 
         "abgerechnet.")|>
-    writeLines()
+    writeLines()  
+  }
 }
 ```
 
@@ -161,7 +162,7 @@ Der Abgabeprozentsatz ist für jeden Film und Spielwoche mit dem jeweiligen Verl
 df_temp <- df_Abrechnung|>
   filter(Datum == c_Datum & `Suisa Nummer` == c_suisa)|>
   mutate(`Total Abgaben [CHF]` = sum(`SUISA-Vorabzug [CHF]`,`Verleiherabzug [CHF]`,na.rm = T))|>
-  select(-Datum,-Anfang,-`Suisa Nummer`,-Filmtitel, `Umsatz [CHF]`)
+  select(`SUISA-Vorabzug [CHF]`, `Verleiherabzug [CHF]`, `Total Abgaben [CHF]`)
 ```
 
 ```{r}

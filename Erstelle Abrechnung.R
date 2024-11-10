@@ -18,6 +18,7 @@
 # 2024 V1.10 PowerBi script
 # 2024 V1.11 WordPress Filmvorschläge auswerten
 # 2024 V1.12 Verleiherrechnung nur erstellen falls nötig (Kinoförder Gratis => nein, in Verleiherabgaben.xlsx)
+# 2024 V1.13 Gemeinsame Abrechnung über Link Datum 
 
 #############################################################################################################################################
 # Vorbereiten / Installieren
