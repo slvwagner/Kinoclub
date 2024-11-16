@@ -473,8 +473,9 @@ df_temp|>
 ```
 
 ```{r}
-df_temp|>
-  reframe(`Summe [CHF]` = sum(`Betrag [CHF]`, na.rm = T))|>
+`Kurzfristiges zinsloses Fremdkapital` <- df_temp|>
+  reframe(`Summe [CHF]` = sum(`Betrag [CHF]`, na.rm = T))
+`Kurzfristiges zinsloses Fremdkapital`|>
   knitr::kable()
 ```
 
@@ -724,11 +725,12 @@ if(nrow(df_keine_Rechnnung)>0) {
 
 ```{r}
 GewinnVerlust <- tibble(
-  Kategorie = c("Filmvorführungen", "Event","Kiosk","Werbung", "Vermietung", "Personalaufwand","Sonstiges"),
+  Kategorie = c("Filmvorführungen", "Event","Kiosk","Kurzfristiges zinsloses Fremdkapital","Werbung", "Vermietung", "Personalaufwand","Sonstiges"),
   `Betrag [CHF]` = c(
     Filmvorführungen |>pull(),
     Event|>pull(),
     Kiosk|>pull(),
+    -`Kurzfristiges zinsloses Fremdkapital`|>pull(),
     Werbung|>pull(),
     Vermietung|>pull(),
     -1*(Personalaufwand|>pull()),
