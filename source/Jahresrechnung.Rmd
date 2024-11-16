@@ -353,7 +353,7 @@ df_Abo_Verkauf|>
 
 ```{r}
 df_temp <- df_Abo_Verkauf|>
-  reframe(`Summ Anzahl` = sum(Anzahl),
+  reframe(`Summe Anzahl` = sum(Anzahl),
           `Summe Betrag [CHF]` = sum(Betrag)
          )
 
@@ -370,7 +370,7 @@ df_Kinogutschein_Verkauf|>
 
 ```{r}
 df_temp1 <- df_Kinogutschein_Verkauf|>
-  reframe(`Summ Anzahl` = sum(Anzahl),
+  reframe(`Summe Anzahl` = sum(Anzahl),
           `Summe Betrag [CHF]` = sum(Betrag)
          )
 
@@ -380,8 +380,11 @@ df_temp1|>
 
 #### Summe
 ```{r}
-df_temp <- bind_rows(df_temp, df_temp1)
+df_temp <- bind_rows(df_temp, df_temp1)|>
+  mutate(Bezeichnung = c("Abos", "Kinogutscheine"))
+
 df_temp|>
+  select(Bezeichnung, `Summe Anzahl`, `Summe Betrag [CHF]` )|>
   knitr::kable()
 
 ```
