@@ -566,33 +566,47 @@ df_temp|>
 ```
 
 ```{r echo=FALSE}
+df_temp <- df_temp|>
+  reframe(`Summe [CHF]`=sum(`Betrag [CHF]`, na.rm = T))
 df_temp|>
-  reframe(`Summe [CHF]`=sum(`Betrag [CHF]`, na.rm = T))|>
   knitr::kable()
 ```
 
 ### Ausgaben
 ```{r echo=FALSE}
-df_temp <- Einnahmen_und_Ausgaben$Ausgaben|>
+df_temp1 <- Einnahmen_und_Ausgaben$Ausgaben|>
   filter(Kategorie == Einnahmen_und_Ausgaben$dropdown$`drop down`[6])|>
   select(Datum, Bezeichnung, Betrag)|>
   rename(`Betrag [CHF]` = Betrag)|>
   arrange(Datum)|>   
   mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))
 
-df_temp|>
+df_temp1|>
   knitr::kable()
 
 ```
 
 ```{r echo=FALSE}
-df_temp|>
-  reframe(`Summe [CHF]`=sum(`Betrag [CHF]`, na.rm = T))|>
-  knitr::kable()
+df_temp1 <- df_temp1|>
+  reframe(`Summe [CHF]`=sum(`Betrag [CHF]`, na.rm = T))
 
+df_temp1|>
+  knitr::kable()
 ```
 
 ### Differenz
+```{r}
+Vermietung <- tibble(Bezeichnung = c("Einnahmen", "Ausgaben"),
+       `Summe [CHF]` = c(df_temp|>pull(),
+                          -df_temp1|>pull()
+                          )
+       )
+
+Vermietung|>
+  knitr::kable()
+```
+
+
 ```{r}
 Vermietung <- (Einnahmen_und_Ausgaben$Einnahmen|>
   filter(Kategorie == Einnahmen_und_Ausgaben$dropdown$`drop down`[6])|>
