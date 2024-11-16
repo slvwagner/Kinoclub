@@ -78,7 +78,8 @@ c_suisa_prozent <- df_temp|>
 
 df_temp <- df_Abrechnung_tickes|>
   filter(Datum %in%c(c_Datum))|>
-  select(Platzkategorie, `Verkaufspreis [CHF]`, Anzahl, `Umsatz [CHF]`)
+  select(Platzkategorie, `Verkaufspreis [CHF]`, Anzahl, `Umsatz für Netto3 [CHF]`)|>
+  rename(`Umsatz [CHF]` = `Umsatz für Netto3 [CHF]`)
 
 df_temp|>
   knitr::kable()
