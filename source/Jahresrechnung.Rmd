@@ -112,13 +112,46 @@ df_temp|>
 #### MWST auf Verleiherleistungen
 ```{r}
 df_temp <- df_Abrechnung|>
-  select(Datum, Filmtitel, `Suisa Nummer`, `MWST [CHF]`)
+  select(Datum, Filmtitel, `Suisa Nummer`, `MWST [CHF]`)|>
+  arrange(Datum)|>
+  mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))
 df_temp|>
   knitr::kable()
 ```
 
 
+```{r}
+df_temp|>
+  reframe(`Summe [CHF]` = sum(`MWST [CHF]`))|>
+  knitr::kable()
+```
+
+
 ### Differenz
+
+```{r}
+df_temp <- df_Abrechnung|>
+  reframe(`SUISA-Vorabzug [CHF]`= -sum(`SUISA-Vorabzug [CHF]`, na.rm = T),
+          `Sonstige Kosten [CHF]` = -sum(`Sonstige Kosten [CHF]`, na.rm = T),
+          `Verleiherabzug [CHF]` = -sum(`Verleiherabzug [CHF]`, na.rm = T),
+          `MWST [CHF]` = -sum(`MWST [CHF]`, na.rm = T),
+          `Umsatz [CHF]` = sum(`Umsatz [CHF]`, na.rm = T)
+          )|>
+  as.matrix()|>
+  t()
+colnames(df_temp) <- "Betrag [CHF]"
+
+df_temp|>
+  knitr::kable()
+```
+
+```{r}
+df_temp|>
+  as_tibble()|>
+  reframe(`Summe [CHF]` = sum(`Betrag [CHF]`))|>
+  knitr::kable()
+```
+
 ```{r}
 Filmvorführungen <- df_Abrechnung|>
   select(Datum, Filmtitel, `Gewinn/Verlust Tickets [CHF]`)|>
