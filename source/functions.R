@@ -21,7 +21,8 @@ round5Rappen <- function(zahl) {
     }
   })
   result|>
-    unlist()
+    unlist()|>
+    round(2)
 }
 
 #######################################################################################
@@ -137,7 +138,7 @@ if (commandArgs()[1]=='RStudio'){
 ##  ----------------------------------------                                                                     
 clc <- 0                                        ##  variable from class numeric
 class(clc) <- 'cleanup'                         ##  class cleanup
-print(clc)                                      ##  when you load this source,
+#print(clc)                                      ##  when you load this source,
 ##  it cleans all console
 
 
@@ -478,8 +479,6 @@ r_toc_for_Rmd <- function(
   
   return(c_Rmd)
 }
-
-
 
 r_is.defined <- function(sym) {
   sym <- deparse(substitute(sym))

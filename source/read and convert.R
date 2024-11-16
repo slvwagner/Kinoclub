@@ -11,9 +11,9 @@ if(!r_is.defined(c_MWST)){
   c_MWST <- 8.1
 }
 
-if(!r_is.defined(df_P_kat_verechnen)){
-  df_P_kat_verechnen <- tibble(Kinoförderer = c("Kinoförderer"), Verkaufspreis =  c(13))
-  
+if (!r_is.defined(df_P_kat_verechnen)) {
+  df_P_kat_verechnen <- tibble(Kinoförderer = c("Kinoförderer"),
+                               Verkaufspreis =  c(13))
 }
 
 c_openfiles <- list.files(paste0("Input/"),"~")
@@ -39,8 +39,11 @@ Einnahmen_und_Ausgaben[["Ausgaben"]] <- Einnahmen_und_Ausgaben[["Ausgaben"]]|>
   mutate(Spieldatum = as.Date(Spieldatum),
          Datum = as.Date(Datum))
 
-Einnahmen_und_Ausgaben[["Einnahmen"]] <- Einnahmen_und_Ausgaben[["Einnahmen"]]|>
-  mutate(Datum = as.Date(Datum))
+# Einnahmen_und_Ausgaben[["Einnahmen"]] <- Einnahmen_und_Ausgaben[["Einnahmen"]]|>
+#   mutate(Datum = as.Date(Datum))
+
+Einnahmen_und_Ausgaben$Ausgaben|>
+  filter(Spieldatum == as.Date("2024-10-11"))
 
 # Datachecking 
 df_temp <- Einnahmen_und_Ausgaben[["Ausgaben"]]|>
@@ -56,7 +59,7 @@ if(nrow(df_temp)>0) {
 }
 
 ########################################################################
-# Eintrittabrechnung aus Advanced Tickets konvertieren
+# Funktion zur Eintrittabrechnung für Advanced Tickets files
 ########################################################################
 convert_data_Film_txt <- function(c_fileName) {
   l_data <- list()
@@ -172,7 +175,7 @@ convert_data_Film_txt <- function(c_fileName) {
 }
 
 ########################################################################
-# Eintritt aus Advance Tickets
+# Eintritt aus Advanced Tickets
 ########################################################################
 
 c_files <- list.files(pattern = "Eintritte", recursive = T)
@@ -273,7 +276,9 @@ try(c_raw <- list.files(pattern = "Shows", recursive = T)|>
       suppressWarnings(),
     outFile = "error.log"
 )
-if(length(list.files(pattern = "error.log"))>0) stop("\nEs sind nicht alle shows vorhanden: \nDatei .../Kinoklub/input/advance tickets/Shows.txt nicht gefunden. \nBitte herunterladen und abspeichern.")
+if(length(list.files(pattern = "error.log"))>0) {
+  stop("\nEs sind nicht alle shows vorhanden: \nDatei .../Kinoklub/input/advance tickets/Shows.txt nicht gefunden. \nBitte herunterladen und abspeichern.")
+  }
 
 c_select <- tibble(found = str_detect(c_raw, "Tag"))|>
   mutate(index = row_number(),
@@ -332,7 +337,6 @@ if(nrow(df_temp) != 0) {
 source("source/Verkauf_Abos_Gutscheine.R")
 
 
-
 ########################################################################
 # Verleiherabgaben einlesen
 ########################################################################
@@ -342,13 +346,16 @@ c_sheets <- readxl::excel_sheets(c_file)
 c_sheets
 
 df_verleiherabgaben <- readxl::read_excel(c_file,c_sheets[1])|>
-  mutate(Datum = as.Date(Datum))|>
+  mutate(Datum = as.Date(Datum),
+         `Link Datum` = as.Date(`Link Datum`))|>
   left_join(readxl::read_excel(c_file,c_sheets[2]), by = "Verleiher")
 
-df_verleiherabgaben
-
 df_Eintritt <- df_Eintritt|>
-  left_join(df_verleiherabgaben, by = c(`Suisa Nummer` = "Suisa", "Datum"))
+  left_join(df_verleiherabgaben|>
+              select(-Titel, -Adresse, -PLZ, -Ort),
+            by = c(`Suisa Nummer` = "Suisa", "Datum"))|>
+  mutate(`Kinoförderer gratis?` = if_else(`Kinoförderer gratis?` == "nein", F, T),
+         Zahlend = if_else(Verkaufspreis>0, T, F))
 df_Eintritt
 
 ########################################################################
@@ -368,7 +375,7 @@ if(nrow(df_temp)>0){
   )
 }
 
-# kein minimal Abzug definiert (Es muss kein minimaler Abzug definiert werden fall ein Fixerabzug definiert wurde)
+# kein minimal Abzug definiert (Es muss kein minimaler Abzug definiert werden falls ein Abzug definiert wurde)
 df_temp <- df_Eintritt|>
   filter(is.na(`Minimal Abzug`) & !is.na(`Abzug [%]`))|>
   distinct(Filmtitel,.keep_all = T)
@@ -408,397 +415,77 @@ if(nrow(df_temp)>0){
   )
 }
 
+remove(l_Eintritt, l_Abos, l_raw,
+       m, n_kiosk,n_Film 
+       )
+
+#########################################################################################################
+# Ticketabrechnung vorbereiten
+#########################################################################################################
+df_Abrechnung <- df_Eintritt|>
+  distinct(Datum, `Suisa Nummer`, .keep_all = TRUE)|>
+  select(-(4:8))|>
+  left_join(df_show|>
+              select(Datum, `Suisa Nummer`, Anfang, Ende),
+            by = join_by(Datum, `Suisa Nummer`))|>
+  left_join( # Verleiherrechnungen 
+    Einnahmen_und_Ausgaben[["Ausgaben"]]|>
+      filter(Kategorie == Einnahmen_und_Ausgaben[["dropdown"]]$`drop down`[5])|> # suchen nach den Verleiher Einträgen
+      select(-Kategorie,-Datum, -Bezeichnung)|>
+      select(1:2)|>
+      rename(Verleiherrechnungsbetrag = Betrag,
+             Datum = Spieldatum),
+    by = join_by(Datum)
+  )
+df_Abrechnung
+
 ########################################################################
-# Verleiherrechnung 
-########################################################################
-df_Verleiher_Rechnnung <- df_Eintritt|>
-  distinct(Datum,`Suisa Nummer`,.keep_all = T)|>
-  select(Datum, Filmtitel, `Suisa Nummer`)
-df_Verleiher_Rechnnung
-
-# # Verleiherabgaben sind im Dropdown zu finden
-Einnahmen_und_Ausgaben[["dropdown"]]$`drop down`
-Einnahmen_und_Ausgaben[["dropdown"]]$`drop down`[5]
-
-df_Verleiher_Rechnnung <- df_Verleiher_Rechnnung|>
-  left_join(Einnahmen_und_Ausgaben[["Ausgaben"]] |>
-              filter(Kategorie == Einnahmen_und_Ausgaben[["dropdown"]]$`drop down`[5])|>
-              select(-Datum,-Kategorie),
-            by = c("Datum" = "Spieldatum"))|>
-  mutate(`keine Verleiherrechnung` = if_else(is.na(Betrag), T, F))
-df_Verleiher_Rechnnung
-
-df_keine_Rechnnung <- df_Verleiher_Rechnnung|>
-  filter(`keine Verleiherrechnung`)
+# error handling
+# Verleiherrechnungbetrag ist kleiner als minimaler Abzug.
+df_temp <- df_Abrechnung|>
+  mutate(`Minimal Abzug unterschritten` = `Minimal Abzug`> Verleiherrechnungsbetrag,
+         `Minimal Abzug unterschritten` = if_else(is.na(`Minimal Abzug unterschritten`), F, `Minimal Abzug unterschritten`)
+  )|>
+  select(Datum, Filmtitel, `Minimal Abzug unterschritten`)|>
+  filter(`Minimal Abzug unterschritten`)
 
 # error handling, keine Verleiherrechnung
-if(nrow(df_keine_Rechnnung)>0) {
-  warning(paste0("\nAchtung für die diesen Film \"", df_keine_Rechnnung$Filmtitel,"\" am ",
-                 day(df_keine_Rechnnung$Datum),".",month(df_keine_Rechnnung$Datum),".", lubridate::year(df_keine_Rechnnung$Datum)," gibt es keine Verleiherrechnung.",
+if(nrow(df_temp)>0) {
+  warning(paste0("\nAchtung für die diesen Film \"", df_temp$Filmtitel,"\" am ",
+                 day(df_temp$Datum),".",month(df_temp$Datum),".", lubridate::year(df_temp$Datum)," gibt es keine Verleiherrechnung.",
                  "\nBitte korrigieren in der Datei:",
                  "\n.../Kinokulb/input/Einnahmen und Ausgaben.xlsx\n"
   )
   )  
 }
 
-df_Eintritt
 
 ########################################################################
-# Gewinn/Verlust Eintitt
-########################################################################
+# error handling
+# Es darf nur einen Eintrag pro Film geben in der Abrechnung
+df_temp <- df_Abrechnung|>
+  group_by(Datum)|>
+  reframe(n = n())|>
+  left_join(df_Abrechnung|>
+              select(Datum, Filmtitel, `Suisa Nummer`),
+            by = join_by(Datum))|>
+  filter(n > 1)
+
+if(nrow(df_temp) > 1) {
+  print(df_temp)
+  stop("In der Datei .../input/Verleiherabgaben.xlsx gibt es mehrere Filme am selben Datum")}
+
+
+#########################################################################################################
+# Kinotickes
+#########################################################################################################
 df_Kinopreise <- df_Eintritt|>
-  distinct(Platzkategorie,.keep_all = T)|>
+  distinct(Platzkategorie, .keep_all = T)|>
   select(Platzkategorie, Verkaufspreis)
 df_Kinopreise
-
-
-
-c_Date[3]
-
-l_GV <- list()
-l_Abgaben <- list()
-ii <- 1
-for (ii in 1:length(c_Date)) {
-  
-  ######################################################################
-  # Kinoförderer dürfen nicht bei jedem Verleiher als gratis abgerechnet werden und müssen anders behandelt werden. 
-  c_Kinofoerder_gratis <- df_Eintritt|>
-    filter(Datum == c_Date[ii])|>
-    distinct(`Kinoförderer gratis?`)|>
-    mutate(`Kinoförderer gratis?` = if_else(`Kinoförderer gratis?` == "ja", T, F))|>
-    pull()
-  c_Kinofoerder_gratis
-  
-  if(!c_Kinofoerder_gratis){ # Kinoföderer müssen abgerechnet werden 
-    df_temp <- df_Eintritt |>
-      filter(Datum == c_Date[ii], Zahlend) |>
-      bind_rows(
-        df_Eintritt |>
-          filter(Datum == c_Date[ii], Platzkategorie %in% df_P_kat_verechnen$Kinoförderer )|>
-          mutate(Abrechnungspreis = df_Kinopreise|>
-                   filter(Platzkategorie == "Ermässigt")|> # Kategorieren werden mit Ermässigt ersetzt
-                   select(Verkaufspreis)|>pull()
-          )
-      )|>
-      mutate(Umsatz = if_else(is.na(Abrechnungspreis), Umsatz, Abrechnungspreis *  Anzahl))|>
-      select(-Abrechnungspreis)
-    df_temp
-    
-    c_Besucher <- df_temp|>
-      reframe(Anzahl = sum(Anzahl))|>
-      pull()
-    c_Besucher
-    
-    c_Gratis <- df_Eintritt |>
-      filter(Datum == c_Date[ii])|>
-      reframe(Anzahl = sum(Anzahl))|>
-      pull() - c_Besucher
-    c_Gratis
-    
-    ##Brutto
-    c_Brutto <- df_temp |>
-      filter(Datum == c_Date[ii]) |>
-      reframe(Umsatz = sum(Umsatz)) |>
-      pull()
-    c_Brutto
-    
-  } else { # Kinoföderer sind gratis
-    
-    df_temp <- df_Eintritt |>
-      filter(Datum == c_Date[ii], Zahlend) 
-    df_temp
-    
-    c_Besucher <- df_Eintritt |>
-      filter(Datum == c_Date[ii]) |>
-      reframe(Besucherzahl = sum(Anzahl)) |>
-      pull()
-    c_Besucher
-    
-    c_Gratis <- df_Eintritt |>
-      filter(Datum == c_Date[ii], !Zahlend) |>
-      reframe(Gratiseintritte = sum(Anzahl)) |>
-      pull()
-    c_Gratis
-    
-    ##Brutto
-    c_Brutto <- df_temp |>
-      filter(Datum == c_Date[ii]) |>
-      reframe(Umsatz = sum(Umsatz)) |>
-      pull()
-    c_Brutto
-  } 
-  
-  c_Umsatz <- df_Eintritt |>
-    filter(Datum == c_Date[ii]) |>
-    reframe(Umsatz = sum(Umsatz)) |>
-    pull()
-  c_Umsatz
-  
-  l_Abgaben[[ii]] <- df_temp
-  l_Abgaben[[ii]]
-  
-  c_suisaabzug <- (distinct(df_Eintritt |> 
-                              filter(Datum == c_Date[ii]), `SUISA-Vorabzug`) |>
-                     pull()) / 100
-  c_suisaabzug
-  
-  ## Netto 3
-  c_Netto3 <- c_Brutto - round5Rappen(c_Brutto * c_suisaabzug)
-  c_Netto3
-  
-  df_Eintritt|> filter(Datum == c_Date[ii])
-  
-  # minimale Abgaben an den Verleiher
-  c_Verleiher_garantie <- df_verleiherabgaben |>
-    filter(Datum == c_Date[ii])|>
-    select(`Minimal Abzug`)|>
-    pull()
-  c_Verleiher_garantie
-  
-  if(length(c_Verleiher_garantie) > 1) {
-    print(df_verleiherabgaben |>
-            filter(Datum == c_Date[ii]))
-    stop("In der Datei .../input/Verleiherabgaben.xlsx gibt es mehrere Filme am selben Datum")}
-  
-  # prozentual Abgabe von Netto 3 an den Verleiher
-  c_verleiherabzug_prozent <-(distinct(df_Eintritt |> 
-                                         filter(Datum == c_Date[ii]),
-                                       `Abzug [%]`) |> pull()) / 100
-  c_verleiherabzug_prozent
-  
-  ##################################################
-  # Abzug fix oder prozentual 
-  if(is.na(c_verleiherabzug_prozent)) { # Abzug fix
-    c_Verleiherabzug <- distinct(df_Eintritt |> 
-                                   filter(Datum == c_Date[ii]), `Abzug fix [CHF]`
-    )|>
-      pull()
-  }else{ # prozentualer Abzug
-    # Abgabe an den Verleiher
-    c_Verleiherabzug <- c_Netto3 * c_verleiherabzug_prozent
-    
-    ### Wenn die Abgabe von Netto 3 kleiner als der definierte minimal Abzug ist wird dieser eingesetzt
-    if (c_Verleiherabzug < c_Verleiher_garantie) {
-      c_Verleiherabzug <- c_Verleiher_garantie
-    }
-  }
-  c_Verleiherabzug
-  
-  ##################################################
-  # Berechnung der Abgaben
-  # Verleiherrechnung vorhanden ?
-  c_Verleiherrechnung <- df_Verleiher_Rechnnung |> 
-    filter(Datum == c_Date[ii])|>
-    select(`keine Verleiherrechnung`)|>
-    pull()
-  
-  c_Verleiherrechnung
-  
-  # Wemm keine Verleiherrechnung vorhanden ist muss die MWST der Verleiherrechnung berechnet werden.
-  if (c_Verleiherrechnung) {
-    # Mehrwertsteuer auf der Verleiherrechnung
-    c_MWST_Abzug <-
-      round5Rappen(c_Verleiherabzug - (c_Verleiherabzug / (1 + (c_MWST / 100) ))
-      )
-    c_MWST_Abzug
-    
-  }else {
-    c_MWST_Abzug <- round5Rappen(c_Verleiherabzug) * (c_MWST / 100)
-  }
-  
-  c_MWST_Abzug
-  
-  # Error handling Verleiherabgaben
-  if(is.na(c_MWST_Abzug)) {
-    error <- df_Eintritt|>
-      filter(Datum == c_Date[ii])|>
-      distinct(Datum,.keep_all = T)|>
-      select(Datum, `Suisa Nummer`, Filmtitel)|>
-      mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))
-    error <- str_c("\nFür den Film ", error$Filmtitel," am ", error$Datum, " mit Suisa-Nummer ", error$`Suisa Nummer`, " wurde keine",
-                   "\nVerleiherabgabe im file .../Kinoklub/input/Verleiherabgaben.xlsx definiert.")
-    stop(error)
-  }
-  
-  # Verleiherrechnung Betrag
-  c_Verleiherrechnung <- df_Verleiher_Rechnnung |> 
-    filter(Datum == c_Date[ii])|>
-    select(Betrag)|>
-    pull()
-  
-  c_Verleiherrechnung
-  df_temp
-  
-  l_GV[[ii]] <- tibble(Datum = c_Date[ii],
-                       `Suisa Nummer` = c_suisa_nr[ii],
-                       Brutto = c_Umsatz, 
-                       Verleiherrechnung = c_Verleiherrechnung,
-                       `SUISA-Abzug [%]` = c_suisaabzug*100,
-                       `SUISA-Abzug [CHF]` = round5Rappen(c_Brutto*c_suisaabzug), 
-                       `Netto 3` = c_Netto3,
-                       `Verleiher-Abzug [%]` = c_verleiherabzug_prozent*100,
-                       `Verleiher-Abzug [CHF]` = c_Verleiherabzug,
-                       `MWST Satz auf die Verleiherrechnung [%]` = c_MWST,
-                       `MWST auf die Verleiherrechnung [CHF]` =  c_MWST_Abzug
-  )|>
-    mutate(## Gewinn berechnung
-      `Sonstige Kosten [CHF]` = (c_Verleiherrechnung - c_MWST_Abzug) - `Verleiher-Abzug [CHF]`,
-      `Gewinn/Verlust [CHF]` = round5Rappen(Brutto - sum(`Verleiher-Abzug [CHF]`,
-                                                         `Sonstige Kosten [CHF]`, `MWST auf die Verleiherrechnung [CHF]`,
-                                                         na.rm = T))
-    )|>
-    left_join(df_show, by = join_by(Datum, `Suisa Nummer`))
-  
-  l_GV[[ii]]
-  
-}
-
-l_GV
-
-df_GV_Eintritt <- l_GV|>
-  bind_rows()
-
-df_GV_Eintritt
-
-#############################################################
-# error handling 
-# Verleiherrechnung ist kleiner als der Vereinbarte minimale Abgabebetrag
-df_Verleiher_Rechnnung
-
-df_temp <- df_GV_Eintritt|>
-  filter(df_GV_Eintritt$`Sonstige Kosten [CHF]` < 0)|>
-  left_join(df_verleiherabgaben, by = join_by(Datum))|>
-  select(Datum, `Suisa Nummer`, Filmtitel, `Minimal Abzug`)|>
-  filter(!is.na(`Minimal Abzug`))
-df_temp
-
-if(nrow(df_temp) > 0 ) {
-  warning(
-    paste0(paste0("\nDer Verleiherrechnungsbetrag ist kleiner als die minimal vereibarte mindest Garantie: ", 
-                  day(df_temp$Datum),".", month(df_temp$Datum),".",year(df_temp$Datum),".", " ", df_temp$Filmtitel
-    ),
-    "\nBitte Abklären ob die Verleiherrechnung oder die mindest Garantie korrekt ist:\nBitte die Datei .../Input/Verleiherabgaben.xlsx oder die Datei .../Input/Einnahmen und Ausgaben.xlsx korrigieren."
-    )
-  )
-}
-
-###
-df_Abgaben <- l_Abgaben|>
-  bind_rows()|>
-  bind_rows(df_Eintritt|> # 
-              filter(!Zahlend, !(Platzkategorie %in% df_P_kat_verechnen$Kinoförderer )))|>
-  mutate(Verkaufspreis = if_else(Platzkategorie == df_P_kat_verechnen$Kinoförderer, df_P_kat_verechnen$Verkaufspreis, Verkaufspreis)
-  )
-df_Abgaben
-
-########################################################################
-# Gewinn Kiosk
-########################################################################
-
-ii <- 3
-l_GV_Kiosk <- list()
-for (ii in 1:length(c_Date)) {
-  df_temp <- df_show|>filter(Datum == c_Date[ii])
-  
-  l_GV_Kiosk[[ii]] <- df_Kiosk|>
-    filter(Datum == c_Date[ii])|>
-    reframe(Kassiert = sum(Kassiert, na.rm = T),
-            Gewinn = sum(Gewinn, na.rm = T))|>
-    mutate(Datum = c_Date[ii],
-           `Suisa Nummer` = c_suisa_nr[ii]
-    )
-  l_GV_Kiosk[[ii]]
-}
-l_GV_Kiosk
-
-df_GV_Kiosk <- l_GV_Kiosk|>
-  bind_rows()|>
-  left_join(df_show, by = join_by(Datum, `Suisa Nummer`))|>
-  select( Datum,Anfang, `Suisa Nummer`, Filmtitel, Kassiert, Gewinn)
-
-df_GV_Kiosk
-
-
-########################################################################
-# Gewinn Filmvorführung
-########################################################################
-
-ii <- 4
-l_GV_Vorfuehrung <- list()
-for (ii in 1:length(c_Date)) {
-  df_Eventausgaben <- Einnahmen_und_Ausgaben$Ausgaben |>
-    filter(Spieldatum == c_Date[ii], Kategorie == Einnahmen_und_Ausgaben$dropdown$`drop down`[1])
-  df_Eventausgaben
-  
-  if(nrow(df_Eventausgaben) < 1) {
-    c_Eventausgaben <- 0
-  } else {
-    c_Eventausgaben <- sum(df_Eventausgaben$Betrag, na.rm = T)
-  }
-  
-  df_Eventeinnahmen <- Einnahmen_und_Ausgaben$Einnahmen |>
-    filter(Datum == c_Date[ii], Kategorie == Einnahmen_und_Ausgaben$dropdown$`drop down`[1])
-  df_Eventeinnahmen
-  
-  if(nrow(df_Eventeinnahmen) < 1) {
-    c_Eventeinnahmen <- 0
-  } else {
-    c_Eventeinnahmen <- sum(df_Eventeinnahmen$Betrag, na.rm = T)
-  }
-  
-  df_temp <- df_show|>filter(Datum == c_Date[ii])
-  df_temp
-  
-  l_GV_Vorfuehrung[[ii]] <- tibble(
-    Datum = c_Date[ii],
-    Anfang = df_temp$Anfang,
-    Ende = df_temp$Ende,
-    `Suisa Nummer` = c_suisa_nr[ii],
-    Filmtitel = df_temp$Filmtitel,
-    `Gewinn/Verlust [CHF]` =round5Rappen(
-      l_GV_Kiosk[[ii]]$Gewinn + l_GV[[ii]]$`Gewinn/Verlust [CHF]` + pull(df_manko_uerberschuss|>filter(Datum == c_Date[ii])) - c_Eventausgaben + c_Eventeinnahmen
-    )
-  )
-}
-
-df_GV_Vorfuehrung <- l_GV_Vorfuehrung |>
-  bind_rows() 
-
-df_GV_Vorfuehrung
-########################################################################
-# write to Excel
-########################################################################
-
-
-df_s_Eintritt <- df_Eintritt|>
-  group_by(Datum, Filmtitel, `Suisa Nummer`)|>
-  reframe(Besucher = sum(Anzahl))
-
-list(Shows = df_show,
-     Eintritte = df_Eintritt,
-     `Abrechnung Werbung` = df_s_Eintritt,
-     `Gewinn Verlust Eintritt` = df_GV_Eintritt,
-     Kiosk = df_Kiosk,
-     `Gewinn Kiosk` = df_GV_Kiosk,
-     `Gewinn Verlust Vorführung` = df_GV_Vorfuehrung,
-     Verleiherabgaben  = df_verleiherabgaben,
-     Einkaufspreise = df_Einkaufspreise,
-     Spezialpreisekiosk = Spezialpreisekiosk,
-     Ticketpreise = df_Kinopreise,
-     Ausgaben = Einnahmen_und_Ausgaben[["Ausgaben"]],
-     Einnahmen = Einnahmen_und_Ausgaben[["Einnahmen"]]
-)|>
-  write.xlsx(file="output/Data/Auswertung.xlsx", asTable = TRUE)
-
-remove(l_Eintritt,  m, c_raw, l_GV, l_GV_Kiosk, c_Besucher,  df_Eventausgaben, l_Abgaben,
-       c_suisaabzug, c_Gratis, c_Umsatz, l_GV_Vorfuehrung,ii, c_Eventausgaben,df_P_kat_verechnen, c_lenght, c_Brutto,
-       convert_data_Film_txt, c_file, c_Verleiherrechnung, c_sheets, c_Kinofoerder_gratis, c_MWST_Abzug, c_Netto3, 
-       c_Verleiher_garantie, c_Verleiherabzug,n_Film,n_kiosk,
-       c_verleiherabzug_prozent)
-
 
 ########################################################################
 # user interaction
 ########################################################################
-writeLines("Datenkonvertierung erfolgt")
+writeLines("Daten eingelesen")
 

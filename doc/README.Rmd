@@ -4,7 +4,7 @@
 
 Author: Florian Wagner\
 Script Version:\
-2024 V1.12
+2024 V1.13
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
@@ -90,7 +90,7 @@ Die Datensätze können von <https://www.advance-ticket.ch/admin> heruntergelade
 **Eintritte 02.12.23.txt**  \
 Copy paste von html für jede Vorführung und bitte speichern unter "input/advance tickets/Eintritt xx.xx.xx.txt" Es muss die Kalenderwoche sowie der Film ausgewählt werden.\
 ![Eintritt](doc/eintritt.png) \
-Alles mit "ctrl A" alles markieren und kopieren entsprechend abspeichern("input/advance tickets/Eintritt xx.xx.xx.txt").
+Alles mit "ctrl a" markieren und kopieren "crtl c" und entsprechend abspeichern("input/advance tickets/Eintritt xx.xx.xx.txt").
 
 #### Kiosk
 **Kiosk 02.12.23.txt**  \
@@ -98,7 +98,7 @@ Copy paste von html für jede Vorführung und Speichern unter "input/advance tic
 Im Menu auf "DecompteCaisse" <https://www.advance-ticket.ch/decomptecaisse?lang=de> navigieren.\
 Spalte 1 Das Datum muss gewählt werden, Spalte 2 "reinach", Splate 3 "Atelierkino Kasse" und Spalte 4 "..." eingestellt werden.\
 ![Kiosk](doc/Kiosk.png) \
-Alles mit "ctrl A" alles markieren und kopieren entsprechend abspeichern("input/advance tickets/Kiosk xx.xx.xx.txt").
+Alles mit "ctrl a" markieren und kopieren "crtl c" und entsprechend abspeichern("input/advance tickets/Kiosk xx.xx.xx.txt").
 
 #### Shows
 **Shows.txt**  \
@@ -136,6 +136,8 @@ nach zuschlagen.
 
 Die Verleiherabgaben müssen in der Datei **.../Kinoklub/input/Verleiherabgaben.xlsx** definiert werden.\
 
+-   Für jeden gezeigten Film muss ein Datum definiert sein.
+-   Mit dem "Link Datum" ist es möglich die Kosten und Einnahme zu verteilen. 
 -   Im **Tab Verleiherabgaben** muss der **"minimal Abzug"** sowie **"Abzug %"** oder nur der **"Abzug fix [CHF]"** definiert werden. Beide Einträge sind nicht erlaubt.
 -   Im **Tab Kinoförderer gratis** muss für jeden Verleiher definiert werden, ob gewisse Platzkategorien (z.B.Kinoförderer Tickets) als gratis abgerechnet werden dürfen.\
     Wenn **nein** gewählt wird, dann wird die Platzkategorie **Kinoförderer** als Platzkategorie "Ermässigt" verrechnet.\
@@ -429,5 +431,7 @@ zusätzlich werden alle Fimvorschläge als Excel ausgegeben
 2024 V1.9 Filmvorschläge from Wordpress   \
 2024 V1.10 PowerBi script  \
 2024 V1.11 WordPress Filmvorschläge auswerten  \
+2024 V1.12 Verleiherrechnung nur erstellen falls nötig (Kinoförder Gratis => nein, in Verleiherabgaben.xlsx)  \
+2024 V1.13 Gemeinsame Abrechnung über Link Datum in Excel file "Verleiherabgaben.xlsx"  \
 
 

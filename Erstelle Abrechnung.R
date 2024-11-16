@@ -18,12 +18,13 @@
 # 2024 V1.10 PowerBi script
 # 2024 V1.11 WordPress Filmvorschläge auswerten
 # 2024 V1.12 Verleiherrechnung nur erstellen falls nötig (Kinoförder Gratis => nein, in Verleiherabgaben.xlsx)
+# 2024 V1.13 Gemeinsame Abrechnung über Link Datum in Excel file "Verleiherabgaben.xlsx"
 
 #############################################################################################################################################
 # Vorbereiten / Installieren
 #############################################################################################################################################
 rm(list = ls())
-c_script_version <- "2024 V1.12"
+c_script_version <- "2024 V1.13"
 
 # Define libraries to be installed
 packages <- c("rmarkdown", "rebus", "openxlsx", "flextable", "tidyverse", "lubridate","DT")
@@ -185,7 +186,7 @@ source("source/read_and_convert_wordPress.R")
 #############################################################################################################################################
 # Daten einlesen und konvertieren
 #############################################################################################################################################
-source("source/read and convert.R")
+source("source/calculate.R")
 
 mapping <- function(c_Date) {
   #############################################################################################################################################
@@ -309,12 +310,12 @@ if(c_run_single){
 
     # Ändern des Templates Titel Filmname
     index <- (1:length(c_raw))[c_raw|>str_detect("Abrechnung Filmvorführung")]
-    c_temp1 <- df_GV_Vorfuehrung|>
-      filter(Datum == df_GV_Vorfuehrung$Datum[ii])|>
+    c_temp1 <- df_Abrechnung|>
+      filter(Datum == df_Abrechnung$Datum[ii])|>
       mutate(Anfang = paste0(lubridate::hour(Anfang),":", lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(SPC,"0")),
              Datum = paste0(day(Datum),".",month(Datum),".",year(Datum))
       )|>
-      rename(`Total Gewinn [CHF]`=`Gewinn/Verlust [CHF]`)|>
+      rename(`Total Gewinn [CHF]`= `Gewinn/Verlust Filmvorführungen [CHF]`)|>
       select(Filmtitel)|>
       pull()
 
