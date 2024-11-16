@@ -164,10 +164,6 @@ if(dir.exists(c_path)){
   c_files <- paste0(c_path,"/",list.files(c_path))
   c_files
   file.remove(c_files)|>suppressWarnings()
-  # if(dir.exists(paste0(c_path,"/pict"))) {
-  #   # Use unlink() to remove the directory
-  #   unlink(paste0(c_path,"/pict/"), recursive = TRUE)
-  # }
 }
 
 #########
@@ -177,6 +173,35 @@ if(dir.exists(c_path)){
   c_files
   file.remove(c_files)|>suppressWarnings()
 }
+
+#############################################################################################################################################
+# Versionskontrolle
+#############################################################################################################################################
+if(!((list.files() == "version control.ini")|>sum() == 1)) 
+  {
+  write(c_script_version, "version control.ini")
+  }else{
+    x <- read_file("version control.ini")|>
+      str_remove("\r")|>
+      str_remove("\n")
+    if(x != c_script_version){
+      c_path <- "output"
+      c_files <- list.files(c_path, pattern = "html", full.names = T)
+      c_files
+      file.remove(c_files)|>suppressWarnings()
+      
+      c_path <- "output/pict"
+      c_files <- list.files(c_path, pattern = "html", full.names = T)
+      c_files
+      file.remove(c_files)|>suppressWarnings()
+      
+      c_path <- "output/webserver"
+      c_files <- list.files(c_path, pattern = "html", full.names = T)
+      c_files
+      file.remove(c_files)|>suppressWarnings()
+    }
+  }
+
 
 #############################################################################################################################################
 # Filmvorschläge auswerten
