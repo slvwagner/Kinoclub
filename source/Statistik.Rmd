@@ -171,7 +171,7 @@ df_temp|>
   # geom_hline(yintercept = Gewinn_pro_Vorführung * shows_per_year, linewidth = 2, color = "darkorange2")+
   geom_col(fill ="darkorange2")+
   geom_abline(slope = s, intercept = (time_diff * s)|>as.integer(), linewidth = 2, color = "lightblue")+
-  # geom_smooth(formula = 'y ~ x',method = "lm", fullrange = T)+
+  geom_smooth(formula = 'y ~ x',method = "lm", fullrange = T, se = F)+
   scale_x_date(limits = c(start_of_year, end_of_year))+
   # scale_y_continuous(limits = c(0, s * 365))+
   labs(title = paste0("Prognose mit Sommerpause von ", sommerpause, " Tagen"),
@@ -289,7 +289,7 @@ df_temp|>
   ggplot(aes(Datum, cumsum))+
   geom_col(fill ="darkorange2")+
   geom_abline(slope = s, intercept = (time_diff * s)|>as.integer(), linewidth = 2, color = "lightblue")+
-  # geom_smooth(formula = 'y ~ x',method = "lm", fullrange = T)+
+  geom_smooth(formula = 'y ~ x',method = "lm", fullrange = T, se = F)+
   scale_x_date(limits = c(start_of_year, end_of_year))+
   # scale_y_continuous(limits = c(0, s * 365))+
   labs(title = paste0("Prognose mit Sommerpause von ", sommerpause, " Tagen"),
@@ -471,7 +471,7 @@ df_temp|>
   ggplot(aes(Datum,cumsum))+
   geom_col(fill = "darkorange2")+
   geom_abline(slope = s, intercept = (time_diff * s)|>as.integer(), linewidth = 2, color = "lightblue")+
-  # geom_smooth(formula = 'y ~ x',method = "lm", fullrange = T)+
+  geom_smooth(formula = 'y ~ x',method = "lm", fullrange = T, se =F)+
   scale_x_date(limits = c(start_of_year, end_of_year))+
   # scale_y_continuous(limits = c(0, s * 365))+
   labs(title = paste0("Prognose mit Sommerpause von ", sommerpause, " Tagen"),
@@ -528,7 +528,7 @@ df_temp|>
 ```
 
 #### Prognose
-```{r fig.width=10}
+```{r fig.width=10, message=FALSE, warning=FALSE}
 df_temp <- df_temp|>
   arrange(Datum)|>
   mutate(cumsum = cumsum(`Verleiherabzug [CHF]`))
@@ -545,7 +545,7 @@ df_temp|>
   ggplot(aes(Datum, cumsum))+
   geom_col(fill = "darkorange2")+
   geom_abline(slope = s, intercept = (time_diff * s)|>as.integer(), linewidth = 2, color = "lightblue")+
-  # geom_smooth(formula = 'y ~ x',method = "lm", fullrange = T)+
+  geom_smooth(formula = 'y ~ x',method = "lm", fullrange = T, se = F)+
   scale_x_date(limits = c(start_of_year, end_of_year))+
   scale_y_continuous(limits = c(0, s * 365))+
   labs(title = paste0("Prognose mit Sommerpause von ", sommerpause, " Tagen"),
@@ -654,7 +654,7 @@ df_temp|>
   ggplot(aes(Datum, cumsum))+
   geom_col(fill = "darkorange2")+
   geom_abline(slope = s, intercept = (time_diff * s)|>as.integer(), linewidth = 2, color = "lightblue")+
-  # geom_smooth(formula = 'y ~ x',method = "lm", fullrange = T)+
+  geom_smooth(formula = 'y ~ x',method = "lm", fullrange = T, se = F)+
   scale_x_date(limits = c(start_of_year, end_of_year))+
   # scale_y_continuous(limits = c(0, s * 365))+
   labs(title = paste0("Prognose mit Sommerpause von ", sommerpause, " Tagen"),
