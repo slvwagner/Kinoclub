@@ -131,11 +131,11 @@ df_temp|>
 
 ```{r}
 df_temp <- df_Abrechnung|>
-  reframe(`SUISA-Vorabzug [CHF]`= -sum(`SUISA-Vorabzug [CHF]`, na.rm = T),
+  reframe(`Umsatz [CHF]` = sum(`Umsatz [CHF]`, na.rm = T),
+          `SUISA-Vorabzug [CHF]`= -sum(`SUISA-Vorabzug [CHF]`, na.rm = T),
           `Sonstige Kosten [CHF]` = -sum(`Sonstige Kosten [CHF]`, na.rm = T),
           `Verleiherabzug [CHF]` = -sum(`Verleiherabzug [CHF]`, na.rm = T),
-          `MWST [CHF]` = -sum(`MWST [CHF]`, na.rm = T),
-          `Umsatz [CHF]` = sum(`Umsatz [CHF]`, na.rm = T)
+          `MWST [CHF]` = -sum(`MWST [CHF]`, na.rm = T)
           )|>
   as.matrix()|>
   t()
@@ -145,17 +145,12 @@ df_temp|>
   knitr::kable()
 ```
 
-```{r}
-df_temp|>
-  as_tibble()|>
-  reframe(`Summe [CHF]` = sum(`Betrag [CHF]`))|>
-  knitr::kable()
-```
+
 
 ```{r}
-Filmvorführungen <- df_Abrechnung|>
-  select(Datum, Filmtitel, `Gewinn/Verlust Tickets [CHF]`)|>
-  reframe(`Summe [CHF]` = sum(`Gewinn/Verlust Tickets [CHF]`, na.rm = T))
+Filmvorführungen <- df_temp|>
+  as_tibble()|>
+  reframe(`Summe [CHF]` = sum(`Betrag [CHF]`, na.rm = T))
 
 Filmvorführungen|>
   knitr::kable(digits = 2)
