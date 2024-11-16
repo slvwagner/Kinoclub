@@ -112,7 +112,7 @@ df_temp|>
 #### MWST auf Verleiherleistungen
 ```{r}
 df_temp <- df_Abrechnung|>
-  select(Datum, Filmtitel, `Suisa Nummer`, `MWST [CHF]`)|>
+  select(Datum, Filmtitel, `MWST [CHF]`)|>
   arrange(Datum)|>
   mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))
 df_temp|>
@@ -353,7 +353,7 @@ df_Abo_Verkauf|>
 
 ```{r}
 df_temp <- df_Abo_Verkauf|>
-  reframe(`Summ der Anzahl` = sum(Anzahl),
+  reframe(`Summ Anzahl` = sum(Anzahl),
           `Summe Betrag [CHF]` = sum(Betrag)
          )
 
@@ -370,7 +370,7 @@ df_Kinogutschein_Verkauf|>
 
 ```{r}
 df_temp1 <- df_Kinogutschein_Verkauf|>
-  reframe(`Summ der Anzahl` = sum(Anzahl),
+  reframe(`Summ Anzahl` = sum(Anzahl),
           `Summe Betrag [CHF]` = sum(Betrag)
          )
 
