@@ -84,7 +84,7 @@ Copy paste von html für jede Vorführung und Speichern unter "input/advance tic
 Im Menu auf "DecompteCaisse" <https://www.advance-ticket.ch/decomptecaisse?lang=de> navigieren.\
 Spalte 1 Das Datum muss gewählt werden, Spalte 2 "reinach", Splate 3 "Atelierkino Kasse" und Spalte 4 "..." eingestellt werden.\
 ![Kiosk](doc/Kiosk.png) \
-Alles mit "ctrl A" alles markieren und kopieren entsprechend abspeichern("input/advance tickets/Kiosk xx.xx.xx.txt").
+Alles mit "ctrl a" markieren und kopieren "crtl c" und entsprechend abspeichern("input/advance tickets/Kiosk xx.xx.xx.txt").
 
 #### Shows
 **Shows.txt**  \
