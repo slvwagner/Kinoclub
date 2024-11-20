@@ -3,6 +3,59 @@ library(rebus)
 source("source/functions.R")
 print(clc)
 rm(list = ls())
+# 
+# merge_sources <- function(main_file, output_file) {
+#   # Helper function to resolve dependencies recursively
+#   resolve_dependencies <- function(file_path, resolved, visited) {
+#     # Avoid circular dependencies
+#     if (file_path %in% visited) return(resolved)
+#     
+#     # Mark file as visited
+#     visited <- c(visited, file_path)
+#     
+#     # Read the content of the current file
+#     if (!file.exists(file_path)) {
+#       warning(paste("File not found:", file_path))
+#       return(resolved)
+#     }
+#     content <- readLines(file_path, warn = FALSE)
+#     
+#     # Find all source("file.R") calls
+#     matches <- regmatches(content, gregexpr('source\\(["\'](.+?)["\']\\)', content))
+#     sources <- unique(unlist(lapply(matches, function(x) gsub('source\\(["\'](.+?)["\']\\)', '\\1', x))))
+#     
+#     # Resolve relative paths and process dependencies
+#     base_dir <- dirname(file_path)
+#     for (src in sources) {
+#       dependency_path <- normalizePath(file.path(base_dir, src), mustWork = FALSE)
+#       resolved <- resolve_dependencies(dependency_path, resolved, visited)
+#     }
+#     
+#     # Add current file to the resolved list
+#     resolved <- c(resolved, file_path)
+#     return(resolved)
+#   }
+#   
+#   # Start resolving from the main file
+#   resolved_files <- resolve_dependencies(main_file, character(0), character(0))
+#   resolved_files <- unique(resolved_files) # Ensure no duplicates
+#   
+#   # Write combined script to the output file
+#   cat("", file = output_file) # Clear output file
+#   for (file in resolved_files) {
+#     if (file.exists(file)) {
+#       cat(paste0("# --- Begin ", file, " ---\n"), file = output_file, append = TRUE)
+#       cat(readLines(file, warn = FALSE), file = output_file, append = TRUE, sep = "\n")
+#       cat(paste0("\n# --- End ", file, " ---\n\n"), file = output_file, append = TRUE)
+#     } else {
+#       warning(paste("File not found during write:", file))
+#     }
+#   }
+#   
+#   message("Combined script saved to ", output_file)
+# }
+# 
+# merge_sources("source/calculate.R", "test.R")
 
 read_source <- function(c_path, c_file){
   if(c_path == ""){
@@ -17,6 +70,12 @@ read_source <- function(c_path, c_file){
 
 check_source <- function(c_raw){
   tibble(index = (1:length(c_raw))[c_raw|>str_detect("source")])
+}
+
+find_connected_source_ <- function(c_filePath){
+  c_filePath <- str_split(c_filePath, "/", simplify = T)|>
+    as.vector()
+  find_connected_source(c_filePath[1], c_filePath[2])
 }
 
 find_connected_source <- function(c_path, c_file){
@@ -41,6 +100,8 @@ find_connected_source <- function(c_path, c_file){
       suppressWarnings()
     df_index
     
+    if(nrow(df_index) == 0) return(NULL)
+    
     df_index <- df_index|>
       mutate(link = if_else(c_path != "",
                             c(c_path, c_file)|>
@@ -55,14 +116,32 @@ find_connected_source <- function(c_path, c_file){
                                 )|>
                str_trim(),
              path = str_trim(path)
-      )
+             )|>
+      separate(link, into = c("link_path", "link_file"), sep = "/", remove = F)
     return(df_index)
   }else{
     return(NULL)
   }
 }
+
+
+find_connected_source("source", "functions.R")
+find_connected_source("source", "calculate.R")
+
+find_connected_source_("source/functions.R")
+find_connected_source_("source/calculate.R")
+find_connected_source_("source/read and convert.R")
+
+
+
+
+
 c_path <- "source"
 c_file <- "calculate.R"
+c_file <- "functions.R"
+find_connected_source(c_path, c_file)
+
+
 c_path <- ""
 c_file <- "read and convert.R"
 c_file <- "Erstelle Abrechnung.R"
@@ -121,38 +200,44 @@ while (TRUE) {
 df_source <- l_source|>
   bind_rows()|>
   mutate(filePath = str_remove(filePath, START%R%literal("/")),
-         index = row_number())
-# df_source|>
-#   print()
-
-
-##############################################################################################################
-# stitch together all connected sources
-##############################################################################################################
-
+         row_number = row_number())
+df_source
+ 
+# ##############################################################################################################
+# # stitch together all connected sources
+# ##############################################################################################################
 # read all sources
-l_raw <- df_source$filePath|>
-  lapply(readLines)
+
 ii <- 16
-for (ii in sort(df_source$index, decreasing = T)) {
+for (ii in nrow(df_source):1) {
   df_temp <- df_source|>
-    filter(index == ii)
+    filter(row_number == ii)
   df_temp
 
   if(df_temp$link == "") next
-  
-  l_raw <- df_temp$link|>
-    lapply(readLines)
-  
-  for (jj in 1:length(l_raw)) {
-    df_index <- l_raw[[jj]]|>
-      check_source()
-    df_index|>
-      mutate(c_source = "df")
-    
+
+  jj <- 1
+  for (jj in 1:nrow(df_temp)) {
+    c_raw <- readLines(df_temp$link[jj])
+    c_insert <- readLines(df_temp$filePath[jj])
+    c_raw[df_temp$index[jj]]
+
+    c_raw <- c(c_raw[1:(df_temp$index[jj] - 1)],
+               c_insert,
+               c_raw[(df_temp$index[jj] + 1):length(c_raw)]
+               )
   }
-  
+  c_raw
+  find_connected_source_(c_raw)
+  write(c_raw,"powerBi Script.R")
 }
+
+
+c_filePath <- str_split(c_filePath, "/", simplify = T)|>
+  as.vector()
+
+c_raw|>
+  find_connected_source_()
 
 writeLines("\nPowerBi script generated")
 
