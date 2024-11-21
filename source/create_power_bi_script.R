@@ -77,23 +77,6 @@ find_connected_source <- function(c_filePath){
   }
 }
 
-find_connected_source_("source", "functions.R")
-find_connected_source_("source", "calculate.R")
-
-find_connected_source("source/functions.R")
-find_connected_source("source/calculate.R")
-find_connected_source("source/read and convert.R")
-find_connected_source("Erstelle Abrechnung.R")
-
-
-c_path <- "source"
-c_file <- "calculate.R"
-c_file <- "functions.R"
-
-c_path <- ""
-c_file <- "read and convert.R"
-c_file <- "Erstelle Abrechnung.R"
-
 ##############################################################################################################
 # find all connected source
 ##############################################################################################################
