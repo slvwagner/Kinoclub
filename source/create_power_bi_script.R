@@ -105,7 +105,7 @@ df_source <- tibble(index = NA,
                     )
 df_source
 
-cnt <- 2L
+cnt <- 1L
 l_source <- list()
 while (TRUE) {
   df_source
@@ -114,21 +114,23 @@ while (TRUE) {
   df_temp
   
   if(nrow(df_temp) > 0){
+    
     df_index <- find_connected_source(df_temp$link[1])
     df_temp$checked[1] <- TRUE
     
     if(!is.null(df_index)){
-        df_index <- df_index|>
-          mutate(level = cnt)
-        df_index
-        
-        df_source
-        df_source <- 
-          bind_rows(df_source|>
-                       filter(checked),
-                    df_temp,
-                    df_index
-                    )
+      cnt <- cnt + 1
+      df_index <- df_index|>
+        mutate(level = cnt)
+      df_index
+      
+      df_source
+      df_source <- 
+        bind_rows(df_source|>
+                     filter(checked),
+                  df_temp,
+                  df_index
+                  )
     }else{
       df_source <- 
         bind_rows(df_source|>
@@ -142,7 +144,7 @@ while (TRUE) {
   writeLines(paste("\n*******************\ncnt:", cnt))
   print(df_source)
 
-  cnt <- cnt + 1
+  
 }
 
   
