@@ -98,7 +98,7 @@ c_file <- "Erstelle Abrechnung.R"
 # find all connected source
 ##############################################################################################################
 df_source <- tibble(index = NA, 
-                    link = "Erstelle Abrechnung.R",
+                    link = "source/calculate.R",
                     input_file = "",
                     checked = F,
                     level = 1L
@@ -145,43 +145,5 @@ while (TRUE) {
   # print(df_source)
 }
 
+print(df_source)
   
-# # ##############################################################################################################
-# # # stitch together all connected sources
-# # ##############################################################################################################
-# # read all sources
-# 
-# ii <- 16
-# for (ii in nrow(df_source):1) {
-#   df_temp <- df_source|>
-#     filter(row_number == ii)
-#   df_temp
-# 
-#   if(df_temp$link == "") next
-# 
-#   jj <- 1
-#   for (jj in 1:nrow(df_temp)) {
-#     c_raw <- readLines(df_temp$link[jj])
-#     c_insert <- readLines(df_temp$filePath[jj])
-#     c_raw[df_temp$index[jj]]
-# 
-#     c_raw <- c(c_raw[1:(df_temp$index[jj] - 1)],
-#                c_insert,
-#                c_raw[(df_temp$index[jj] + 1):length(c_raw)]
-#                )
-#   }
-#   c_raw
-#   check_source(c_raw)
-#   write(c_raw,"powerBi Script.R")
-# }
-# 
-# 
-# c_filePath <- str_split(c_filePath, "/", simplify = T)|>
-#   as.vector()
-# 
-# c_raw|>
-#   find_connected_source_()
-# 
-# writeLines("\nPowerBi script generated")
-# 
-# 
