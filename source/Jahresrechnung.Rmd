@@ -47,12 +47,26 @@ df_temp|>
 
 ```{r}
 df_temp <- df_Abrechnung|>
-  arrange(Datum)|>
-  mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))|>
-  select(Datum, Filmtitel, `SUISA-Vorabzug [CHF]`)
+  arrange(desc(Datum))|>
+ mutate(Datum_display = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)),
+        Anfang = paste0(lubridate::hour(Anfang), ":", 
+                         lubridate::minute(Anfang) |> as.character() |> formatC(width = 2, flag = "0")|>str_replace(SPC%R%"0", "00")
+                        )
+        )|>
+  select(Datum, Datum_display, Filmtitel, `SUISA-Vorabzug [CHF]`)
+```
 
-df_temp|>
-  knitr::kable()
+```{r}
+DT::datatable(df_temp, 
+          options = list(
+            columnDefs = list(
+              # list(targets = 3,visible = F),
+              list(targets = 1, visible = FALSE),  # Hide the 'Datum' column
+              list(targets = 2, orderData = 0)    # Use the 'Datum' column for sorting 'Datum_display'
+            )
+          ),
+          colnames = c(Datum = "Datum_display")
+)
 ```
 
 
@@ -66,12 +80,27 @@ df_temp|>
 
 ```{r}
 df_temp <- df_Abrechnung|>
-  arrange(Datum)|>
-  mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))|>
-  select(Datum,Filmtitel, `Verleiherabzug [CHF]`)
+  arrange(desc(Datum))|>
+ mutate(Datum_display = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)),
+        Anfang = paste0(lubridate::hour(Anfang), ":", 
+                         lubridate::minute(Anfang) |> as.character() |> formatC(width = 2, flag = "0")|>str_replace(SPC%R%"0", "00")
+                        )
+        )|>
+  select(Datum,Datum_display,Filmtitel, `Verleiherabzug [CHF]`)
+```
 
-df_temp|>
-  knitr::kable()
+
+```{r}
+DT::datatable(df_temp, 
+          options = list(
+            columnDefs = list(
+              # list(targets = 3,visible = F),
+              list(targets = 1, visible = FALSE),  # Hide the 'Datum' column
+              list(targets = 2, orderData = 0)    # Use the 'Datum' column for sorting 'Datum_display'
+            )
+          ),
+          colnames = c(Datum = "Datum_display")
+)
 ```
 
 ```{r}
@@ -91,14 +120,26 @@ if(nrow(df_keine_Rechnnung)>0) {
 
 ```{r}
 df_temp <- df_Abrechnung|>
-  arrange(Datum)|>
-  mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))|>
-  select(Datum,Filmtitel,`Sonstige Kosten [CHF]`)
+  arrange(desc(Datum))|>
+ mutate(Datum_display = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)),
+        Anfang = paste0(lubridate::hour(Anfang), ":", 
+                         lubridate::minute(Anfang) |> as.character() |> formatC(width = 2, flag = "0")|>str_replace(SPC%R%"0", "00")
+                        )
+        )|>
+  select(Datum, Datum_display,Filmtitel,`Sonstige Kosten [CHF]`)
 ```
 
 ```{r}
-df_temp|>
-  knitr::kable()
+DT::datatable(df_temp, 
+          options = list(
+            columnDefs = list(
+              # list(targets = 3,visible = F),
+              list(targets = 1, visible = FALSE),  # Hide the 'Datum' column
+              list(targets = 2, orderData = 0)    # Use the 'Datum' column for sorting 'Datum_display'
+            )
+          ),
+          colnames = c(Datum = "Datum_display")
+)
 ```
 
 
@@ -112,11 +153,27 @@ df_temp|>
 #### MWST auf Verleiherleistungen
 ```{r}
 df_temp <- df_Abrechnung|>
-  select(Datum, Filmtitel, `MWST [CHF]`)|>
-  arrange(Datum)|>
-  mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))
-df_temp|>
-  knitr::kable()
+  arrange(desc(Datum))|>
+ mutate(Datum_display = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)),
+        Anfang = paste0(lubridate::hour(Anfang), ":", 
+                         lubridate::minute(Anfang) |> as.character() |> formatC(width = 2, flag = "0")|>str_replace(SPC%R%"0", "00")
+                        )
+        )|>
+  select(Datum, Datum_display, Filmtitel, `MWST [CHF]`)
+```
+
+
+```{r}
+DT::datatable(df_temp, 
+          options = list(
+            columnDefs = list(
+              # list(targets = 3,visible = F),
+              list(targets = 1, visible = FALSE),  # Hide the 'Datum' column
+              list(targets = 2, orderData = 0)    # Use the 'Datum' column for sorting 'Datum_display'
+            )
+          ),
+          colnames = c(Datum = "Datum_display")
+)
 ```
 
 
@@ -133,7 +190,7 @@ df_temp|>
 df_temp <- df_Abrechnung|>
   reframe(`Umsatz` = sum(`Umsatz [CHF]`, na.rm = T),
           `SUISA-Vorabzug`= -sum(`SUISA-Vorabzug [CHF]`, na.rm = T),
-          `Sonstige Kosten` = -sum(`Sonstige Kosten [CHF]`, na.rm = T),
+          `Nebenkosten` = -sum(`Sonstige Kosten [CHF]`, na.rm = T),
           `Verleiherabzug` = -sum(`Verleiherabzug [CHF]`, na.rm = T),
           `MWST` = -sum(`MWST [CHF]`, na.rm = T)
           )|>
