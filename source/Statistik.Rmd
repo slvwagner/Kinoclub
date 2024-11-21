@@ -567,8 +567,12 @@ df_temp <- df_Abrechnung_kiosk|>
   mutate(Anfang = paste0(lubridate::hour(Anfang),":", 
                          lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>
                            str_replace(SPC,"0"))
-         )|> 
+         )|>
   select(Datum, Datum_display, Anfang,`Suisa Nummer`, Filmtitel, `Umsatz [CHF]`, `Kiosk Gewinn [CHF]`)
+
+df_temp <- df_temp|>
+  mutate(`Kiosk Gewinn [CHF]` = round5Rappen(`Kiosk Gewinn [CHF]`))
+
 ```
 
 
