@@ -177,14 +177,32 @@ if(dir.exists(c_path)){
 #############################################################################################################################################
 # Versionskontrolle
 #############################################################################################################################################
-if(!((list.files() == "version control.ini")|>sum() == 1)) 
-  {
+if(!((list.files() == "version control.ini")|>sum() == 1)) { # ist kein versions kontrolle vorhanden?
+  #versions kontrolle schreiben
   write(c_script_version, "version control.ini")
+  
+  # Löschen aller output files 
+  c_path <- "output"
+  c_files <- list.files(c_path, pattern = "html", full.names = T)
+  c_files
+  file.remove(c_files)|>suppressWarnings()
+  
+  c_path <- "output/pict"
+  c_files <- list.files(c_path, pattern = "html", full.names = T)
+  c_files
+  file.remove(c_files)|>suppressWarnings()
+  
+  c_path <- "output/webserver"
+  c_files <- list.files(c_path, pattern = "html", full.names = T)
+  c_files
+  file.remove(c_files)|>suppressWarnings()
   }else{
     x <- read_file("version control.ini")|>
       str_remove("\r")|>
       str_remove("\n")
-    if(x != c_script_version){
+    x
+    if(x != c_script_version){ # ist es nicht die aktuelle Version?
+      # Löschen aller output files 
       c_path <- "output"
       c_files <- list.files(c_path, pattern = "html", full.names = T)
       c_files
