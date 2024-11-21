@@ -1,7 +1,4 @@
 library(tidyverse)
-library(rebus)
-source("source/functions.R")
-print(clc)
 rm(list = ls())
 
 extract_source <- function(input_string) {
@@ -38,15 +35,6 @@ check_source <- function(c_raw){
   }
 }
 
-c_raw <- readLines("source/calculate.R")
-readLines("source/calculate.R")|>
-  check_source()
-readLines("source/functions.R")|>
-  check_source()
-readLines("Erstelle Abrechnung.R")|>
-  check_source()
-
-
 find_connected_source_ <- function(c_path, c_file){
   c_raw <- read_source(c_path, c_file)
   df_index <- check_source(c_raw)
@@ -77,56 +65,58 @@ find_connected_source <- function(c_filePath){
   }
 }
 
-##############################################################################################################
-# find all connected source
-##############################################################################################################
-df_source <- tibble(index = NA, 
-                    link = "source/calculate.R",
-                    input_file = "",
-                    checked = F,
-                    level = 1L
-                    )
-df_source
 
-cnt <- 1L
-l_source <- list()
-while (TRUE) {
-  df_source
-  df_temp <- df_source|>
-    filter(!checked)
-  df_temp
-  
-  if(nrow(df_temp) > 0){
+
+find_all_source <- function(c_filePath) {
+  ##############################################################################################################
+  # find all connected source
+  ##############################################################################################################
+  df_source <- tibble(index = NA, 
+                      link = c_filePath,
+                      input_file = "",
+                      checked = F,
+                      level = 1L
+                      )
+  cnt <- 1L
+  l_source <- list()
+  while (TRUE) {
+    df_temp <- df_source|>
+      filter(!checked)
     
-    df_index <- find_connected_source(df_temp$link[1])
-    df_temp$checked[1] <- TRUE
-    
-    if(!is.null(df_index)){
-      cnt <- cnt + 1
-      df_index <- df_index|>
-        mutate(level = cnt)
-      df_index
-      
-      df_source
-      df_source <- 
-        bind_rows(df_source|>
-                     filter(checked),
-                  df_temp,
-                  df_index
-                  )
+    if(nrow(df_temp) > 0){
+      df_index <- find_connected_source(df_temp$link[1])
+      df_temp$checked[1] <- TRUE
+      if(!is.null(df_index)){
+        cnt <- cnt + 1
+        df_index <- df_index|>
+          mutate(level = cnt)
+        df_index
+        
+        df_source
+        df_source <- 
+          bind_rows(df_source|>
+                       filter(checked),
+                    df_temp,
+                    df_index
+                    )
+      }else{
+        df_source <- 
+          bind_rows(df_source|>
+                      filter(checked),
+                    df_temp
+          )
+      }
     }else{
-      df_source <- 
-        bind_rows(df_source|>
-                    filter(checked),
-                  df_temp
-        )
+      break
     }
-  }else{
-    break
+    # writeLines(paste("\n*******************\ncnt:", cnt))
+    # print(df_source)
   }
-  # writeLines(paste("\n*******************\ncnt:", cnt))
-  # print(df_source)
+  return(df_source)
 }
+
+c_filePath <- "source/calculate.R"
+find_all_source(c_filePath)
 
 print(df_source)
   
