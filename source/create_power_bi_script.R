@@ -126,9 +126,9 @@ while (TRUE) {
         df_source <- 
           bind_rows(df_source|>
                        filter(checked),
-                    df_temp|>slice(1),
+                    df_temp,
                     df_index
-          )
+                    )
     }else{
       df_source <- 
         bind_rows(df_source|>
