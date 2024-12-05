@@ -19,11 +19,12 @@
 # 2024 V1.11 WordPress Filmvorschläge auswerten
 # 2024 V1.12 Verleiherrechnung nur erstellen falls nötig (Kinoförder Gratis => nein, in Verleiherabgaben.xlsx)
 # 2024 V1.13 Gemeinsame Abrechnung über Link Datum in Excel file "Verleiherabgaben.xlsx"
+# 2024 V1.14 ShinyApp user interface 
 
 #############################################################################################################################################
 # Vorbereiten / Installieren
 #############################################################################################################################################
-rm(list = ls())
+#rm(list = ls())
 c_script_version <- "2024 V1.13"
 
 # Define libraries to be installed
@@ -229,7 +230,7 @@ source("source/read_and_convert_wordPress.R")
 #############################################################################################################################################
 # Daten einlesen und konvertieren
 #############################################################################################################################################
-source("source/calculate.R")
+# source("source/calculate.R") # removed because alrady done
 
 mapping <- function(c_Date) {
   #############################################################################################################################################

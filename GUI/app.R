@@ -4,6 +4,8 @@ library(shiny)
 # Beispiel-Daten: Ein Vektor mit Datumseinträgen
 datum_vektor <- seq(as.Date("2024-12-01"), as.Date("2024-12-31"), by = "day")
 
+source("calculate.R")
+
 # UI-Definition
 ui <- fluidPage(
   titlePanel("Start- und Enddatum auswählen und Code ausführen"),
