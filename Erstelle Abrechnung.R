@@ -218,6 +218,7 @@ if(!((list.files() == "version control.ini")|>sum() == 1)) { # ist kein versions
     c_files <- list.files(c_path, pattern = "html", full.names = T)
     c_files
     file.remove(c_files)|>suppressWarnings()
+    writeLines(c_script_version, "version control.ini")
   }
 }
 
@@ -456,7 +457,7 @@ source("source/create_webserver_data.R")
 #############################################################################################################################################
 # Einlesen template der Verleiherabrechnung
 c_raw <- readLines("doc/README.Rmd")
-
+c_raw
 # Index where to find
 c_index <- (1:length(c_raw))[c_raw|>str_detect("Script Version")]
 c_index <- c_index[length(c_index)]
