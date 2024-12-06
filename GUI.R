@@ -195,28 +195,22 @@ tryCatch({
   stop("Fehler beim Laden von 'source/calculate.R': ", e$message)
 })
 
-# Sicherstellen, dass df_show$Datum existiert und korrekt formatiert ist
-if (!exists("df_show") || !"Datum" %in% colnames(df_show)) {
-  stop("Die DataFrame 'df_show' oder die Spalte 'Datum' existiert nicht.")
-}
 
 # Vektor mit Datumseinträgen
 datum_vektor <- df_show$Datum
 
-ls()|>
-  print()
 
 ###########################################################################################################
 # UI-Definition
 ###########################################################################################################
 ui <- fluidPage(
-  # tags$head(
-  #   tags$link(rel = "stylesheet", type = "text/css", href = "gui.css")
-  # ),
   titlePanel("Kinoklub GUI"),
   
   sidebarLayout(
     sidebarPanel(
+      # Button zum Ausführen von Code
+      actionButton("DatenEinlesen", "Daten Einlesen"),
+      
       dateRangeInput(
         inputId = "dateRange", 
         label = "Wählen Sie einen Datumsbereich aus:",
@@ -238,13 +232,15 @@ ui <- fluidPage(
       actionButton("Jahresrechnung", "Jahresrechnung erstellen"),
       
       # Button zum Ausführen von Code 
-      actionButton("ErstelleAbrechnung", "Alles erstellen")
+      actionButton("wordpress", "Filmumfrage Wordpress auswerten"),
+      
+      # Button zum Ausführen von Code 
+      actionButton("ErstelleAbrechnung", "Alles erstellen mit Webserver")
     ),
     
     mainPanel(
-      renderText("Fehlermeldunge:"),
-      tableOutput("dateTable"),
       
+      tableOutput("dateTable"),
       # Rückmeldung
       verbatimTextOutput("ausgabe"),
       # Bereich, um Warnings darzustellen
@@ -262,10 +258,28 @@ server <- function(input, output, session) {
   # Variable, um Status zu speichern
   ausgabe_text <- reactiveVal("Wähle ein Start- und Enddatum und klicke auf 'Code ausführen'.")
   
-  ###########################################################################################################
-  # Überwachung der Buttons
-  ###########################################################################################################
+  ######################################
+  # Überwachung Button Dateneinlesen
+  ######################################
+  observeEvent(input$DatenEinlesen, {
+    print(clc)
+    # Daten berechnen und laden, Warnings auffangen
+    tryCatch({
+      # Warnings abfangen
+      calculate_warnings <- capture.output({
+        source("source/calculate.R")
+      }, type = "message")
+    }, error = function(e) {
+      stop("Fehler beim Laden von 'source/calculate.R': ", e$message)
+    })
+    
+    ausgabe_text("Bericht:\nDaten wurden eingelesen")
+    renderText(calculate_warnings)
+  })
   
+  ######################################
+  # Überwachung Button Statistik
+  ######################################
   observeEvent(input$Statistik, {
     ############
     # Statistik-Bericht erstellen
@@ -296,16 +310,13 @@ server <- function(input, output, session) {
                   to   = paste0(getwd(),"/output/", "Statistik",df_Render$fileExt[jj] )
       )
     }
-    
-    # rmarkdown::render(paste0("source/Statistik.Rmd"),
-    #                   df_Render$Render,
-    #                   output_dir = paste0(getwd(), "/output"))
-    print(clc)
-    
-    paste("Bericht: \nStatistik erstellt")|>
-      writeLines()
+
+    ausgabe_text(paste("Bericht: \nStatistik erstellt"))
   })
   
+  ######################################
+  # Überwachung Button Jahresrechnung
+  ######################################
   observeEvent(input$Jahresrechnung, {
     ############
     # Jahresrechnung-Bericht erstellen
@@ -340,27 +351,26 @@ server <- function(input, output, session) {
     print(clc)
     
     paste("Bericht: \nJahresrechnung erstellt")|>
-      writeLines()
+      ausgabe_text()
   })
   
+  ######################################
+  # Überwachung Button Abrechnungen erstellen über Datum-Range
+  ######################################
   observeEvent(input$Abrechnung, {
     
   start_datum <- input$dateRange|>min()
   end_datum <- input$dateRange|>max()
   
-  # start_datum <- as.Date("2024-11-1")
-  # end_datum <- as.Date("2024-11-30")
-      
   # Überprüfen, ob beide Daten gültig sind
   if (start_datum <= end_datum) {
     # Aktion ausführen
-    ausgabe_text(paste("Die Berichte für den Zeitraum von", 
+    ausgabe_text(paste("Die Filmabrechnungen für den Zeitraum von", 
                        format(start_datum, "%d.%m.%Y"), "bis", 
                        format(end_datum, "%d.%m.%Y"), "wurden erstellt"))
     
     ##############################################
     # Filmabrechnungen erstellen mit dateRange user input
-    ##############################################
     tryCatch({
       print(clc)
       print("Erstelle Abrechnung")
@@ -427,7 +437,6 @@ server <- function(input, output, session) {
         
         ############################################################################################
         # Muss eine Verleiherrechnung erstellt werden?
-        ############################################################################################
         if(df_mapping__|>filter(index == ii)|>select(CreateReportVerleiherabrechnung)|>pull() ){
           
           # Einlesen template der Verleiherabrechnung
@@ -466,25 +475,40 @@ server <- function(input, output, session) {
     ausgabe_text("Das Enddatum darf nicht vor dem Startdatum liegen.")
   }
 
-
   })
   
-  observeEvent(input$ErstelleAbrechnung, {
+  ######################################
+  # Überwachung Button Wordpress
+  ######################################
+  observeEvent(input$wordpress, {
     ############
     # Statistik-Bericht erstellen
     ############
     print(clc)
-    source("Erstelle Abrechnung.R")
+    source("source/read_and_convert_wordPress.R")
+    ausgabe_text("Bericht:\nFilmumfrage auswertung ausgeführt")
   })
   
+  ######################################
+  # Überwachung Button Erstelle Abrechnung
+  ######################################
+  observeEvent(input$ErstelleAbrechnung, {
+    print(clc)
+    source("Erstelle Abrechnung.R")
+    ausgabe_text("Kompletter Script wurde ausgeführt")
+  })
+  
+  ######################################
   # Ausgabe aktualisieren
+  ######################################
   output$ausgabe <- renderText({
     ausgabe_text()
   })
   
+  ######################################
   # Create a reactive table with all the dates in the selected range
+  ######################################
   output$dateTable <- renderTable({
-
     start_datum <- input$dateRange|>min()
     end_datum <- input$dateRange|>max()
     
@@ -495,10 +519,12 @@ server <- function(input, output, session) {
       select(Datum, Zeit, Filmtitel, `Suisa Nummer`)
   })
   
+  ######################################
   # Warnings aus 'calculate.R' anzeigen
+  ######################################
   output$warnings_output <- renderText({
     if (!is.null(calculate_warnings) && length(calculate_warnings) > 0) {
-      paste("Warnings:", paste(calculate_warnings, collapse = "\n"))
+      paste(calculate_warnings, collapse = "\n")
     } else {
       "Keine warnungen vorhanden'."
     }

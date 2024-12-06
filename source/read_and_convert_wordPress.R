@@ -182,3 +182,5 @@ insertImage(
 ##########################################################################################
 # Save the workbook to a file
 saveWorkbook(wb_xlsx, file = "output/data/Filmvorschläge.xlsx", overwrite = TRUE )
+
+writeLines("Wordpress daten ausgewertet")
