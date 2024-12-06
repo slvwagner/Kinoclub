@@ -1,15 +1,11 @@
+###############################################################################
+# Graphical user interface für den Kinoklub
+# Diese App kann mit Run App in Rstudio gestartet werden. 
+###############################################################################
+
 # Lade das Shiny-Paket
 library(tidyverse)
 library(shiny)
-
-paste0("\n********************************************",
-       "\nGUI",
-       "\n********************************************")|>
-  writeLines()
-
-# # Set locale to German
-# Sys.setlocale("LC_TIME", "de_DE.UTF-8") # Ensure your system supports this locale
-
 
 rm(list = ls())
 
