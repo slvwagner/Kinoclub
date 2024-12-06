@@ -183,7 +183,7 @@ if(dir.exists(c_path)){
 # 
 #############################################################################################################################################
 # Variable, um Warnings zu speichern
-calculate_warnings <- NULL
+calculate_warnings <- reactiveVal(NULL)
 
 # Daten berechnen und laden, Warnings auffangen
 tryCatch({
@@ -195,10 +195,11 @@ tryCatch({
   stop("Fehler beim Laden von 'source/calculate.R': ", e$message)
 })
 
-
 # Vektor mit Datumseinträgen
 datum_vektor <- df_show$Datum
 
+# Variable, um Status zu speichern
+ausgabe_text <- reactiveVal(NULL)
 
 ###########################################################################################################
 # UI-Definition
@@ -254,10 +255,6 @@ ui <- fluidPage(
 # Server-Logik
 ###########################################################################################################
 server <- function(input, output, session) {
-  
-  # Variable, um Status zu speichern
-  ausgabe_text <- reactiveVal("Wähle ein Start- und Enddatum und klicke auf 'Code ausführen'.")
-  
   ######################################
   # Überwachung Button Dateneinlesen
   ######################################
@@ -494,8 +491,17 @@ server <- function(input, output, session) {
   ######################################
   observeEvent(input$ErstelleAbrechnung, {
     print(clc)
-    source("Erstelle Abrechnung.R")
-    ausgabe_text("Kompletter Script wurde ausgeführt")
+    
+    tryCatch({
+      # Warnings abfangen
+      calculate_warnings <- capture.output({
+        source("Erstelle Abrechnung.R")
+      }, type = "message")
+    }, error = function(e) {
+      stop("Fehler beim Laden von 'Erstelle Abrechnung.R': ", e$message)
+    })
+    ausgabe_text("Script wurde ausgeführt")
+    renderText(calculate_warnings)
   })
   
   ######################################
@@ -523,11 +529,8 @@ server <- function(input, output, session) {
   # Warnings aus 'calculate.R' anzeigen
   ######################################
   output$warnings_output <- renderText({
-    if (!is.null(calculate_warnings) && length(calculate_warnings) > 0) {
-      paste(calculate_warnings, collapse = "\n")
-    } else {
-      "Keine warnungen vorhanden'."
-    }
+    calculate_warnings|>
+      paste0(collapse = "\n")
   })
 }
 
