@@ -7,8 +7,8 @@ paste0("\n********************************************",
        "\n********************************************")|>
   writeLines()
 
-# Set locale to German
-Sys.setlocale("LC_TIME", "de_DE.UTF-8") # Ensure your system supports this locale
+# # Set locale to German
+# Sys.setlocale("LC_TIME", "de_DE.UTF-8") # Ensure your system supports this locale
 
 
 rm(list = ls())
@@ -202,7 +202,6 @@ if (!exists("df_show") || !"Datum" %in% colnames(df_show)) {
 
 # Vektor mit Datumseinträgen
 datum_vektor <- df_show$Datum
-c_Date_Gui <- NULL
 
 ls()|>
   print()
@@ -211,15 +210,13 @@ ls()|>
 # UI-Definition
 ###########################################################################################################
 ui <- fluidPage(
+  # tags$head(
+  #   tags$link(rel = "stylesheet", type = "text/css", href = "gui.css")
+  # ),
   titlePanel("Kinoklub GUI"),
   
   sidebarLayout(
     sidebarPanel(
-      # # Kalender zur Auswahl von Start- und Enddatum mit Schweizer Datumsformat
-      # dateInput("start_datum", "Wähle ein Startdatum:", value = min(datum_vektor),
-      #           min = min(datum_vektor), max = max(datum_vektor), format = "dd.mm.yyyy"),
-      # dateInput("end_datum", "Wähle ein Enddatum:", value = max(datum_vektor),
-      #           min = min(datum_vektor), max = max(datum_vektor), format = "dd.mm.yyyy"),
       dateRangeInput(
         inputId = "dateRange", 
         label = "Wählen Sie einen Datumsbereich aus:",
@@ -231,21 +228,31 @@ ui <- fluidPage(
         separator = " bis "      # Separator for the two dates in German
       ),
       
-      # Button zum Ausführen des Codes
-      actionButton("ausfuehren", "Berichte erstellen")
+      # Button zum Ausführen von Code
+      actionButton("Abrechnung", "Filmabrechnunge(n) erstellen"),
+      
+      # Button zum Ausführen von Code 
+      actionButton("Statistik", "Statistik erstellen"),
+      
+      # Button zum Ausführen von Code 
+      actionButton("Jahresrechnung", "Jahresrechnung erstellen"),
+      
+      # Button zum Ausführen von Code 
+      actionButton("ErstelleAbrechnung", "Alles erstellen")
     ),
     
     mainPanel(
       renderText("Fehlermeldunge:"),
+      tableOutput("dateTable"),
+      
       # Rückmeldung
       verbatimTextOutput("ausgabe"),
       # Bereich, um Warnings darzustellen
-      verbatimTextOutput("warnings_output"),
-      # Example: display a table of the days in the selected range
-      tableOutput("dateTable")
+      verbatimTextOutput("warnings_output")
     )
   )
 )
+
 
 ###########################################################################################################
 # Server-Logik
@@ -256,130 +263,218 @@ server <- function(input, output, session) {
   ausgabe_text <- reactiveVal("Wähle ein Start- und Enddatum und klicke auf 'Code ausführen'.")
   
   ###########################################################################################################
-  # Überwachung des Buttons
+  # Überwachung der Buttons
   ###########################################################################################################
-  observeEvent(input$ausfuehren, {
-    start_datum <- input$dateRange|>min()
-    end_datum <- input$dateRange|>max()
+  
+  observeEvent(input$Statistik, {
+    ############
+    # Statistik-Bericht erstellen
+    ############
+    print(clc)
+    # Einlesen
+    c_raw <- readLines("source/Statistik.Rmd")
+    c_raw
     
-    # start_datum <- as.Date("2024-11-1")
-    # end_datum <- as.Date("2024-11-30")
-        
-    # Überprüfen, ob beide Daten gültig sind
-    if (start_datum <= end_datum) {
-      # Aktion ausführen
-      ausgabe_text(paste("Die Berichte für den Zeitraum von", 
-                         format(start_datum, "%d.%m.%Y"), "bis", 
-                         format(end_datum, "%d.%m.%Y"), "wurden erstellt"))
+    # Inhaltsverzeichnis
+    if(toc){# neues file schreiben mit toc
+      c_raw|>
+        r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis")|>
+        writeLines(paste0("source/temp.Rmd"))
+    }else {# neues file schreiben ohne toc
+      c_raw|>
+        writeLines(paste0("source/temp.Rmd"))
+    }
+    
+    # Render
+    rmarkdown::render(paste0("source/temp.Rmd"),
+                      df_Render$Render,
+                      output_dir = paste0(getwd(), "/output"))
+    
+    # Rename the file
+    for (jj in 1:length(df_Render$Render)) {
+      file.rename(from = paste0(getwd(),"/output/temp",df_Render$fileExt[jj]),
+                  to   = paste0(getwd(),"/output/", "Statistik",df_Render$fileExt[jj] )
+      )
+    }
+    
+    # rmarkdown::render(paste0("source/Statistik.Rmd"),
+    #                   df_Render$Render,
+    #                   output_dir = paste0(getwd(), "/output"))
+    print(clc)
+    
+    paste("Bericht: \nStatistik erstellt")|>
+      writeLines()
+  })
+  
+  observeEvent(input$Jahresrechnung, {
+    ############
+    # Jahresrechnung-Bericht erstellen
+    ############
+    print(clc)
+    # Einlesen
+    c_raw <- readLines("source/Jahresrechnung.Rmd")
+    c_raw
+    
+    # Inhaltsverzeichnis
+    if(toc){# neues file schreiben mit toc
+      c_raw|>
+        r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis")|>
+        writeLines(paste0("source/temp.Rmd"))
+    }else {# neues file schreiben ohne toc
+      c_raw|>
+        writeLines(paste0("source/temp.Rmd"))
+    }
+    
+    # Render
+    rmarkdown::render(paste0("source/temp.Rmd"),
+                      df_Render$Render,
+                      output_dir = paste0(getwd(), "/output"))
+    
+    # Rename the file
+    for (jj in 1:length(df_Render$Render)) {
+      file.rename(from = paste0(getwd(),"/output/temp",df_Render$fileExt[jj]),
+                  to   = paste0(getwd(),"/output/", "Jahresrechnung",df_Render$fileExt[jj] )
+      )
+    }
+    
+    print(clc)
+    
+    paste("Bericht: \nJahresrechnung erstellt")|>
+      writeLines()
+  })
+  
+  observeEvent(input$Abrechnung, {
+    
+  start_datum <- input$dateRange|>min()
+  end_datum <- input$dateRange|>max()
+  
+  # start_datum <- as.Date("2024-11-1")
+  # end_datum <- as.Date("2024-11-30")
       
-      ##############################################
-      # Filmabrechnungen erstellen mit dateRange user input
-      ##############################################
-      tryCatch({
-        print(clc)
-        print("Erstelle Abrechnung")
+  # Überprüfen, ob beide Daten gültig sind
+  if (start_datum <= end_datum) {
+    # Aktion ausführen
+    ausgabe_text(paste("Die Berichte für den Zeitraum von", 
+                       format(start_datum, "%d.%m.%Y"), "bis", 
+                       format(end_datum, "%d.%m.%Y"), "wurden erstellt"))
+    
+    ##############################################
+    # Filmabrechnungen erstellen mit dateRange user input
+    ##############################################
+    tryCatch({
+      print(clc)
+      print("Erstelle Abrechnung")
 
-        df_mapping__ <- mapping(c_Date)|>
-          filter(between(Datum, start_datum, end_datum))
+      df_mapping__ <- mapping(c_Date)|>
+        filter(between(Datum, start_datum, end_datum))
+      
+      for(ii in df_mapping__$index){
+        # Template der Abrechnung einlesen
+        c_raw <- readLines("source/Abrechnung.Rmd")
+        c_raw
         
-        for(ii in df_mapping__$index){
-          # Template der Abrechnung einlesen
-          c_raw <- readLines("source/Abrechnung.Rmd")
+        # Ändern des Templates: Variable im Template ii wird gesetzt. c_Date[ii] wird verwendet um das korrekte Datum für die Bereichterstellung auszuwählen.
+        index <- (1:length(c_raw))[c_raw|>str_detect("variablen")]
+        c_raw[(index+1)] <- c_raw[(index+1)]|>str_replace(one_or_more(DGT), paste0(ii))
+        
+        # Ändern des Templates Titel Filmname
+        index <- (1:length(c_raw))[c_raw|>str_detect("Abrechnung Filmvorführung")]
+        c_temp1 <- df_Abrechnung|>
+          filter(Datum == (df_mapping__|>filter(index == ii)|>select(Datum)|>pull()))|>
+          mutate(Anfang = paste0(lubridate::hour(Anfang),":", lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(SPC,"0")),
+                 Datum = paste0(day(Datum),".",month(Datum),".",year(Datum))
+          )|>
+          rename(`Total Gewinn [CHF]`= `Gewinn/Verlust Filmvorführungen [CHF]`)|>
+          select(Filmtitel)|>
+          pull()
+        
+        c_temp <- c_raw[(index)]|>
+          str_split("\"", simplify = T)|>
+          as.vector()
+        
+        c_temp <- c_temp[1:2]
+        c_temp <- paste0(c(c_temp), collapse = "\"")
+        c_temp <- paste0(c(c_temp, " "), collapse = "")
+        c_temp <- paste0(c(c_temp, c_temp1), collapse = "")
+        c_raw[(index)] <- paste0(c(c_temp, "\""), collapse = "")
+        
+        # Inhaltsverzeichnis
+        if(toc){# neues file schreiben mit toc
+          c_raw|>
+            r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis")|>
+            writeLines(paste0("source/temp.Rmd"))
+        }else {# neues file schreiben ohne toc
+          c_raw|>
+            writeLines(paste0("source/temp.Rmd"))
+        }
+        
+        # Render
+        rmarkdown::render(paste0("source/temp.Rmd"),
+                          df_Render$Render,
+                          output_dir = paste0(getwd(), "/output"))
+        
+        # Rename the file
+        for (jj in 1:length(df_Render$Render)) {
+          file.rename(from = paste0(getwd(),"/output/temp",df_Render$fileExt[jj]),
+                      to   = paste0(getwd(),"/output/", "Abrechnung Filmvorführung ",df_mapping__|>filter(index == ii)|>select(user_Datum)|>pull(),df_Render$fileExt[jj])
+          )
+        }
+        
+        # user interaction
+        print(clc)
+        paste("Bericht: \nFilmabrechnung vom", df_mapping__|>filter(index == ii)|>select(user_Datum)|>pull(), "erstellt")|>
+          writeLines()
+        
+        ############################################################################################
+        # Muss eine Verleiherrechnung erstellt werden?
+        ############################################################################################
+        if(df_mapping__|>filter(index == ii)|>select(CreateReportVerleiherabrechnung)|>pull() ){
+          
+          # Einlesen template der Verleiherabrechnung
+          c_raw <- readLines("source/Verleiherabrechnung.Rmd")
           c_raw
           
-          # Ändern des Templates: Variable im Template ii wird gesetzt. c_Date[ii] wird verwendet um das korrekte Datum für die Bereichterstellung auszuwählen.
+          # Ändern des Templates mit user eingaben (ii <- ??) verwendet für Datum
           index <- (1:length(c_raw))[c_raw|>str_detect("variablen")]
+          index
           c_raw[(index+1)] <- c_raw[(index+1)]|>str_replace(one_or_more(DGT), paste0(ii))
           
-          # Ändern des Templates Titel Filmname
-          index <- (1:length(c_raw))[c_raw|>str_detect("Abrechnung Filmvorführung")]
-          c_temp1 <- df_Abrechnung|>
-            filter(Datum == (df_mapping__|>filter(index == ii)|>select(Datum)|>pull()))|>
-            mutate(Anfang = paste0(lubridate::hour(Anfang),":", lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(SPC,"0")),
-                   Datum = paste0(day(Datum),".",month(Datum),".",year(Datum))
-            )|>
-            rename(`Total Gewinn [CHF]`= `Gewinn/Verlust Filmvorführungen [CHF]`)|>
-            select(Filmtitel)|>
-            pull()
-          
-          c_temp <- c_raw[(index)]|>
-            str_split("\"", simplify = T)|>
-            as.vector()
-          
-          c_temp <- c_temp[1:2]
-          c_temp <- paste0(c(c_temp), collapse = "\"")
-          c_temp <- paste0(c(c_temp, " "), collapse = "")
-          c_temp <- paste0(c(c_temp, c_temp1), collapse = "")
-          c_raw[(index)] <- paste0(c(c_temp, "\""), collapse = "")
-          
-          # Inhaltsverzeichnis
-          if(toc){# neues file schreiben mit toc
-            c_raw|>
-              r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis")|>
-              writeLines(paste0("source/temp.Rmd"))
-          }else {# neues file schreiben ohne toc
-            c_raw|>
-              writeLines(paste0("source/temp.Rmd"))
-          }
+          # neues file schreiben
+          writeLines(c_raw, "Verleiherabrechnung.Rmd")
           
           # Render
-          rmarkdown::render(paste0("source/temp.Rmd"),
-                            df_Render$Render,
+          rmarkdown::render(input = "Verleiherabrechnung.Rmd",
+                            output_file = paste0("Verleiherabrechnung ", df_mapping__|>filter(index == ii)|>select(user_Datum)|>pull(), df_Render$fileExt[jj]),
+                            output_format = df_Render$Render,
                             output_dir = paste0(getwd(), "/output"))
-          
-          # Rename the file
-          for (jj in 1:length(df_Render$Render)) {
-            file.rename(from = paste0(getwd(),"/output/temp",df_Render$fileExt[jj]),
-                        to   = paste0(getwd(),"/output/", "Abrechnung Filmvorführung ",df_mapping__|>filter(index == ii)|>select(user_Datum)|>pull(),df_Render$fileExt[jj])
-            )
-          }
-          
+
           # user interaction
           print(clc)
-          paste("Bericht: \nFilmabrechnung vom", df_mapping__|>filter(index == ii)|>select(user_Datum)|>pull(), "erstellt")|>
+          paste("Bericht: \nVerleiherabrechnung vom", df_mapping__|>filter(index == ii)|>select(user_Datum)|>pull(), "erstellt")|>
             writeLines()
           
-          ############################################################################################
-          # Muss eine Verleiherrechnung erstellt werden?
-          ############################################################################################
-          if(df_mapping__|>filter(index == ii)|>select(CreateReportVerleiherabrechnung)|>pull() ){
-            
-            # Einlesen template der Verleiherabrechnung
-            c_raw <- readLines("source/Verleiherabrechnung.Rmd")
-            c_raw
-            
-            # Ändern des Templates mit user eingaben (ii <- ??) verwendet für Datum
-            index <- (1:length(c_raw))[c_raw|>str_detect("variablen")]
-            index
-            c_raw[(index+1)] <- c_raw[(index+1)]|>str_replace(one_or_more(DGT), paste0(ii))
-            
-            # neues file schreiben
-            writeLines(c_raw, "Verleiherabrechnung.Rmd")
-            
-            # Render
-            rmarkdown::render(input = "Verleiherabrechnung.Rmd",
-                              output_file = paste0("Verleiherabrechnung ", df_mapping__|>filter(index == ii)|>select(user_Datum)|>pull(), df_Render$fileExt[jj]),
-                              output_format = df_Render$Render,
-                              output_dir = paste0(getwd(), "/output"))
-
-            # user interaction
-            print(clc)
-            paste("Bericht: \nVerleiherabrechnung vom", df_mapping__|>filter(index == ii)|>select(user_Datum)|>pull(), "erstellt")|>
-              writeLines()
-            
-            # remove file
-            file.remove("Verleiherabrechnung.Rmd")
-          }
+          # remove file
+          file.remove("Verleiherabrechnung.Rmd")
         }
-        remove(c_raw, index,ii,jj)
-        
-      }, error = function(e) {
-        ausgabe_text(paste("Fehler beim Bericht erstellen:", e$message))
-      })
-    } else {
-      ausgabe_text("Das Enddatum darf nicht vor dem Startdatum liegen.")
-    }
+      }
+      remove(c_raw, index,ii,jj)
+      
+    }, error = function(e) {
+      ausgabe_text(paste("Fehler beim Bericht erstellen:", e$message))
+    })
+  } else {
+    ausgabe_text("Das Enddatum darf nicht vor dem Startdatum liegen.")
+  }
 
+
+  })
+  
+  observeEvent(input$ErstelleAbrechnung, {
+    ############
+    # Statistik-Bericht erstellen
+    ############
+    print(clc)
+    source("Erstelle Abrechnung.R")
   })
   
   # Ausgabe aktualisieren
@@ -403,9 +498,9 @@ server <- function(input, output, session) {
   # Warnings aus 'calculate.R' anzeigen
   output$warnings_output <- renderText({
     if (!is.null(calculate_warnings) && length(calculate_warnings) > 0) {
-      paste("Warnings aus 'source/calculate.R':", paste(calculate_warnings, collapse = "\n"))
+      paste("Warnings:", paste(calculate_warnings, collapse = "\n"))
     } else {
-      "Keine Warnings beim Laden von 'source/calculate.R'."
+      "Keine warnungen vorhanden'."
     }
   })
 }
