@@ -311,7 +311,7 @@ print(c_Date)
 
 mapping <- function(c_Date) {
 
-  df_mapping <- tibble(Datum = c_Date)|>
+  df_mapping__ <- tibble(Datum = c_Date)|>
     mutate(user_Datum = paste0(day(Datum),".", month(Datum),".", year(Datum)),
            index = row_number())
   
@@ -326,40 +326,39 @@ mapping <- function(c_Date) {
     mutate(Datum = as.Date(Datum))|>
     left_join(readxl::read_excel(c_file,c_sheets[2]), by = "Verleiher")
   
-  df_mapping <- df_verleiherabgaben|>
+  df_mapping__ <- df_verleiherabgaben|>
     select(Datum, `Kinoförderer gratis?`)|>
-    right_join(df_mapping, by = join_by(Datum))|>
+    right_join(df_mapping__, by = join_by(Datum))|>
     mutate(CreateReportVerleiherabrechnung = if_else(`Kinoförderer gratis?` == "ja",F,T),
            `Kinoförderer gratis?` = NULL)|>
     arrange(index)
 }
 
-df_mapping <- mapping(c_Date)
-
 
 #############################################################################################################################################
 # Bericht(e) Abrechnung pro Filmforführung erstellen
 #############################################################################################################################################
-ii <- 1
+
+df_mapping__ <- mapping(c_Date)
+
 if(c_run_single){
-  for(ii in 1:nrow(df_mapping)){
+  for(ii in df_mapping__$index){
     
     ############################################################################################
-    # Einlesen template der Abrechnung
+    # Abrechnung erstellen
+    ############################################################################################
+    # Template der Abrechnung einlesen
     c_raw <- readLines("source/Abrechnung.Rmd")
     c_raw
     
-    # Ändern des Templates mit user eingaben (ii <- ??) verwendet für Datum
+    # Ändern des Templates: Variable im Template ii wird gesetzt. c_Date[ii] wird verwendet um das korrekte Datum für die Bereichterstellung auszuwählen.
     index <- (1:length(c_raw))[c_raw|>str_detect("variablen")]
-    index
     c_raw[(index+1)] <- c_raw[(index+1)]|>str_replace(one_or_more(DGT), paste0(ii))
-    
-    # writeLines(c_raw, paste0("source/temp.Rmd"))
-    
+
     # Ändern des Templates Titel Filmname
     index <- (1:length(c_raw))[c_raw|>str_detect("Abrechnung Filmvorführung")]
     c_temp1 <- df_Abrechnung|>
-      filter(Datum == df_Abrechnung$Datum[ii])|>
+      filter(Datum == (df_mapping__|>filter(index == ii)|>select(Datum)|>pull()))|>
       mutate(Anfang = paste0(lubridate::hour(Anfang),":", lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(SPC,"0")),
              Datum = paste0(day(Datum),".",month(Datum),".",year(Datum))
       )|>
@@ -386,56 +385,53 @@ if(c_run_single){
       c_raw|>
         writeLines(paste0("source/temp.Rmd"))
     }
-    
-    
-    # Render
+
+        # Render
     rmarkdown::render(paste0("source/temp.Rmd"),
                       df_Render$Render,
                       output_dir = paste0(getwd(), "/output"))
-    
-    df_mapping <- mapping(c_Date)
-    
+
     # Rename the file
     for (jj in 1:length(df_Render$Render)) {
       file.rename(from = paste0(getwd(),"/output/temp",df_Render$fileExt[jj]),
-                  to   = paste0(getwd(),"/output/", "Abrechnung Filmvorführung ",df_mapping$user_Datum[ii],df_Render$fileExt[jj])
+                  to   = paste0(getwd(),"/output/", "Abrechnung Filmvorführung ",df_mapping__|>filter(index == ii)|>select(user_Datum)|>pull(),df_Render$fileExt[jj])
       )
     }
     
     # user interaction
     print(clc)
-    paste("Bericht: \nFilmabrechnung vom", df_mapping$user_Datum[ii], "erstellt")|>
+    paste("Bericht: \nFilmabrechnung vom", df_mapping__|>filter(index == ii)|>select(user_Datum)|>pull(), "erstellt")|>
       writeLines()
     
     ############################################################################################
     # Muss eine Verleiherrechnung erstellt werden?
-    
-    if(df_mapping$CreateReportVerleiherabrechnung[ii]){
-      
+    ############################################################################################
+    if(df_mapping__|>filter(index == ii)|>select(CreateReportVerleiherabrechnung)|>pull() ){
+
       # Einlesen template der Verleiherabrechnung
       c_raw <- readLines("source/Verleiherabrechnung.Rmd")
       c_raw
-      
+
       # Ändern des Templates mit user eingaben (ii <- ??) verwendet für Datum
       index <- (1:length(c_raw))[c_raw|>str_detect("variablen")]
       index
       c_raw[(index+1)] <- c_raw[(index+1)]|>str_replace(one_or_more(DGT), paste0(ii))
-      
+
       # neues file schreiben
       writeLines(c_raw, "Verleiherabrechnung.Rmd")
-      
+
       # Render
       rmarkdown::render(input = "Verleiherabrechnung.Rmd",
-                        output_file = paste0("Verleiherabrechnung ", df_mapping$user_Datum[ii], df_Render$fileExt[jj]),
+                        output_file = paste0("Verleiherabrechnung ", df_mapping__|>filter(index == ii)|>select(user_Datum)|>pull(), df_Render$fileExt[jj]),
                         output_format = df_Render$Render,
                         output_dir = paste0(getwd(), "/output"))
-      
-      
+
+
       # user interaction
       print(clc)
-      paste("Bericht: \nVerleiherabrechnung vom", df_mapping$user_Datum[ii], "erstellt")|>
+      paste("Bericht: \nVerleiherabrechnung vom", df_mapping__|>filter(index == ii)|>select(user_Datum)|>pull(), "erstellt")|>
         writeLines()
-      
+
       # remove file
       file.remove("Verleiherabrechnung.Rmd")
     }
@@ -512,7 +508,7 @@ list.files(pattern = "temp", recursive = TRUE)|>
   file.remove()
 
 remove(c_Datum, c_suisa, c_verleiherabgaben, c_run_single, c_Verleiher_garantie )
-remove(df_temp, df_Render, df_mapping, Brutto,
+remove(df_temp, df_Render, df_mapping__, Brutto,
        c_temp, c_temp1
 )
 
