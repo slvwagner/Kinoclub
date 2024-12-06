@@ -231,35 +231,6 @@ source("source/read_and_convert_wordPress.R")
 #############################################################################################################################################
 source("source/calculate.R")
 
-mapping <- function(c_Date) {
-  #############################################################################################################################################
-  # Index pro Suisa-Nummer und Datum erstellen
-  #############################################################################################################################################
-  df_mapping <- tibble(Datum = c_Date)|>
-    mutate(user_Datum = paste0(day(Datum),".", month(Datum),".", year(Datum)),
-           index = row_number())
-  
-  ############################################################################################
-  # Soll die Verleiherabrechnung erzeugt werden?
-  
-  c_file <- "input/Verleiherabgaben.xlsx"
-  c_sheets <- readxl::excel_sheets(c_file)
-  c_sheets
-  
-  df_verleiherabgaben <- readxl::read_excel(c_file,c_sheets[1])|>
-    mutate(Datum = as.Date(Datum))|>
-    left_join(readxl::read_excel(c_file,c_sheets[2]), by = "Verleiher")
-  
-  df_mapping <- df_verleiherabgaben|>
-    select(Datum, `Kinoförderer gratis?`)|>
-    right_join(df_mapping, by = join_by(Datum))|>
-    mutate(CreateReportVerleiherabrechnung = if_else(`Kinoförderer gratis?` == "ja",F,T),
-           `Kinoförderer gratis?` = NULL)|>
-    arrange(index)
-}
-
-df_mapping <- mapping(c_Date)
-
 #############################################################################################################################################
 # Statistik-Bericht erstellen
 #############################################################################################################################################
@@ -331,6 +302,40 @@ print(clc)
 
 paste("Bericht: \nJahresrechnung erstellt")|>
   writeLines()
+
+
+#############################################################################################################################################
+# Index pro Suisa-Nummer und Datum erstellen
+#############################################################################################################################################
+print(c_Date)
+
+mapping <- function(c_Date) {
+
+  df_mapping <- tibble(Datum = c_Date)|>
+    mutate(user_Datum = paste0(day(Datum),".", month(Datum),".", year(Datum)),
+           index = row_number())
+  
+  ############################################################################################
+  # Soll die Verleiherabrechnung erzeugt werden?
+  
+  c_file <- "input/Verleiherabgaben.xlsx"
+  c_sheets <- readxl::excel_sheets(c_file)
+  c_sheets
+  
+  df_verleiherabgaben <- readxl::read_excel(c_file,c_sheets[1])|>
+    mutate(Datum = as.Date(Datum))|>
+    left_join(readxl::read_excel(c_file,c_sheets[2]), by = "Verleiher")
+  
+  df_mapping <- df_verleiherabgaben|>
+    select(Datum, `Kinoförderer gratis?`)|>
+    right_join(df_mapping, by = join_by(Datum))|>
+    mutate(CreateReportVerleiherabrechnung = if_else(`Kinoförderer gratis?` == "ja",F,T),
+           `Kinoförderer gratis?` = NULL)|>
+    arrange(index)
+}
+
+df_mapping <- mapping(c_Date)
+
 
 #############################################################################################################################################
 # Bericht(e) Abrechnung pro Filmforführung erstellen
