@@ -19,12 +19,11 @@
 # 2024 V1.11 WordPress Filmvorschläge auswerten
 # 2024 V1.12 Verleiherrechnung nur erstellen falls nötig (Kinoförder Gratis => nein, in Verleiherabgaben.xlsx)
 # 2024 V1.13 Gemeinsame Abrechnung über Link Datum in Excel file "Verleiherabgaben.xlsx"
-# 2024 V1.14 ShinyApp user interface 
 
 #############################################################################################################################################
 # Vorbereiten / Installieren
 #############################################################################################################################################
-#rm(list = ls())
+rm(list = ls())
 c_script_version <- "2024 V1.13"
 
 # Define libraries to be installed
@@ -197,29 +196,29 @@ if(!((list.files() == "version control.ini")|>sum() == 1)) { # ist kein versions
   c_files <- list.files(c_path, pattern = "html", full.names = T)
   c_files
   file.remove(c_files)|>suppressWarnings()
-  }else{
-    x <- read_file("version control.ini")|>
-      str_remove("\r")|>
-      str_remove("\n")
-    x
-    if(x != c_script_version){ # ist es nicht die aktuelle Version?
-      # Löschen aller output files 
-      c_path <- "output"
-      c_files <- list.files(c_path, pattern = "html", full.names = T)
-      c_files
-      file.remove(c_files)|>suppressWarnings()
-      
-      c_path <- "output/pict"
-      c_files <- list.files(c_path, pattern = "html", full.names = T)
-      c_files
-      file.remove(c_files)|>suppressWarnings()
-      
-      c_path <- "output/webserver"
-      c_files <- list.files(c_path, pattern = "html", full.names = T)
-      c_files
-      file.remove(c_files)|>suppressWarnings()
-    }
+}else{
+  x <- read_file("version control.ini")|>
+    str_remove("\r")|>
+    str_remove("\n")
+  x
+  if(x != c_script_version){ # ist es nicht die aktuelle Version?
+    # Löschen aller output files 
+    c_path <- "output"
+    c_files <- list.files(c_path, pattern = "html", full.names = T)
+    c_files
+    file.remove(c_files)|>suppressWarnings()
+    
+    c_path <- "output/pict"
+    c_files <- list.files(c_path, pattern = "html", full.names = T)
+    c_files
+    file.remove(c_files)|>suppressWarnings()
+    
+    c_path <- "output/webserver"
+    c_files <- list.files(c_path, pattern = "html", full.names = T)
+    c_files
+    file.remove(c_files)|>suppressWarnings()
   }
+}
 
 
 #############################################################################################################################################
@@ -230,7 +229,7 @@ source("source/read_and_convert_wordPress.R")
 #############################################################################################################################################
 # Daten einlesen und konvertieren
 #############################################################################################################################################
-# source("source/calculate.R") # removed because alrady done
+source("source/calculate.R")
 
 mapping <- function(c_Date) {
   #############################################################################################################################################
@@ -242,15 +241,15 @@ mapping <- function(c_Date) {
   
   ############################################################################################
   # Soll die Verleiherabrechnung erzeugt werden?
-
+  
   c_file <- "input/Verleiherabgaben.xlsx"
   c_sheets <- readxl::excel_sheets(c_file)
   c_sheets
-
+  
   df_verleiherabgaben <- readxl::read_excel(c_file,c_sheets[1])|>
     mutate(Datum = as.Date(Datum))|>
     left_join(readxl::read_excel(c_file,c_sheets[2]), by = "Verleiher")
-
+  
   df_mapping <- df_verleiherabgaben|>
     select(Datum, `Kinoförderer gratis?`)|>
     right_join(df_mapping, by = join_by(Datum))|>
@@ -339,19 +338,19 @@ paste("Bericht: \nJahresrechnung erstellt")|>
 ii <- 1
 if(c_run_single){
   for(ii in 1:nrow(df_mapping)){
-
+    
     ############################################################################################
     # Einlesen template der Abrechnung
     c_raw <- readLines("source/Abrechnung.Rmd")
     c_raw
-
+    
     # Ändern des Templates mit user eingaben (ii <- ??) verwendet für Datum
     index <- (1:length(c_raw))[c_raw|>str_detect("variablen")]
     index
     c_raw[(index+1)] <- c_raw[(index+1)]|>str_replace(one_or_more(DGT), paste0(ii))
-
+    
     # writeLines(c_raw, paste0("source/temp.Rmd"))
-
+    
     # Ändern des Templates Titel Filmname
     index <- (1:length(c_raw))[c_raw|>str_detect("Abrechnung Filmvorführung")]
     c_temp1 <- df_Abrechnung|>
@@ -362,26 +361,26 @@ if(c_run_single){
       rename(`Total Gewinn [CHF]`= `Gewinn/Verlust Filmvorführungen [CHF]`)|>
       select(Filmtitel)|>
       pull()
-
+    
     c_temp <- c_raw[(index)]|>
       str_split("\"", simplify = T)|>
       as.vector()
-
+    
     c_temp <- c_temp[1:2]
     c_temp <- paste0(c(c_temp), collapse = "\"")
     c_temp <- paste0(c(c_temp, " "), collapse = "")
     c_temp <- paste0(c(c_temp, c_temp1), collapse = "")
     c_raw[(index)] <- paste0(c(c_temp, "\""), collapse = "")
-
+    
     # Inhaltsverzeichnis
     if(toc){# neues file schreiben mit toc
       c_raw|>
         r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis")|>
         writeLines(paste0("source/temp.Rmd"))
     }else {# neues file schreiben ohne toc
-        c_raw|>
-          writeLines(paste0("source/temp.Rmd"))
-      }
+      c_raw|>
+        writeLines(paste0("source/temp.Rmd"))
+    }
     
     
     # Render
@@ -395,9 +394,9 @@ if(c_run_single){
     for (jj in 1:length(df_Render$Render)) {
       file.rename(from = paste0(getwd(),"/output/temp",df_Render$fileExt[jj]),
                   to   = paste0(getwd(),"/output/", "Abrechnung Filmvorführung ",df_mapping$user_Datum[ii],df_Render$fileExt[jj])
-                  )
+      )
     }
-
+    
     # user interaction
     print(clc)
     paste("Bericht: \nFilmabrechnung vom", df_mapping$user_Datum[ii], "erstellt")|>
@@ -407,26 +406,26 @@ if(c_run_single){
     # Muss eine Verleiherrechnung erstellt werden?
     
     if(df_mapping$CreateReportVerleiherabrechnung[ii]){
-
+      
       # Einlesen template der Verleiherabrechnung
       c_raw <- readLines("source/Verleiherabrechnung.Rmd")
       c_raw
-  
+      
       # Ändern des Templates mit user eingaben (ii <- ??) verwendet für Datum
       index <- (1:length(c_raw))[c_raw|>str_detect("variablen")]
       index
       c_raw[(index+1)] <- c_raw[(index+1)]|>str_replace(one_or_more(DGT), paste0(ii))
-  
+      
       # neues file schreiben
       writeLines(c_raw, "Verleiherabrechnung.Rmd")
-  
+      
       # Render
       rmarkdown::render(input = "Verleiherabrechnung.Rmd",
                         output_file = paste0("Verleiherabrechnung ", df_mapping$user_Datum[ii], df_Render$fileExt[jj]),
                         output_format = df_Render$Render,
                         output_dir = paste0(getwd(), "/output"))
-  
-  
+      
+      
       # user interaction
       print(clc)
       paste("Bericht: \nVerleiherabrechnung vom", df_mapping$user_Datum[ii], "erstellt")|>
@@ -435,9 +434,9 @@ if(c_run_single){
       # remove file
       file.remove("Verleiherabrechnung.Rmd")
     }
-
+    
   }
-
+  
   remove(c_raw, index,ii,jj)
 }
 
@@ -468,7 +467,7 @@ if(c_raw[c_index+1] != c_script_version){
   ######################################
   # Aktuelle Version ermitteln
   c_raw[c_index+1] <- c_script_version
-
+  
   # neues file schreiben
   c_raw|>
     writeLines("doc/README.Rmd")
@@ -510,16 +509,15 @@ list.files(pattern = "temp", recursive = TRUE)|>
 remove(c_Datum, c_suisa, c_verleiherabgaben, c_run_single, c_Verleiher_garantie )
 remove(df_temp, df_Render, df_mapping, Brutto,
        c_temp, c_temp1
-       )
+)
 
 #############################################################################################################################################
 # User Interaktion
 #############################################################################################################################################
 print(clc)
 paste0("****************************************\n",
-      "Script Version:  ", c_script_version,
-      "\n\nAlles wurde korrekt ausgeführt.", if(warnings()|>length()>0) {"\nEs Fehlen noch Datensätze. \nBitte beachte die Fehlermeldungen unten in orange."},"\n\n",
-      paste0("Dateinen wurden im folgenden Verzeichniss erstellt:\n", c_WD, "/output/"),
-      "\n****************************************\n")|>
+       "Script Version:  ", c_script_version,
+       "\n\nAlles wurde korrekt ausgeführt.", if(warnings()|>length()>0) {"\nEs Fehlen noch Datensätze. \nBitte beachte die Fehlermeldungen unten in orange."},"\n\n",
+       paste0("Dateinen wurden im folgenden Verzeichniss erstellt:\n", c_WD, "/output/"),
+       "\n****************************************\n")|>
   writeLines()
-
