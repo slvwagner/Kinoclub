@@ -76,7 +76,7 @@ c_SiteMap <- TRUE
 
 #########
 # package installation 
-
+#########
 if(c_SiteMap){ # Wenn Site-Maps erstellen aktiviert wurden dann müssen noch weitere Libraries installiert werden.
   # Package names
   packages <- c("magick")
@@ -106,7 +106,7 @@ if(c_SiteMap){ # Wenn Site-Maps erstellen aktiviert wurden dann müssen noch wei
 
 ##########
 # Vorlage für Diagramme (Bei einer Änderung soll auch das css (".../source/Kinokulub_dark.css") geändert werden)
-
+##########
 my_template <-
   theme_bw() +
   theme(
@@ -132,12 +132,12 @@ my_template <-
 
 #########
 # erstellen von Verzeichnissen
+#########
 dir.create("output/") |> suppressWarnings()
 dir.create("output/data/") |> suppressWarnings()
-
-
 #########
 # löschen aller files im output folder
+#########
 c_path <- "output"
 
 if(dir.exists(c_path)){
@@ -148,6 +148,7 @@ if(dir.exists(c_path)){
 
 #########
 # löschen aller files im output folder
+#########
 if(dir.exists(c_path)){
   c_files <- paste0(c_path,"/data",list.files(c_path))
   c_files
@@ -355,9 +356,9 @@ server <- function(input, output, session) {
     }, error = function(e) {
       stop("Fehler beim Laden von 'source/calculate.R': ", e$message)
     })
-    
-    ausgabe_text("Bericht:\nDaten wurden eingelesen")
-    renderText(calculate_warnings)
+    paste0("Bericht:\nDaten wurden eingelesen:\n",
+           paste0(calculate_warnings, collapse = "\n"))|>
+      ausgabe_text()
   })
   
   ######################################
@@ -822,7 +823,7 @@ server <- function(input, output, session) {
     
     df_mapping__ <- mapping(c_Date)
     
-    if(TRUE){
+    if(c_run_single){
       for(ii in df_mapping__$index){
         
         ############################################################################################
