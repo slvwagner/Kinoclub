@@ -118,6 +118,7 @@ datum_vektor <- df_show$Datum
 # Variable, um Status zu speichern
 ausgabe_text <- paste0(calculate_warnings, 
                        collapse = "\n")|>
+  str_remove("eval(ei, envir)")|>
   reactiveVal()
 df_Render <- reactiveVal(NULL)
 
@@ -224,11 +225,20 @@ ui <- fluidPage(
       # Button zum Ausführen von Code
       ############################# 
       actionButton("wordpress", "Filmumfrage Wordpress auswerten"),
+      
+      shiny::tags$h5("**********************"),
 
       #############################
       # Button zum Ausführen von Code 
       #############################
-      actionButton("ErstelleAbrechnung", "Alles erstellen mit Webserver")
+      actionButton("ErstelleAbrechnung", "Alles erstellen mit Webserver"),
+      # Add tooltips using shinyBS
+      bsTooltip(
+        id = "ErstelleAbrechnung",
+        title = "Achtung die Ausführung braucht Zeit!",
+        placement = "right",
+        trigger = "hover"
+      ),
     ),
     
     #############################
@@ -254,11 +264,11 @@ ui <- fluidPage(
 ###########################################################################################################
 server <- function(input, output, session) {
   
-  # Map the URL path "custom" to the local directory "output/webserver"
-  shiny::addResourcePath("reports", "output/webserver")
-  
-  # Map the URL path "styles" to the directory containing the CSS file
-  shiny::addResourcePath("styles", "source")
+  # # Map the URL path "custom" to the local directory "output/webserver"
+  # shiny::addResourcePath("reports", "output/webserver")
+  # 
+  # # Map the URL path "styles" to the directory containing the CSS file
+  # shiny::addResourcePath("styles", "source")
     
   ######################################
   # Überwachung Inhaltsverzeichniss
@@ -1229,6 +1239,7 @@ server <- function(input, output, session) {
            paste0("\n",(paste0(getwd(),"/output/webserver/", "index.html")), 
                   sep = "")
            )|>
+      str_remove("In eval(ei, envir)")|>
       ausgabe_text()
     renderText(calculate_warnings)
   })
