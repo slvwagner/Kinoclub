@@ -64,8 +64,8 @@ n|>
 
 ```{r}
 mean_median <- df_temp|>
-  reframe(`Durchschnittlicher Gewinn pro Vorführung [CHF]` = mean(`Gewinn/Verlust Filmvorführungen [CHF]`)|>round5Rappen()|>round(2),
-          `Median Gewinn pro Vorführung [CHF]` = median(`Gewinn/Verlust Filmvorführungen [CHF]`)|>round5Rappen()|>round(2)
+  reframe(`Durchschnittlicher Gewinn pro Vorführung [CHF]` = mean(`Gewinn/Verlust Filmvorführungen [CHF]`, na.rm = T)|>round5Rappen()|>round(2),
+          `Median Gewinn pro Vorführung [CHF]` = median(`Gewinn/Verlust Filmvorführungen [CHF]`, na.rm = T)|>round5Rappen()|>round(2)
           )
 
 mean_median|>
@@ -277,10 +277,10 @@ df_temp <- df_temp|>
   arrange(Datum)|>
   mutate(cumsum = cumsum(`Gewinn/Verlust Tickets [CHF]`))
 
-if(df_temp$`Gewinn/Verlust Tickets [CHF]`|>mean() > df_temp$`Gewinn/Verlust Tickets [CHF]`|>median()){
-  gewinn <- df_temp$`Gewinn/Verlust Tickets [CHF]`|>median()
+if(df_temp$`Gewinn/Verlust Tickets [CHF]`|>mean(na.rm = T) > df_temp$`Gewinn/Verlust Tickets [CHF]`|>median(na.rm = T)){
+  gewinn <- df_temp$`Gewinn/Verlust Tickets [CHF]`|>median(na.rm = T)
 }else{
-  gewinn <- df_temp$`Gewinn/Verlust Tickets [CHF]`|>mean()
+  gewinn <- df_temp$`Gewinn/Verlust Tickets [CHF]`|>mean(na.rm = T)
 }
 
 s <- (gewinn * shows_per_year)/365
@@ -458,10 +458,10 @@ df_temp <- df_Eintritt|>
 
 ```{r fig.width=10}
 
-if(df_temp$`Film Umsatz [CHF]`|>mean() > df_temp$`Film Umsatz [CHF]`|>median()){
-  gewinn <- df_temp$`Film Umsatz [CHF]`|>median()
+if(df_temp$`Film Umsatz [CHF]`|>mean() > df_temp$`Film Umsatz [CHF]`|>median(na.rm = T)){
+  gewinn <- df_temp$`Film Umsatz [CHF]`|>median(na.rm = T)
 }else{
-  gewinn <- df_temp$`Film Umsatz [CHF]`|>mean()
+  gewinn <- df_temp$`Film Umsatz [CHF]`|>mean(na.rm = T)
 }
 
 s <- (gewinn * shows_per_year)/365
@@ -519,9 +519,9 @@ df_temp|>
 
 ```{r echo=FALSE}
 df_temp|>
-  reframe(`Abgabe and die SUISA [CHF]` = sum(`SUISA-Vorabzug [CHF]`),
-          `Abgaben and den Verleiher [CHF]` = sum(`MWST [CHF]`),
-          `MWST [CHF]` = sum(`MWST [CHF]`)
+  reframe(`Abgabe and die SUISA [CHF]` = sum(`SUISA-Vorabzug [CHF]`, na.rm = T),
+          `Abgaben and den Verleiher [CHF]` = sum(`MWST [CHF]`, na.rm = T),
+          `MWST [CHF]` = sum(`MWST [CHF]`,na.rm = T)
           )|>
   knitr::kable()
 
@@ -533,10 +533,10 @@ df_temp <- df_temp|>
   arrange(Datum)|>
   mutate(cumsum = cumsum(`Verleiherabzug [CHF]`))
 
-if(df_temp$`Verleiherabzug [CHF]`|>mean() > df_temp$`Verleiherabzug [CHF]`|>median()){
-  gewinn <- df_temp$`Verleiherabzug [CHF]`|>mean()
+if(df_temp$`Verleiherabzug [CHF]`|>mean(na.rm = T) > df_temp$`Verleiherabzug [CHF]`|>median(na.rm = T)){
+  gewinn <- df_temp$`Verleiherabzug [CHF]`|>mean(na.rm = T)
 }else{
-  gewinn <- df_temp$`Verleiherabzug [CHF]`|>median()
+  gewinn <- df_temp$`Verleiherabzug [CHF]`|>median(na.rm = T)
 }
 
 s <- (gewinn * shows_per_year)/365
