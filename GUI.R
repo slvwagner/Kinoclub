@@ -1178,9 +1178,6 @@ server <- function(input, output, session) {
     
     # remove files
     file.remove("Site-Map.html")
-    
-    
-    
 
     #############################################################################################################################################
     # remove temp files 
@@ -1205,7 +1202,9 @@ server <- function(input, output, session) {
       writeLines()
     
     paste0("Script wurde korrekt ausgeführt.",
-           "\nWebserver erstellt."
+           "\nWebserver erstellt.",
+           paste0("\nfile:///",URLencode(paste0(getwd(),"/output/webserver/", "index.html")), 
+                  sep = "")
            )|>
       ausgabe_text()
     renderText(calculate_warnings)
