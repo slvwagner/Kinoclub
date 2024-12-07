@@ -19,14 +19,12 @@
 # 2024 V1.11 WordPress Filmvorschläge auswerten
 # 2024 V1.12 Verleiherrechnung nur erstellen falls nötig (Kinoförder Gratis => nein, in Verleiherabgaben.xlsx)
 # 2024 V1.13 Gemeinsame Abrechnung über Link Datum in Excel file "Verleiherabgaben.xlsx"
-# 2024 V1.14 User GUI first implementation
 
 #############################################################################################################################################
 # Vorbereiten / Installieren
 #############################################################################################################################################
-#rm(list = ls())
-
-c_script_version <- "2024 V1.14"
+rm(list = ls())
+c_script_version <- "2024 V1.13"
 
 # Define libraries to be installed
 packages <- c("rmarkdown", "rebus", "openxlsx", "flextable", "tidyverse", "lubridate","DT")
@@ -67,7 +65,7 @@ df_P_kat_verechnen <- tibble(Kinoförderer = "Kinoförderer", Verkaufspreis =  1
 # 5 = html and pdf (Achtung für pdf install Latex for Windows (Miktex) for Mac (MacTex))
 # 6 = docx and pdf (Achtung für pdf install Latex for Windows (Miktex) for Mac (MacTex))
 # 7 = html, docx and pdf (Achtung für pdf install Latex for Windows (Miktex) for Mac (MacTex))
-# c_render_option <- "1" 
+c_render_option <- "1" 
 
 # create Site Map 
 c_SiteMap <- TRUE
@@ -133,24 +131,24 @@ my_template <-
 #########
 # Ausgabeformat(e)
 
-# df_Render <- switch (
-#   c_render_option,
-#   "1" = tibble::tibble(Render  = c("html_document"),
-#                        fileExt = c(".html")),
-#   "2" = tibble::tibble(Render  = c("word_document"),
-#                        fileExt = c(".docx")),
-#   "3" = tibble::tibble(Render  = c("pdf_document"),
-#                        fileExt = c(".pdf")),
-#   "4" = tibble::tibble(Render  = c("html_document","word_document"),
-#                        fileExt = c(".html", ".docx")),
-#   "5" = tibble::tibble(Render  = c("html_document","pdf_document"),
-#                        fileExt = c(".html", ".pdf")),
-#   "6" = tibble::tibble(Render  = c("word_document","pdf_document"),
-#                        fileExt = c(".docx", ".pdf")),
-#   "7" = tibble::tibble(Render  = c("html_document","word_document","pdf_document"),
-#                        fileExt = c(".html", ".docx", ".pdf")),
-#   stop("\nDie verwendete Renderoption is nicht definiert")
-# )
+df_Render <- switch (
+  c_render_option,
+  "1" = tibble::tibble(Render  = c("html_document"),
+                       fileExt = c(".html")),
+  "2" = tibble::tibble(Render  = c("word_document"),
+                       fileExt = c(".docx")),
+  "3" = tibble::tibble(Render  = c("pdf_document"),
+                       fileExt = c(".pdf")),
+  "4" = tibble::tibble(Render  = c("html_document","word_document"),
+                       fileExt = c(".html", ".docx")),
+  "5" = tibble::tibble(Render  = c("html_document","pdf_document"),
+                       fileExt = c(".html", ".pdf")),
+  "6" = tibble::tibble(Render  = c("word_document","pdf_document"),
+                       fileExt = c(".docx", ".pdf")),
+  "7" = tibble::tibble(Render  = c("html_document","word_document","pdf_document"),
+                       fileExt = c(".html", ".docx", ".pdf")),
+  stop("\nDie verwendete Renderoption is nicht definiert")
+)
 
 #########
 # erstellen von Verzeichnissen
@@ -219,7 +217,6 @@ if(!((list.files() == "version control.ini")|>sum() == 1)) { # ist kein versions
     c_files <- list.files(c_path, pattern = "html", full.names = T)
     c_files
     file.remove(c_files)|>suppressWarnings()
-    writeLines(c_script_version, "version control.ini")
   }
 }
 
@@ -233,6 +230,35 @@ source("source/read_and_convert_wordPress.R")
 # Daten einlesen und konvertieren
 #############################################################################################################################################
 source("source/calculate.R")
+
+mapping <- function(c_Date) {
+  #############################################################################################################################################
+  # Index pro Suisa-Nummer und Datum erstellen
+  #############################################################################################################################################
+  df_mapping <- tibble(Datum = c_Date)|>
+    mutate(user_Datum = paste0(day(Datum),".", month(Datum),".", year(Datum)),
+           index = row_number())
+  
+  ############################################################################################
+  # Soll die Verleiherabrechnung erzeugt werden?
+  
+  c_file <- "input/Verleiherabgaben.xlsx"
+  c_sheets <- readxl::excel_sheets(c_file)
+  c_sheets
+  
+  df_verleiherabgaben <- readxl::read_excel(c_file,c_sheets[1])|>
+    mutate(Datum = as.Date(Datum))|>
+    left_join(readxl::read_excel(c_file,c_sheets[2]), by = "Verleiher")
+  
+  df_mapping <- df_verleiherabgaben|>
+    select(Datum, `Kinoförderer gratis?`)|>
+    right_join(df_mapping, by = join_by(Datum))|>
+    mutate(CreateReportVerleiherabrechnung = if_else(`Kinoförderer gratis?` == "ja",F,T),
+           `Kinoförderer gratis?` = NULL)|>
+    arrange(index)
+}
+
+df_mapping <- mapping(c_Date)
 
 #############################################################################################################################################
 # Statistik-Bericht erstellen
@@ -253,16 +279,19 @@ if(toc){# neues file schreiben mit toc
 
 # Render
 rmarkdown::render(paste0("source/temp.Rmd"),
-                  df_Render()$Render,
+                  df_Render$Render,
                   output_dir = paste0(getwd(), "/output"))
 
 # Rename the file
-for (jj in 1:length(df_Render()$Render)) {
-  file.rename(from = paste0(getwd(),"/output/temp",df_Render()$fileExt[jj]),
-              to   = paste0(getwd(),"/output/", "Statistik",df_Render()$fileExt[jj] )
+for (jj in 1:length(df_Render$Render)) {
+  file.rename(from = paste0(getwd(),"/output/temp",df_Render$fileExt[jj]),
+              to   = paste0(getwd(),"/output/", "Statistik",df_Render$fileExt[jj] )
   )
 }
 
+# rmarkdown::render(paste0("source/Statistik.Rmd"),
+#                   df_Render$Render,
+#                   output_dir = paste0(getwd(), "/output"))
 print(clc)
 
 paste("Bericht: \nStatistik erstellt")|>
@@ -288,13 +317,13 @@ if(toc){# neues file schreiben mit toc
 
 # Render
 rmarkdown::render(paste0("source/temp.Rmd"),
-                  df_Render()$Render,
+                  df_Render$Render,
                   output_dir = paste0(getwd(), "/output"))
 
 # Rename the file
-for (jj in 1:length(df_Render()$Render)) {
-  file.rename(from = paste0(getwd(),"/output/temp",df_Render()$fileExt[jj]),
-              to   = paste0(getwd(),"/output/", "Jahresrechnung",df_Render()$fileExt[jj] )
+for (jj in 1:length(df_Render$Render)) {
+  file.rename(from = paste0(getwd(),"/output/temp",df_Render$fileExt[jj]),
+              to   = paste0(getwd(),"/output/", "Jahresrechnung",df_Render$fileExt[jj] )
   )
 }
 
@@ -303,61 +332,29 @@ print(clc)
 paste("Bericht: \nJahresrechnung erstellt")|>
   writeLines()
 
-
-#############################################################################################################################################
-# Index pro Suisa-Nummer und Datum erstellen
-#############################################################################################################################################
-
-mapping <- function(c_Date) {
-
-  df_mapping__ <- tibble(Datum = c_Date)|>
-    mutate(user_Datum = paste0(day(Datum),".", month(Datum),".", year(Datum)),
-           index = row_number())
-  
-  ############################################################################################
-  # Soll die Verleiherabrechnung erzeugt werden?
-  
-  c_file <- "input/Verleiherabgaben.xlsx"
-  c_sheets <- readxl::excel_sheets(c_file)
-  c_sheets
-  
-  df_verleiherabgaben <- readxl::read_excel(c_file,c_sheets[1])|>
-    mutate(Datum = as.Date(Datum))|>
-    left_join(readxl::read_excel(c_file,c_sheets[2]), by = "Verleiher")
-  
-  df_mapping__ <- df_verleiherabgaben|>
-    select(Datum, `Kinoförderer gratis?`)|>
-    right_join(df_mapping__, by = join_by(Datum))|>
-    mutate(CreateReportVerleiherabrechnung = if_else(`Kinoförderer gratis?` == "ja",F,T),
-           `Kinoförderer gratis?` = NULL)|>
-    arrange(index)
-}
-
-
 #############################################################################################################################################
 # Bericht(e) Abrechnung pro Filmforführung erstellen
 #############################################################################################################################################
-
-df_mapping__ <- mapping(c_Date)
-
+ii <- 1
 if(c_run_single){
-  for(ii in df_mapping__$index){
+  for(ii in 1:nrow(df_mapping)){
     
     ############################################################################################
-    # Abrechnung erstellen
-    ############################################################################################
-    # Template der Abrechnung einlesen
+    # Einlesen template der Abrechnung
     c_raw <- readLines("source/Abrechnung.Rmd")
     c_raw
     
-    # Ändern des Templates: Variable im Template ii wird gesetzt. c_Date[ii] wird verwendet um das korrekte Datum für die Bereichterstellung auszuwählen.
+    # Ändern des Templates mit user eingaben (ii <- ??) verwendet für Datum
     index <- (1:length(c_raw))[c_raw|>str_detect("variablen")]
+    index
     c_raw[(index+1)] <- c_raw[(index+1)]|>str_replace(one_or_more(DGT), paste0(ii))
-
+    
+    # writeLines(c_raw, paste0("source/temp.Rmd"))
+    
     # Ändern des Templates Titel Filmname
     index <- (1:length(c_raw))[c_raw|>str_detect("Abrechnung Filmvorführung")]
     c_temp1 <- df_Abrechnung|>
-      filter(Datum == (df_mapping__|>filter(index == ii)|>select(Datum)|>pull()))|>
+      filter(Datum == df_Abrechnung$Datum[ii])|>
       mutate(Anfang = paste0(lubridate::hour(Anfang),":", lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(SPC,"0")),
              Datum = paste0(day(Datum),".",month(Datum),".",year(Datum))
       )|>
@@ -384,53 +381,56 @@ if(c_run_single){
       c_raw|>
         writeLines(paste0("source/temp.Rmd"))
     }
-
-        # Render
+    
+    
+    # Render
     rmarkdown::render(paste0("source/temp.Rmd"),
-                      df_Render()$Render,
+                      df_Render$Render,
                       output_dir = paste0(getwd(), "/output"))
-
+    
+    df_mapping <- mapping(c_Date)
+    
     # Rename the file
-    for (jj in 1:length(df_Render()$Render)) {
-      file.rename(from = paste0(getwd(),"/output/temp",df_Render()$fileExt[jj]),
-                  to   = paste0(getwd(),"/output/", "Abrechnung Filmvorführung ",df_mapping__|>filter(index == ii)|>select(user_Datum)|>pull(),df_Render()$fileExt[jj])
+    for (jj in 1:length(df_Render$Render)) {
+      file.rename(from = paste0(getwd(),"/output/temp",df_Render$fileExt[jj]),
+                  to   = paste0(getwd(),"/output/", "Abrechnung Filmvorführung ",df_mapping$user_Datum[ii],df_Render$fileExt[jj])
       )
     }
     
     # user interaction
     print(clc)
-    paste("Bericht: \nFilmabrechnung vom", df_mapping__|>filter(index == ii)|>select(user_Datum)|>pull(), "erstellt")|>
+    paste("Bericht: \nFilmabrechnung vom", df_mapping$user_Datum[ii], "erstellt")|>
       writeLines()
     
     ############################################################################################
     # Muss eine Verleiherrechnung erstellt werden?
-    ############################################################################################
-    if(df_mapping__|>filter(index == ii)|>select(CreateReportVerleiherabrechnung)|>pull() ){
-
+    
+    if(df_mapping$CreateReportVerleiherabrechnung[ii]){
+      
       # Einlesen template der Verleiherabrechnung
       c_raw <- readLines("source/Verleiherabrechnung.Rmd")
       c_raw
-
+      
       # Ändern des Templates mit user eingaben (ii <- ??) verwendet für Datum
       index <- (1:length(c_raw))[c_raw|>str_detect("variablen")]
       index
       c_raw[(index+1)] <- c_raw[(index+1)]|>str_replace(one_or_more(DGT), paste0(ii))
-
+      
       # neues file schreiben
       writeLines(c_raw, "Verleiherabrechnung.Rmd")
-
+      
       # Render
       rmarkdown::render(input = "Verleiherabrechnung.Rmd",
-                        output_file = paste0("Verleiherabrechnung ", df_mapping__|>filter(index == ii)|>select(user_Datum)|>pull(), df_Render()$fileExt[jj]),
-                        output_format = df_Render()$Render,
+                        output_file = paste0("Verleiherabrechnung ", df_mapping$user_Datum[ii], df_Render$fileExt[jj]),
+                        output_format = df_Render$Render,
                         output_dir = paste0(getwd(), "/output"))
-
-
+      
+      
       # user interaction
       print(clc)
-      paste("Bericht: \nVerleiherabrechnung vom", df_mapping__|>filter(index == ii)|>select(user_Datum)|>pull(), "erstellt")|>
+      paste("Bericht: \nVerleiherabrechnung vom", df_mapping$user_Datum[ii], "erstellt")|>
         writeLines()
-
+      
       # remove file
       file.remove("Verleiherabrechnung.Rmd")
     }
@@ -455,7 +455,7 @@ source("source/create_webserver_data.R")
 #############################################################################################################################################
 # Einlesen template der Verleiherabrechnung
 c_raw <- readLines("doc/README.Rmd")
-c_raw
+
 # Index where to find
 c_index <- (1:length(c_raw))[c_raw|>str_detect("Script Version")]
 c_index <- c_index[length(c_index)]
@@ -507,7 +507,7 @@ list.files(pattern = "temp", recursive = TRUE)|>
   file.remove()
 
 remove(c_Datum, c_suisa, c_verleiherabgaben, c_run_single, c_Verleiher_garantie )
-remove(df_temp,  df_mapping__, Brutto,
+remove(df_temp, df_Render, df_mapping, Brutto,
        c_temp, c_temp1
 )
 
