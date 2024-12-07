@@ -43,13 +43,13 @@ mapping <- function(c_Datum) {
 # Benutzereinstellungen 
 #############################################################################################################################################
 
-sommerpause = 65 # Tage
+sommerpause = (65) # Tage
 
 # Sollen für jede Vorführung eine Abrechnung erstellt werden?
 #c_run_single <- TRUE
 
 # Sollen Inhaltsverzeichnisse erstellt werden
-toc <- TRUE
+toc <- reactiveVal(TRUE)
 
 # Mehrwertsteuersatz
 c_MWST <- 8.1 #%
@@ -186,7 +186,19 @@ ui <- fluidPage(
   
   sidebarLayout(
     sidebarPanel(
-      
+      #############################
+      # Inhaltsverzeichnis
+      #############################
+      selectInput(
+        inputId = "Inhaltsverzeichnis",
+        label = "Inhaltsverzeichnis erstellen?",
+        choices = list(
+          "Ja" = TRUE,
+          "Nein" = FALSE
+        ),
+        selected = TRUE # Default value
+      ),
+
       #############################
       # Ausgabeformat
       #############################
@@ -213,7 +225,7 @@ ui <- fluidPage(
       ),
       
       #############################
-      # Button zum Ausführen von Code
+      # Button Daten Einlesen
       #############################
       actionButton("DatenEinlesen", "Daten Einlesen"),
       # Add tooltips using shinyBS
@@ -271,8 +283,10 @@ ui <- fluidPage(
       actionButton("ErstelleAbrechnung", "Alles erstellen mit Webserver")
     ),
     
+    #############################
+    # Render the output
+    #############################
     mainPanel(
-      
       tableOutput("dateTable"),
       # Rückmeldung
       verbatimTextOutput("ausgabe"),
@@ -287,6 +301,15 @@ ui <- fluidPage(
 # Server-Logik
 ###########################################################################################################
 server <- function(input, output, session) {
+    
+  ######################################
+  # Überwachung Inhaltsverzeichniss
+  ######################################
+  observeEvent(input$Inhaltsverzeichnis , {
+    print(clc)
+    toc(input$Inhaltsverzeichnis)
+    print(toc())
+  })
   
   ######################################
   # Überwachung Ausgabeformat
@@ -391,7 +414,7 @@ server <- function(input, output, session) {
           c_raw[(index)] <- paste0(c(c_temp, "\""), collapse = "")
           
           # Inhaltsverzeichnis
-          if(toc){# neues file schreiben mit toc
+          if(toc()){# neues file schreiben mit toc
             c_raw|>
               r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis")|>
               writeLines(paste0("source/temp.Rmd"))
@@ -471,7 +494,7 @@ server <- function(input, output, session) {
     c_raw
     
     # Inhaltsverzeichnis
-    if(toc){# neues file schreiben mit toc
+    if(toc()){# neues file schreiben mit toc
       c_raw|>
         r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis")|>
         writeLines(paste0("source/temp.Rmd"))
@@ -508,7 +531,7 @@ server <- function(input, output, session) {
     c_raw
     
     # Inhaltsverzeichnis
-    if(toc){# neues file schreiben mit toc
+    if(toc()){# neues file schreiben mit toc
       c_raw|>
         r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis")|>
         writeLines(paste0("source/temp.Rmd"))
@@ -701,7 +724,7 @@ server <- function(input, output, session) {
     c_raw
     
     # Inhaltsverzeichnis
-    if(toc){# neues file schreiben mit toc
+    if(toc()){# neues file schreiben mit toc
       c_raw|>
         r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis")|>
         writeLines(paste0("source/temp.Rmd"))
@@ -736,7 +759,7 @@ server <- function(input, output, session) {
     c_raw
     
     # Inhaltsverzeichnis
-    if(toc){# neues file schreiben mit toc
+    if(toc()){# neues file schreiben mit toc
       c_raw|>
         r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis")|>
         writeLines(paste0("source/temp.Rmd"))
@@ -799,7 +822,7 @@ server <- function(input, output, session) {
     
     df_mapping__ <- mapping(c_Date)
     
-    if(c_run_single){
+    if(TRUE){
       for(ii in df_mapping__$index){
         
         ############################################################################################
@@ -835,7 +858,7 @@ server <- function(input, output, session) {
         c_raw[(index)] <- paste0(c(c_temp, "\""), collapse = "")
         
         # Inhaltsverzeichnis
-        if(toc){# neues file schreiben mit toc
+        if(toc()){# neues file schreiben mit toc
           c_raw|>
             r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis")|>
             writeLines(paste0("source/temp.Rmd"))

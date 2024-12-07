@@ -4,7 +4,7 @@
 
 Author: Florian Wagner\
 Script Version:\
-2024 V1.14
+2024 V1.13
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
@@ -433,6 +433,5 @@ zusätzlich werden alle Fimvorschläge als Excel ausgegeben
 2024 V1.11 WordPress Filmvorschläge auswerten  \
 2024 V1.12 Verleiherrechnung nur erstellen falls nötig (Kinoförder Gratis => nein, in Verleiherabgaben.xlsx)  \
 2024 V1.13 Gemeinsame Abrechnung über Link Datum in Excel file "Verleiherabgaben.xlsx"  \
-2024 V1.14 User GUI first implementation  \
 
 
