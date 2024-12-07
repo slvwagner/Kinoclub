@@ -74,6 +74,31 @@ mapping <- function(c_Datum) {
 #############################################################################################################################################
 # 
 #############################################################################################################################################
+##########
+# Vorlage für Diagramme (Bei einer Änderung soll auch das css (".../source/Kinokulub_dark.css") geändert werden)
+
+my_template <-
+  theme_bw() +
+  theme(
+    panel.background = element_rect(
+      fill = "#322f3b",
+      colour = "#322f3b",
+      linewidth = 0.5,
+      linetype = "solid"
+    ),
+    plot.background = element_rect(fill = "#322f3b"),
+    axis.title = element_text(colour = "#f4cccc", size  = 15),
+    axis.text = element_text(colour = "#f4cccc"),
+    legend.justification = c("right", "top"),
+    legend.box.just = "right",
+    legend.margin = margin(6, 6, 6, 6),
+    legend.background = element_rect(fill = "#322f3b", color = "black"),
+    legend.text = element_text(color = "#f4cccc"),
+    legend.title = element_text(size = 12),
+    title = element_text(color = "#f4cccc", size  = 22)
+  )
+
+
 # Variable, um Warnings zu speichern
 calculate_warnings <- reactiveVal(NULL)
 
@@ -491,7 +516,7 @@ server <- function(input, output, session) {
   })
   
   ######################################
-  # Überwachung Button Erstelle Abrechnung
+  # Überwachung Button Erstelle Abrechnung (source("Erstelle Abrechnung.R"))
   ######################################
   observeEvent(input$ErstelleAbrechnung, {
     print(clc)
@@ -1163,7 +1188,7 @@ server <- function(input, output, session) {
     list.files(pattern = "temp", recursive = TRUE)|>
       file.remove()
     
-    remove(c_Datum, c_suisa, c_verleiherabgaben, c_run_single, c_Verleiher_garantie )
+    remove(c_Datum, c_suisa, c_verleiherabgaben, c_Verleiher_garantie )
     remove(df_temp,  df_mapping__, Brutto,
            c_temp, c_temp1
     )
@@ -1179,7 +1204,10 @@ server <- function(input, output, session) {
            "\n****************************************\n")|>
       writeLines()
     
-    ausgabe_text("Script wurde korrekt ausgeführt.\nWebserver erstellt.")
+    paste0("Script wurde korrekt ausgeführt.",
+           "\nWebserver erstellt."
+           )|>
+      ausgabe_text()
     renderText(calculate_warnings)
   })
   
