@@ -167,6 +167,7 @@ ui <- fluidPage(
         trigger = "hover"
       ),
       
+      shiny::tags$h5("**********************"),
       #############################
       # Button Daten Einlesen
       #############################
@@ -178,6 +179,8 @@ ui <- fluidPage(
         placement = "right",
         trigger = "hover"
       ),
+      
+      shiny::tags$h5("**********************"),
       
       #############################
       # Datumsbereich auswählen für die Abrechnung Filmvorführungen
@@ -205,21 +208,23 @@ ui <- fluidPage(
         trigger = "hover"
       ),
       
+      shiny::tags$h5("**********************"),
+      
       #############################
       # Button zum Ausführen von Code
       ############################# 
       actionButton("Statistik", "Statistik erstellen"),
-      
+
       #############################
       # Button zum Ausführen von Code 
       #############################
       actionButton("Jahresrechnung", "Jahresrechnung erstellen"),
-      
+
       #############################
       # Button zum Ausführen von Code
       ############################# 
       actionButton("wordpress", "Filmumfrage Wordpress auswerten"),
-      
+
       #############################
       # Button zum Ausführen von Code 
       #############################
@@ -230,8 +235,12 @@ ui <- fluidPage(
     # Render the output
     #############################
     mainPanel(
+      if(file.exists("output/webserver/index.html")) shiny::tags$h4("Webserver:"), 
+      if(file.exists("output/webserver/index.html")) shiny::tags$a (href = "reports/index.html", "Site-map", target = "_blank", style = "font-size: 16px;"),
+      shiny::tags$h4 ("Filme in der gewählten Periode"),
       tableOutput("dateTable"),
       # Rückmeldung
+      shiny::tags$h4 ("System Rückmeldungen"),
       verbatimTextOutput("ausgabe"),
       # Bereich, um Warnings darzustellen
       verbatimTextOutput("warnings_output")
@@ -244,6 +253,12 @@ ui <- fluidPage(
 # Server-Logik
 ###########################################################################################################
 server <- function(input, output, session) {
+  
+  # Map the URL path "custom" to the local directory "output/webserver"
+  shiny::addResourcePath("reports", "output/webserver")
+  
+  # Map the URL path "styles" to the directory containing the CSS file
+  shiny::addResourcePath("styles", "source")
     
   ######################################
   # Überwachung Inhaltsverzeichniss
@@ -1211,7 +1226,7 @@ server <- function(input, output, session) {
     
     paste0("Script wurde korrekt ausgeführt.",
            "\nWebserver erstellt.",
-           paste0("\nfile:///",URLencode(paste0(getwd(),"/output/webserver/", "index.html")), 
+           paste0("\n",(paste0(getwd(),"/output/webserver/", "index.html")), 
                   sep = "")
            )|>
       ausgabe_text()
