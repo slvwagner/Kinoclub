@@ -264,11 +264,8 @@ ui <- fluidPage(
 ###########################################################################################################
 server <- function(input, output, session) {
   
-  # # Map the URL path "custom" to the local directory "output/webserver"
-  # shiny::addResourcePath("reports", "output/webserver")
-  # 
-  # # Map the URL path "styles" to the directory containing the CSS file
-  # shiny::addResourcePath("styles", "source")
+  # Map the URL path "custom" to the local directory "output/webserver"
+  shiny::addResourcePath("reports", "output/webserver")
     
   ######################################
   # Überwachung Inhaltsverzeichniss
