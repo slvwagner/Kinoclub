@@ -313,10 +313,10 @@ server <- function(input, output, session) {
     # Überprüfen, ob beide Daten gültig sind
     if (start_datum <= end_datum) {
       # Aktion ausführen
-      ausgabe_text(paste("Die Filmabrechnungen für den Zeitraum von\n", 
-                         format(start_datum, "%d.%m.%Y"), "bis", 
-                         format(end_datum, "%d.%m.%Y"), "wurden erstellt",
-                         "</output/webserver/index.html>"
+      ausgabe_text(paste0("Die Filmabrechnungen für den Zeitraum \n", 
+                         format(start_datum, "%d.%m.%Y"), " bis ", 
+                         format(end_datum, "%d.%m.%Y"), " wurden erstellt",
+                         paste0("\n",getwd(), "/output")
                          ))
       
       ##############################################
@@ -460,7 +460,9 @@ server <- function(input, output, session) {
       )
     }
 
-    ausgabe_text(paste("Bericht: \nStatistik erstellt"))
+    ausgabe_text(paste0("Bericht: \nStatistik erstellt",
+                       paste0("\n",getwd(), "/output")
+                       ))
   })
   
   ######################################
@@ -499,7 +501,9 @@ server <- function(input, output, session) {
     
     print(clc)
     
-    paste("Bericht: \nJahresrechnung erstellt")|>
+    paste0("Bericht: \nJahresrechnung erstellt",
+          paste0("\n",getwd(), "/output")
+          )|>
       ausgabe_text()
   })
 
@@ -512,7 +516,11 @@ server <- function(input, output, session) {
     ############
     print(clc)
     source("source/read_and_convert_wordPress.R")
-    ausgabe_text("Bericht:\nFilmumfrage auswertung ausgeführt")
+    paste0("Bericht:\nFilmumfrage auswertung ausgeführt",
+           "\nFinde die Berechneten daten im Verzeichnis:",
+           "\n", getwd(), "output/data/Filmvorschläge.xlsx"
+           )|>
+      ausgabe_text()
   })
   
   ######################################
