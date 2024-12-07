@@ -44,9 +44,9 @@ df_temp <- df_verleiherabgaben|>
   filter(Datum %in% c(c_Datum, c_linkDatum))
 ```
 
-`r df_temp$Verleiher` \
-`r df_temp$Adresse` \
-`r df_temp$PLZ` `r df_temp$Ort` \
+`r df_temp$Verleiher[1]` \
+`r df_temp$Adresse[1]` \
+`r df_temp$PLZ[1]` `r df_temp$Ort[1]` \
 \
 \
 Reinach den `r act_date` 
