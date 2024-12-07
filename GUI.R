@@ -27,9 +27,6 @@ source("source/functions.R")
 
 sommerpause = (65) # Tage
 
-# Sollen für jede Vorführung eine Abrechnung erstellt werden?
-#c_run_single <- TRUE
-
 # Sollen Inhaltsverzeichnisse erstellt werden
 toc <- reactiveVal(TRUE)
 
@@ -73,91 +70,6 @@ mapping <- function(c_Datum) {
            `Kinoförderer gratis?` = NULL)|>
     arrange(index)
 }
-
-
-#############################################################################################################################################
-# Script start
-#############################################################################################################################################
-
-#########
-# package installation 
-#########
-if(TRUE){ # Wenn Site-Maps erstellen aktiviert wurden dann müssen noch weitere Libraries installiert werden.
-  # Package names
-  packages <- c("magick")
-  
-  # Install packages not yet installed
-  installed_packages <- packages %in% rownames(installed.packages())
-  
-  if (any(installed_packages == FALSE)) {
-    install.packages(packages[!installed_packages])
-  }
-  # Packages loading
-  invisible(lapply(packages, library, character.only = TRUE))
-  
-  # Package names
-  packages <- c("webshot")
-  
-  # Install packages not yet installed
-  installed_packages <- packages %in% rownames(installed.packages())
-  
-  if (any(installed_packages == FALSE)) {
-    install.packages(packages[!installed_packages])
-    webshot::install_phantomjs()
-  }
-  # Packages loading
-  invisible(lapply(packages, library, character.only = TRUE))
-}
-
-##########
-# Vorlage für Diagramme (Bei einer Änderung soll auch das css (".../source/Kinokulub_dark.css") geändert werden)
-##########
-my_template <-
-  theme_bw() +
-  theme(
-    panel.background = element_rect(
-      fill = "#322f3b",
-      colour = "#322f3b",
-      linewidth = 0.5,
-      linetype = "solid"
-    ),
-    plot.background = element_rect(fill = "#322f3b"),
-    axis.title = element_text(colour = "#f4cccc", size  = 15),
-    axis.text = element_text(colour = "#f4cccc"),
-    legend.justification = c("right", "top"),
-    legend.box.just = "right",
-    legend.margin = margin(6, 6, 6, 6),
-    legend.background = element_rect(fill = "#322f3b", color = "black"),
-    legend.text = element_text(color = "#f4cccc"),
-    legend.title = element_text(size = 12),
-    title = element_text(color = "#f4cccc", size  = 22)
-  )
-
-
-
-#########
-# erstellen von Verzeichnissen
-#########
-dir.create("output/") |> suppressWarnings()
-dir.create("output/data/") |> suppressWarnings()
-#########
-# löschen aller files im output folder
-#########
-c_path <- "output"
-
-if(dir.exists(c_path)){
-  c_files <- paste0(c_path,"/",list.files(c_path))
-  file.remove(c_files)|>suppressWarnings()
-}
-
-#########
-# löschen aller files im output folder
-#########
-if(dir.exists(c_path)){
-  c_files <- paste0(c_path,"/data",list.files(c_path))
-  file.remove(c_files)|>suppressWarnings()
-}
-
 
 #############################################################################################################################################
 # 
@@ -649,27 +561,6 @@ server <- function(input, output, session) {
     #########
     dir.create("output/") |> suppressWarnings()
     dir.create("output/data/") |> suppressWarnings()
-    #########
-    # löschen aller files im output folder
-    #########
-    c_path <- "output"
-    
-    if(dir.exists(c_path)){
-      c_files <- paste0(c_path,"/",list.files(c_path))
-      c_files
-      file.remove(c_files)|>suppressWarnings()
-    }
-    
-    #########
-    # löschen aller files im output folder
-    #########
-    if(dir.exists(c_path)){
-      c_files <- paste0(c_path,"/data",list.files(c_path))
-      c_files
-      file.remove(c_files)|>suppressWarnings()
-    }
-    
-    
     
     #############################################################################################################################################
     # Filmvorschläge auswerten
@@ -1286,7 +1177,7 @@ server <- function(input, output, session) {
            "\n****************************************\n")|>
       writeLines()
     
-    ausgabe_text("Script wurde ausgeführt")
+    ausgabe_text("Script wurde korrekt ausgeführt.\nWebserver erstellt.")
     renderText(calculate_warnings)
   })
   
