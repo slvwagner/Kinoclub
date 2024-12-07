@@ -67,7 +67,7 @@ df_P_kat_verechnen <- tibble(Kinoförderer = "Kinoförderer", Verkaufspreis =  1
 # 5 = html and pdf (Achtung für pdf install Latex for Windows (Miktex) for Mac (MacTex))
 # 6 = docx and pdf (Achtung für pdf install Latex for Windows (Miktex) for Mac (MacTex))
 # 7 = html, docx and pdf (Achtung für pdf install Latex for Windows (Miktex) for Mac (MacTex))
-c_render_option <- "1" 
+# c_render_option <- "1" 
 
 # create Site Map 
 c_SiteMap <- TRUE
@@ -133,24 +133,24 @@ my_template <-
 #########
 # Ausgabeformat(e)
 
-df_Render <- switch (
-  c_render_option,
-  "1" = tibble::tibble(Render  = c("html_document"),
-                       fileExt = c(".html")),
-  "2" = tibble::tibble(Render  = c("word_document"),
-                       fileExt = c(".docx")),
-  "3" = tibble::tibble(Render  = c("pdf_document"),
-                       fileExt = c(".pdf")),
-  "4" = tibble::tibble(Render  = c("html_document","word_document"),
-                       fileExt = c(".html", ".docx")),
-  "5" = tibble::tibble(Render  = c("html_document","pdf_document"),
-                       fileExt = c(".html", ".pdf")),
-  "6" = tibble::tibble(Render  = c("word_document","pdf_document"),
-                       fileExt = c(".docx", ".pdf")),
-  "7" = tibble::tibble(Render  = c("html_document","word_document","pdf_document"),
-                       fileExt = c(".html", ".docx", ".pdf")),
-  stop("\nDie verwendete Renderoption is nicht definiert")
-)
+# df_Render <- switch (
+#   c_render_option,
+#   "1" = tibble::tibble(Render  = c("html_document"),
+#                        fileExt = c(".html")),
+#   "2" = tibble::tibble(Render  = c("word_document"),
+#                        fileExt = c(".docx")),
+#   "3" = tibble::tibble(Render  = c("pdf_document"),
+#                        fileExt = c(".pdf")),
+#   "4" = tibble::tibble(Render  = c("html_document","word_document"),
+#                        fileExt = c(".html", ".docx")),
+#   "5" = tibble::tibble(Render  = c("html_document","pdf_document"),
+#                        fileExt = c(".html", ".pdf")),
+#   "6" = tibble::tibble(Render  = c("word_document","pdf_document"),
+#                        fileExt = c(".docx", ".pdf")),
+#   "7" = tibble::tibble(Render  = c("html_document","word_document","pdf_document"),
+#                        fileExt = c(".html", ".docx", ".pdf")),
+#   stop("\nDie verwendete Renderoption is nicht definiert")
+# )
 
 #########
 # erstellen von Verzeichnissen
@@ -253,19 +253,16 @@ if(toc){# neues file schreiben mit toc
 
 # Render
 rmarkdown::render(paste0("source/temp.Rmd"),
-                  df_Render$Render,
+                  df_Render()$Render,
                   output_dir = paste0(getwd(), "/output"))
 
 # Rename the file
-for (jj in 1:length(df_Render$Render)) {
-  file.rename(from = paste0(getwd(),"/output/temp",df_Render$fileExt[jj]),
-              to   = paste0(getwd(),"/output/", "Statistik",df_Render$fileExt[jj] )
+for (jj in 1:length(df_Render()$Render)) {
+  file.rename(from = paste0(getwd(),"/output/temp",df_Render()$fileExt[jj]),
+              to   = paste0(getwd(),"/output/", "Statistik",df_Render()$fileExt[jj] )
   )
 }
 
-# rmarkdown::render(paste0("source/Statistik.Rmd"),
-#                   df_Render$Render,
-#                   output_dir = paste0(getwd(), "/output"))
 print(clc)
 
 paste("Bericht: \nStatistik erstellt")|>
@@ -291,13 +288,13 @@ if(toc){# neues file schreiben mit toc
 
 # Render
 rmarkdown::render(paste0("source/temp.Rmd"),
-                  df_Render$Render,
+                  df_Render()$Render,
                   output_dir = paste0(getwd(), "/output"))
 
 # Rename the file
-for (jj in 1:length(df_Render$Render)) {
-  file.rename(from = paste0(getwd(),"/output/temp",df_Render$fileExt[jj]),
-              to   = paste0(getwd(),"/output/", "Jahresrechnung",df_Render$fileExt[jj] )
+for (jj in 1:length(df_Render()$Render)) {
+  file.rename(from = paste0(getwd(),"/output/temp",df_Render()$fileExt[jj]),
+              to   = paste0(getwd(),"/output/", "Jahresrechnung",df_Render()$fileExt[jj] )
   )
 }
 
@@ -390,13 +387,13 @@ if(c_run_single){
 
         # Render
     rmarkdown::render(paste0("source/temp.Rmd"),
-                      df_Render$Render,
+                      df_Render()$Render,
                       output_dir = paste0(getwd(), "/output"))
 
     # Rename the file
-    for (jj in 1:length(df_Render$Render)) {
-      file.rename(from = paste0(getwd(),"/output/temp",df_Render$fileExt[jj]),
-                  to   = paste0(getwd(),"/output/", "Abrechnung Filmvorführung ",df_mapping__|>filter(index == ii)|>select(user_Datum)|>pull(),df_Render$fileExt[jj])
+    for (jj in 1:length(df_Render()$Render)) {
+      file.rename(from = paste0(getwd(),"/output/temp",df_Render()$fileExt[jj]),
+                  to   = paste0(getwd(),"/output/", "Abrechnung Filmvorführung ",df_mapping__|>filter(index == ii)|>select(user_Datum)|>pull(),df_Render()$fileExt[jj])
       )
     }
     
@@ -424,8 +421,8 @@ if(c_run_single){
 
       # Render
       rmarkdown::render(input = "Verleiherabrechnung.Rmd",
-                        output_file = paste0("Verleiherabrechnung ", df_mapping__|>filter(index == ii)|>select(user_Datum)|>pull(), df_Render$fileExt[jj]),
-                        output_format = df_Render$Render,
+                        output_file = paste0("Verleiherabrechnung ", df_mapping__|>filter(index == ii)|>select(user_Datum)|>pull(), df_Render()$fileExt[jj]),
+                        output_format = df_Render()$Render,
                         output_dir = paste0(getwd(), "/output"))
 
 
@@ -510,7 +507,7 @@ list.files(pattern = "temp", recursive = TRUE)|>
   file.remove()
 
 remove(c_Datum, c_suisa, c_verleiherabgaben, c_run_single, c_Verleiher_garantie )
-remove(df_temp, df_Render, df_mapping__, Brutto,
+remove(df_temp,  df_mapping__, Brutto,
        c_temp, c_temp1
 )
 

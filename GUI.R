@@ -6,7 +6,7 @@
 # Lade das Shiny-Paket
 library(tidyverse)
 library(shiny)
-
+library(shinyBS)
 rm(list = ls())
 
 source("source/functions.R")
@@ -46,7 +46,7 @@ mapping <- function(c_Datum) {
 sommerpause = 65 # Tage
 
 # Sollen für jede Vorführung eine Abrechnung erstellt werden?
-c_run_single <- TRUE
+#c_run_single <- TRUE
 
 # Sollen Inhaltsverzeichnisse erstellt werden
 toc <- TRUE
@@ -65,7 +65,7 @@ df_P_kat_verechnen <- tibble(Kinoförderer = "Kinoförderer", Verkaufspreis =  1
 # 5 = html and pdf (Achtung für pdf install Latex for Windows (Miktex) for Mac (MacTex))
 # 6 = docx and pdf (Achtung für pdf install Latex for Windows (Miktex) for Mac (MacTex))
 # 7 = html, docx and pdf (Achtung für pdf install Latex for Windows (Miktex) for Mac (MacTex))
-c_render_option <- "1" 
+c_render_option <- reactiveVal("1") 
 
 # create Site Map 
 c_SiteMap <- TRUE
@@ -128,27 +128,7 @@ my_template <-
     title = element_text(color = "#f4cccc", size  = 22)
   )
 
-#########
-# Ausgabeformat(e)
 
-df_Render <- switch (
-  c_render_option,
-  "1" = tibble::tibble(Render  = c("html_document"),
-                       fileExt = c(".html")),
-  "2" = tibble::tibble(Render  = c("word_document"),
-                       fileExt = c(".docx")),
-  "3" = tibble::tibble(Render  = c("pdf_document"),
-                       fileExt = c(".pdf")),
-  "4" = tibble::tibble(Render  = c("html_document","word_document"),
-                       fileExt = c(".html", ".docx")),
-  "5" = tibble::tibble(Render  = c("html_document","pdf_document"),
-                       fileExt = c(".html", ".pdf")),
-  "6" = tibble::tibble(Render  = c("word_document","pdf_document"),
-                       fileExt = c(".docx", ".pdf")),
-  "7" = tibble::tibble(Render  = c("html_document","word_document","pdf_document"),
-                       fileExt = c(".html", ".docx", ".pdf")),
-  stop("\nDie verwendete Renderoption is nicht definiert")
-)
 
 #########
 # erstellen von Verzeichnissen
@@ -196,6 +176,7 @@ datum_vektor <- df_show$Datum
 
 # Variable, um Status zu speichern
 ausgabe_text <- reactiveVal(NULL)
+df_Render <- reactiveVal(NULL)
 
 ###########################################################################################################
 # UI-Definition
@@ -205,13 +186,51 @@ ui <- fluidPage(
   
   sidebarLayout(
     sidebarPanel(
-      # Button zum Ausführen von Code
-      actionButton("DatenEinlesen", "Daten Einlesen"),
       
+      #############################
+      # Ausgabeformat
+      #############################
+      selectInput(
+        inputId = "render_option",
+        label = "Ausgabeformat wählen:",
+        choices = list(
+          "HTML" = "1",
+          "DOCX" = "2",
+          "PDF" = "3",
+          "HTML and DOCX" = "4",
+          "HTML and PDF" = "5",
+          "DOCX and PDF" = "6",
+          "HTML, DOCX, and PDF" = "7"
+        ),
+        selected = "1" # Default value
+      ),
+      # Add tooltips using shinyBS
+      bsTooltip(
+        id = "render_option",
+        title = "PDF options require LaTeX installation (e.g., MikTeX for Windows, MacTeX for Mac).",
+        placement = "right",
+        trigger = "hover"
+      ),
+      
+      #############################
+      # Button zum Ausführen von Code
+      #############################
+      actionButton("DatenEinlesen", "Daten Einlesen"),
+      # Add tooltips using shinyBS
+      bsTooltip(
+        id = "DatenEinlesen",
+        title = "Es werden alle files in ordner .../Kinoklub/input eingelesen.",
+        placement = "right",
+        trigger = "hover"
+      ),
+      
+      #############################
+      # Datumsbereich auswählen für die Abrechnung Filmvorführungen
+      #############################
       dateRangeInput(
         inputId = "dateRange", 
         label = "Wählen Sie einen Datumsbereich aus:",
-        start = Sys.Date() - 7,  # Default start date (one week ago)
+        start = Sys.Date() - 14,  # Default start date (one week ago)
         end = max(datum_vektor), # Default end date (last show)
         min = min(datum_vektor), # Earliest selectable date
         max = max(datum_vektor), # Latest selectable date
@@ -219,19 +238,36 @@ ui <- fluidPage(
         separator = " bis "      # Separator for the two dates in German
       ),
       
+      #############################
       # Button zum Ausführen von Code
+      #############################
       actionButton("Abrechnung", "Filmabrechnunge(n) erstellen"),
+      # Add tooltips using shinyBS
+      bsTooltip(
+        id = "Abrechnung",
+        title = "Es werden die Filmabrechnungen im gewählten Datumsbereich erstellt.",
+        placement = "right",
+        trigger = "hover"
+      ),
       
-      # Button zum Ausführen von Code 
+      #############################
+      # Button zum Ausführen von Code
+      ############################# 
       actionButton("Statistik", "Statistik erstellen"),
       
+      #############################
       # Button zum Ausführen von Code 
+      #############################
       actionButton("Jahresrechnung", "Jahresrechnung erstellen"),
       
-      # Button zum Ausführen von Code 
+      #############################
+      # Button zum Ausführen von Code
+      ############################# 
       actionButton("wordpress", "Filmumfrage Wordpress auswerten"),
       
+      #############################
       # Button zum Ausführen von Code 
+      #############################
       actionButton("ErstelleAbrechnung", "Alles erstellen mit Webserver")
     ),
     
@@ -251,6 +287,37 @@ ui <- fluidPage(
 # Server-Logik
 ###########################################################################################################
 server <- function(input, output, session) {
+  
+  ######################################
+  # Überwachung Ausgabeformat
+  ######################################
+  observeEvent(input$render_option , {
+    print(clc)
+    
+    df_Render(
+      switch (
+        input$render_option,
+        "1" = tibble::tibble(Render  = c("html_document"),
+                             fileExt = c(".html")),
+        "2" = tibble::tibble(Render  = c("word_document"),
+                             fileExt = c(".docx")),
+        "3" = tibble::tibble(Render  = c("pdf_document"),
+                             fileExt = c(".pdf")),
+        "4" = tibble::tibble(Render  = c("html_document","word_document"),
+                             fileExt = c(".html", ".docx")),
+        "5" = tibble::tibble(Render  = c("html_document","pdf_document"),
+                             fileExt = c(".html", ".pdf")),
+        "6" = tibble::tibble(Render  = c("word_document","pdf_document"),
+                             fileExt = c(".docx", ".pdf")),
+        "7" = tibble::tibble(Render  = c("html_document","word_document","pdf_document"),
+                             fileExt = c(".html", ".docx", ".pdf")),
+        stop("\nDie verwendete Renderoption is nicht definiert")
+      )
+    )
+
+    print(df_Render())
+  })
+  
   ######################################
   # Überwachung Button Dateneinlesen
   ######################################
@@ -268,6 +335,127 @@ server <- function(input, output, session) {
     
     ausgabe_text("Bericht:\nDaten wurden eingelesen")
     renderText(calculate_warnings)
+  })
+  
+  ######################################
+  # Überwachung Button Abrechnungen erstellen über Datum-Range
+  ######################################
+  observeEvent(input$Abrechnung, {
+    start_datum <- input$dateRange|>min()
+    end_datum <- input$dateRange|>max()
+    
+    # Überprüfen, ob beide Daten gültig sind
+    if (start_datum <= end_datum) {
+      # Aktion ausführen
+      ausgabe_text(paste("Die Filmabrechnungen für den Zeitraum von", 
+                         format(start_datum, "%d.%m.%Y"), "bis", 
+                         format(end_datum, "%d.%m.%Y"), "wurden erstellt"))
+      
+      ##############################################
+      # Filmabrechnungen erstellen mit dateRange user input
+      tryCatch({
+        print(clc)
+        print("Erstelle Abrechnung")
+        
+        df_mapping__ <- mapping(c_Date)|>
+          filter(between(Datum, start_datum, end_datum))
+        
+        for(ii in df_mapping__$index){
+          # Template der Abrechnung einlesen
+          c_raw <- readLines("source/Abrechnung.Rmd")
+          c_raw
+          
+          # Ändern des Templates: Variable im Template ii wird gesetzt. c_Date[ii] wird verwendet um das korrekte Datum für die Bereichterstellung auszuwählen.
+          index <- (1:length(c_raw))[c_raw|>str_detect("variablen")]
+          c_raw[(index+1)] <- c_raw[(index+1)]|>str_replace(one_or_more(DGT), paste0(ii))
+          
+          # Ändern des Templates Titel Filmname
+          index <- (1:length(c_raw))[c_raw|>str_detect("Abrechnung Filmvorführung")]
+          c_temp1 <- df_Abrechnung|>
+            filter(Datum == (df_mapping__|>filter(index == ii)|>select(Datum)|>pull()))|>
+            mutate(Anfang = paste0(lubridate::hour(Anfang),":", lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(SPC,"0")),
+                   Datum = paste0(day(Datum),".",month(Datum),".",year(Datum))
+            )|>
+            rename(`Total Gewinn [CHF]`= `Gewinn/Verlust Filmvorführungen [CHF]`)|>
+            select(Filmtitel)|>
+            pull()
+          
+          c_temp <- c_raw[(index)]|>
+            str_split("\"", simplify = T)|>
+            as.vector()
+          
+          c_temp <- c_temp[1:2]
+          c_temp <- paste0(c(c_temp), collapse = "\"")
+          c_temp <- paste0(c(c_temp, " "), collapse = "")
+          c_temp <- paste0(c(c_temp, c_temp1), collapse = "")
+          c_raw[(index)] <- paste0(c(c_temp, "\""), collapse = "")
+          
+          # Inhaltsverzeichnis
+          if(toc){# neues file schreiben mit toc
+            c_raw|>
+              r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis")|>
+              writeLines(paste0("source/temp.Rmd"))
+          }else {# neues file schreiben ohne toc
+            c_raw|>
+              writeLines(paste0("source/temp.Rmd"))
+          }
+          
+          # Render
+          rmarkdown::render(paste0("source/temp.Rmd"),
+                            df_Render()$Render,
+                            output_dir = paste0(getwd(), "/output"))
+          
+          # Rename the file
+          for (jj in 1:length(df_Render()$Render)) {
+            file.rename(from = paste0(getwd(),"/output/temp",df_Render()$fileExt[jj]),
+                        to   = paste0(getwd(),"/output/", "Abrechnung Filmvorführung ",df_mapping__|>filter(index == ii)|>select(user_Datum)|>pull(),df_Render()$fileExt[jj])
+            )
+          }
+          
+          # user interaction
+          print(clc)
+          paste("Bericht: \nFilmabrechnung vom", df_mapping__|>filter(index == ii)|>select(user_Datum)|>pull(), "erstellt")|>
+            writeLines()
+          
+          ############################################################################################
+          # Muss eine Verleiherrechnung erstellt werden?
+          if(df_mapping__|>filter(index == ii)|>select(CreateReportVerleiherabrechnung)|>pull() ){
+            
+            # Einlesen template der Verleiherabrechnung
+            c_raw <- readLines("source/Verleiherabrechnung.Rmd")
+            c_raw
+            
+            # Ändern des Templates mit user eingaben (ii <- ??) verwendet für Datum
+            index <- (1:length(c_raw))[c_raw|>str_detect("variablen")]
+            index
+            c_raw[(index+1)] <- c_raw[(index+1)]|>str_replace(one_or_more(DGT), paste0(ii))
+            
+            # neues file schreiben
+            writeLines(c_raw, "Verleiherabrechnung.Rmd")
+            
+            # Render
+            rmarkdown::render(input = "Verleiherabrechnung.Rmd",
+                              output_file = paste0("Verleiherabrechnung ", df_mapping__|>filter(index == ii)|>select(user_Datum)|>pull(), df_Render()$fileExt[jj]),
+                              output_format = df_Render()$Render,
+                              output_dir = paste0(getwd(), "/output"))
+            
+            # user interaction
+            print(clc)
+            paste("Bericht: \nVerleiherabrechnung vom", df_mapping__|>filter(index == ii)|>select(user_Datum)|>pull(), "erstellt")|>
+              writeLines()
+            
+            # remove file
+            file.remove("Verleiherabrechnung.Rmd")
+          }
+        }
+        remove(c_raw, index,ii,jj)
+        
+      }, error = function(e) {
+        ausgabe_text(paste("Fehler beim Bericht erstellen:", e$message))
+      })
+    } else {
+      ausgabe_text("Das Enddatum darf nicht vor dem Startdatum liegen.")
+    }
   })
   
   ######################################
@@ -294,13 +482,13 @@ server <- function(input, output, session) {
     
     # Render
     rmarkdown::render(paste0("source/temp.Rmd"),
-                      df_Render$Render,
+                      df_Render()$Render,
                       output_dir = paste0(getwd(), "/output"))
     
     # Rename the file
-    for (jj in 1:length(df_Render$Render)) {
-      file.rename(from = paste0(getwd(),"/output/temp",df_Render$fileExt[jj]),
-                  to   = paste0(getwd(),"/output/", "Statistik",df_Render$fileExt[jj] )
+    for (jj in 1:length(df_Render()$Render)) {
+      file.rename(from = paste0(getwd(),"/output/temp",df_Render()$fileExt[jj]),
+                  to   = paste0(getwd(),"/output/", "Statistik",df_Render()$fileExt[jj] )
       )
     }
 
@@ -331,13 +519,13 @@ server <- function(input, output, session) {
     
     # Render
     rmarkdown::render(paste0("source/temp.Rmd"),
-                      df_Render$Render,
+                      df_Render()$Render,
                       output_dir = paste0(getwd(), "/output"))
     
     # Rename the file
-    for (jj in 1:length(df_Render$Render)) {
-      file.rename(from = paste0(getwd(),"/output/temp",df_Render$fileExt[jj]),
-                  to   = paste0(getwd(),"/output/", "Jahresrechnung",df_Render$fileExt[jj] )
+    for (jj in 1:length(df_Render()$Render)) {
+      file.rename(from = paste0(getwd(),"/output/temp",df_Render()$fileExt[jj]),
+                  to   = paste0(getwd(),"/output/", "Jahresrechnung",df_Render()$fileExt[jj] )
       )
     }
     
@@ -346,32 +534,277 @@ server <- function(input, output, session) {
     paste("Bericht: \nJahresrechnung erstellt")|>
       ausgabe_text()
   })
-  
-  ######################################
-  # Überwachung Button Abrechnungen erstellen über Datum-Range
-  ######################################
-  observeEvent(input$Abrechnung, {
-    
-  start_datum <- input$dateRange|>min()
-  end_datum <- input$dateRange|>max()
-  
-  # Überprüfen, ob beide Daten gültig sind
-  if (start_datum <= end_datum) {
-    # Aktion ausführen
-    ausgabe_text(paste("Die Filmabrechnungen für den Zeitraum von", 
-                       format(start_datum, "%d.%m.%Y"), "bis", 
-                       format(end_datum, "%d.%m.%Y"), "wurden erstellt"))
-    
-    ##############################################
-    # Filmabrechnungen erstellen mit dateRange user input
-    tryCatch({
-      print(clc)
-      print("Erstelle Abrechnung")
 
-      df_mapping__ <- mapping(c_Date)|>
-        filter(between(Datum, start_datum, end_datum))
+  ######################################
+  # Überwachung Button Wordpress
+  ######################################
+  observeEvent(input$wordpress, {
+    ############
+    # Statistik-Bericht erstellen
+    ############
+    print(clc)
+    source("source/read_and_convert_wordPress.R")
+    ausgabe_text("Bericht:\nFilmumfrage auswertung ausgeführt")
+  })
+  
+  ######################################
+  # Überwachung Button Erstelle Abrechnung
+  ######################################
+  observeEvent(input$ErstelleAbrechnung, {
+    print(clc)
+    #############################################################################################################################################
+    # Script start
+    #############################################################################################################################################
+    
+    #########
+    # package installation 
+    #########
+    if(c_SiteMap){ # Wenn Site-Maps erstellen aktiviert wurden dann müssen noch weitere Libraries installiert werden.
+      # Package names
+      packages <- c("magick")
       
+      # Install packages not yet installed
+      installed_packages <- packages %in% rownames(installed.packages())
+      
+      if (any(installed_packages == FALSE)) {
+        install.packages(packages[!installed_packages])
+      }
+      # Packages loading
+      invisible(lapply(packages, library, character.only = TRUE))
+      
+      # Package names
+      packages <- c("webshot")
+      
+      # Install packages not yet installed
+      installed_packages <- packages %in% rownames(installed.packages())
+      
+      if (any(installed_packages == FALSE)) {
+        install.packages(packages[!installed_packages])
+        webshot::install_phantomjs()
+      }
+      # Packages loading
+      invisible(lapply(packages, library, character.only = TRUE))
+    }
+    
+    ##########
+    # Vorlage für Diagramme (Bei einer Änderung soll auch das css (".../source/Kinokulub_dark.css") geändert werden)
+    ##########
+    my_template <-
+      theme_bw() +
+      theme(
+        panel.background = element_rect(
+          fill = "#322f3b",
+          colour = "#322f3b",
+          linewidth = 0.5,
+          linetype = "solid"
+        ),
+        plot.background = element_rect(fill = "#322f3b"),
+        axis.title = element_text(colour = "#f4cccc", size  = 15),
+        axis.text = element_text(colour = "#f4cccc"),
+        legend.justification = c("right", "top"),
+        legend.box.just = "right",
+        legend.margin = margin(6, 6, 6, 6),
+        legend.background = element_rect(fill = "#322f3b", color = "black"),
+        legend.text = element_text(color = "#f4cccc"),
+        legend.title = element_text(size = 12),
+        title = element_text(color = "#f4cccc", size  = 22)
+      )
+    
+    #########
+    # erstellen von Verzeichnissen
+    #########
+    dir.create("output/") |> suppressWarnings()
+    dir.create("output/data/") |> suppressWarnings()
+    #########
+    # löschen aller files im output folder
+    #########
+    c_path <- "output"
+    
+    if(dir.exists(c_path)){
+      c_files <- paste0(c_path,"/",list.files(c_path))
+      c_files
+      file.remove(c_files)|>suppressWarnings()
+    }
+    
+    #########
+    # löschen aller files im output folder
+    #########
+    if(dir.exists(c_path)){
+      c_files <- paste0(c_path,"/data",list.files(c_path))
+      c_files
+      file.remove(c_files)|>suppressWarnings()
+    }
+    
+    #########
+    # Versionskontrolle
+    #########
+    if(!((list.files() == "version control.ini")|>sum() == 1)) { # ist kein versions kontrolle vorhanden?
+      #versions kontrolle schreiben
+      write(c_script_version, "version control.ini")
+      
+      # Löschen aller output files 
+      c_path <- "output"
+      c_files <- list.files(c_path, pattern = "html", full.names = T)
+      c_files
+      file.remove(c_files)|>suppressWarnings()
+      
+      c_path <- "output/pict"
+      c_files <- list.files(c_path, pattern = "html", full.names = T)
+      c_files
+      file.remove(c_files)|>suppressWarnings()
+      
+      c_path <- "output/webserver"
+      c_files <- list.files(c_path, pattern = "html", full.names = T)
+      c_files
+      file.remove(c_files)|>suppressWarnings()
+    }else{
+      x <- read_file("version control.ini")|>
+        str_remove("\r")|>
+        str_remove("\n")
+      x
+      if(x != c_script_version){ # ist es nicht die aktuelle Version?
+        # Löschen aller output files 
+        c_path <- "output"
+        c_files <- list.files(c_path, pattern = "html", full.names = T)
+        c_files
+        file.remove(c_files)|>suppressWarnings()
+        
+        c_path <- "output/pict"
+        c_files <- list.files(c_path, pattern = "html", full.names = T)
+        c_files
+        file.remove(c_files)|>suppressWarnings()
+        
+        c_path <- "output/webserver"
+        c_files <- list.files(c_path, pattern = "html", full.names = T)
+        c_files
+        file.remove(c_files)|>suppressWarnings()
+        writeLines(c_script_version, "version control.ini")
+      }
+    }
+    
+    
+    #############################################################################################################################################
+    # Filmvorschläge auswerten
+    #############################################################################################################################################
+    source("source/read_and_convert_wordPress.R")
+    
+    #############################################################################################################################################
+    # Daten einlesen und konvertieren
+    #############################################################################################################################################
+    source("source/calculate.R")
+    
+    #############################################################################################################################################
+    # Statistik-Bericht erstellen
+    #############################################################################################################################################
+    # Einlesen
+    c_raw <- readLines("source/Statistik.Rmd")
+    c_raw
+    
+    # Inhaltsverzeichnis
+    if(toc){# neues file schreiben mit toc
+      c_raw|>
+        r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis")|>
+        writeLines(paste0("source/temp.Rmd"))
+    }else {# neues file schreiben ohne toc
+      c_raw|>
+        writeLines(paste0("source/temp.Rmd"))
+    }
+    
+    # Render
+    rmarkdown::render(paste0("source/temp.Rmd"),
+                      df_Render()$Render,
+                      output_dir = paste0(getwd(), "/output"))
+    
+    # Rename the file
+    for (jj in 1:length(df_Render()$Render)) {
+      file.rename(from = paste0(getwd(),"/output/temp",df_Render()$fileExt[jj]),
+                  to   = paste0(getwd(),"/output/", "Statistik",df_Render()$fileExt[jj] )
+      )
+    }
+    
+    print(clc)
+    
+    paste("Bericht: \nStatistik erstellt")|>
+      writeLines()
+    
+    
+    #############################################################################################################################################
+    # Jahresrechnung-Bericht erstellen
+    #############################################################################################################################################
+    # Einlesen
+    c_raw <- readLines("source/Jahresrechnung.Rmd")
+    c_raw
+    
+    # Inhaltsverzeichnis
+    if(toc){# neues file schreiben mit toc
+      c_raw|>
+        r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis")|>
+        writeLines(paste0("source/temp.Rmd"))
+    }else {# neues file schreiben ohne toc
+      c_raw|>
+        writeLines(paste0("source/temp.Rmd"))
+    }
+    
+    # Render
+    rmarkdown::render(paste0("source/temp.Rmd"),
+                      df_Render()$Render,
+                      output_dir = paste0(getwd(), "/output"))
+    
+    # Rename the file
+    for (jj in 1:length(df_Render()$Render)) {
+      file.rename(from = paste0(getwd(),"/output/temp",df_Render()$fileExt[jj]),
+                  to   = paste0(getwd(),"/output/", "Jahresrechnung",df_Render()$fileExt[jj] )
+      )
+    }
+    
+    print(clc)
+    
+    paste("Bericht: \nJahresrechnung erstellt")|>
+      writeLines()
+    
+    
+    #############################################################################################################################################
+    # Index pro Suisa-Nummer und Datum erstellen
+    #############################################################################################################################################
+    
+    mapping <- function(c_Date) {
+      
+      df_mapping__ <- tibble(Datum = c_Date)|>
+        mutate(user_Datum = paste0(day(Datum),".", month(Datum),".", year(Datum)),
+               index = row_number())
+      
+      ############################################################################################
+      # Soll die Verleiherabrechnung erzeugt werden?
+      
+      c_file <- "input/Verleiherabgaben.xlsx"
+      c_sheets <- readxl::excel_sheets(c_file)
+      c_sheets
+      
+      df_verleiherabgaben <- readxl::read_excel(c_file,c_sheets[1])|>
+        mutate(Datum = as.Date(Datum))|>
+        left_join(readxl::read_excel(c_file,c_sheets[2]), by = "Verleiher")
+      
+      df_mapping__ <- df_verleiherabgaben|>
+        select(Datum, `Kinoförderer gratis?`)|>
+        right_join(df_mapping__, by = join_by(Datum))|>
+        mutate(CreateReportVerleiherabrechnung = if_else(`Kinoförderer gratis?` == "ja",F,T),
+               `Kinoförderer gratis?` = NULL)|>
+        arrange(index)
+    }
+    
+    
+    #############################################################################################################################################
+    # Bericht(e) Abrechnung pro Filmforführung erstellen
+    #############################################################################################################################################
+    
+    df_mapping__ <- mapping(c_Date)
+    
+    if(c_run_single){
       for(ii in df_mapping__$index){
+        
+        ############################################################################################
+        # Abrechnung erstellen
+        ############################################################################################
         # Template der Abrechnung einlesen
         c_raw <- readLines("source/Abrechnung.Rmd")
         c_raw
@@ -413,13 +846,13 @@ server <- function(input, output, session) {
         
         # Render
         rmarkdown::render(paste0("source/temp.Rmd"),
-                          df_Render$Render,
+                          df_Render()$Render,
                           output_dir = paste0(getwd(), "/output"))
         
         # Rename the file
-        for (jj in 1:length(df_Render$Render)) {
-          file.rename(from = paste0(getwd(),"/output/temp",df_Render$fileExt[jj]),
-                      to   = paste0(getwd(),"/output/", "Abrechnung Filmvorführung ",df_mapping__|>filter(index == ii)|>select(user_Datum)|>pull(),df_Render$fileExt[jj])
+        for (jj in 1:length(df_Render()$Render)) {
+          file.rename(from = paste0(getwd(),"/output/temp",df_Render()$fileExt[jj]),
+                      to   = paste0(getwd(),"/output/", "Abrechnung Filmvorführung ",df_mapping__|>filter(index == ii)|>select(user_Datum)|>pull(),df_Render()$fileExt[jj])
           )
         }
         
@@ -430,6 +863,7 @@ server <- function(input, output, session) {
         
         ############################################################################################
         # Muss eine Verleiherrechnung erstellt werden?
+        ############################################################################################
         if(df_mapping__|>filter(index == ii)|>select(CreateReportVerleiherabrechnung)|>pull() ){
           
           # Einlesen template der Verleiherabrechnung
@@ -446,10 +880,11 @@ server <- function(input, output, session) {
           
           # Render
           rmarkdown::render(input = "Verleiherabrechnung.Rmd",
-                            output_file = paste0("Verleiherabrechnung ", df_mapping__|>filter(index == ii)|>select(user_Datum)|>pull(), df_Render$fileExt[jj]),
-                            output_format = df_Render$Render,
+                            output_file = paste0("Verleiherabrechnung ", df_mapping__|>filter(index == ii)|>select(user_Datum)|>pull(), df_Render()$fileExt[jj]),
+                            output_format = df_Render()$Render,
                             output_dir = paste0(getwd(), "/output"))
-
+          
+          
           # user interaction
           print(clc)
           paste("Bericht: \nVerleiherabrechnung vom", df_mapping__|>filter(index == ii)|>select(user_Datum)|>pull(), "erstellt")|>
@@ -458,44 +893,92 @@ server <- function(input, output, session) {
           # remove file
           file.remove("Verleiherabrechnung.Rmd")
         }
+        
       }
-      remove(c_raw, index,ii,jj)
       
-    }, error = function(e) {
-      ausgabe_text(paste("Fehler beim Bericht erstellen:", e$message))
-    })
-  } else {
-    ausgabe_text("Das Enddatum darf nicht vor dem Startdatum liegen.")
-  }
-
-  })
-  
-  ######################################
-  # Überwachung Button Wordpress
-  ######################################
-  observeEvent(input$wordpress, {
-    ############
-    # Statistik-Bericht erstellen
-    ############
-    print(clc)
-    source("source/read_and_convert_wordPress.R")
-    ausgabe_text("Bericht:\nFilmumfrage auswertung ausgeführt")
-  })
-  
-  ######################################
-  # Überwachung Button Erstelle Abrechnung
-  ######################################
-  observeEvent(input$ErstelleAbrechnung, {
+      remove(c_raw, index,ii,jj)
+    }
+    
     print(clc)
     
-    tryCatch({
-      # Warnings abfangen
-      calculate_warnings <- capture.output({
-        source("Erstelle Abrechnung.R")
-      }, type = "message")
-    }, error = function(e) {
-      stop("Fehler beim Laden von 'Erstelle Abrechnung.R': ", e$message)
-    })
+    paste("Bericht: \nAlle Abrechnungen für Filmvorführungen wurden erstellt.")|>
+      writeLines()
+    
+    #############################################################################################################################################
+    # Create Site-Map and webserver data 
+    #############################################################################################################################################
+    source("source/create_webserver_data.R")
+    
+    #############################################################################################################################################
+    # Versionierung
+    #############################################################################################################################################
+    # Einlesen template der Verleiherabrechnung
+    c_raw <- readLines("doc/README.Rmd")
+    c_raw
+    # Index where to find
+    c_index <- (1:length(c_raw))[c_raw|>str_detect("Script Version")]
+    c_index <- c_index[length(c_index)]
+    c_raw[c_index+1]
+    
+    ################################################
+    # Dokumentation anpassen falls neue Version
+    if(c_raw[c_index+1] != c_script_version){ 
+      ######################################
+      # Aktuelle Version ermitteln
+      c_raw[c_index+1] <- c_script_version
+      
+      # neues file schreiben
+      c_raw|>
+        writeLines("doc/README.Rmd")
+      
+      ######################################
+      # Scrip Versionshistorie ermitteln  
+      c_raw <- readLines("Erstelle Abrechnung.R")
+      p <- "#"%R%SPC%R%one_or_more(DGT)%R%SPC%R%"V"%R%one_or_more(DGT)%R%DOT%R%one_or_more(DGT)
+      c_Version_hist <- c_raw[str_detect(c_raw, p)]|>
+        str_remove("# ")|>
+        paste0("  \\")
+      c_Version_hist
+      
+      p <- one_or_more(DGT)%R%SPC%R%"V"%R%one_or_more(DGT)%R%DOT%R%one_or_more(DGT)
+      
+      if(c_Version_hist[length(c_Version_hist)]|>str_extract(p) != c_script_version) stop("\nDer letzte Eintrag der Versionshistorie stimmt nicht mit der Variable c_script_version überein.\nBitte korrigieren")
+      
+      # Versionshistorie in Template einfügen
+      c_raw <- readLines("doc/README.Rmd")
+      c_raw[1:3]
+      # Titel suchen
+      index <- (1:length(c_raw))[c_raw|>str_detect("# Versionshistorie")]
+      index
+      # Ändern des Templates
+      c(c_raw[1:(index + 1)], c_Version_hist,"\n")|>
+        writeLines("doc/README.Rmd")
+      
+      source("doc/create Readme and Docu.R")
+    }
+
+    #############################################################################################################################################
+    # remove temp files 
+    #############################################################################################################################################
+    list.files(pattern = "temp", recursive = TRUE)|>
+      file.remove()
+    
+    remove(c_Datum, c_suisa, c_verleiherabgaben, c_run_single, c_Verleiher_garantie )
+    remove(df_temp,  df_mapping__, Brutto,
+           c_temp, c_temp1
+    )
+    
+    #############################################################################################################################################
+    # User Interaktion
+    #############################################################################################################################################
+    print(clc)
+    paste0("****************************************\n",
+           "Script Version:  ", c_script_version,
+           "\n\nAlles wurde korrekt ausgeführt.", if(warnings()|>length()>0) {"\nEs Fehlen noch Datensätze. \nBitte beachte die Fehlermeldungen unten in orange."},"\n\n",
+           paste0("Dateinen wurden im folgenden Verzeichniss erstellt:\n", c_WD, "/output/"),
+           "\n****************************************\n")|>
+      writeLines()
+    
     ausgabe_text("Script wurde ausgeführt")
     renderText(calculate_warnings)
   })
