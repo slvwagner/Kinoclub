@@ -10,7 +10,6 @@ act_date <- paste0(day(act_date),".", month(act_date),".", year(act_date))
 ```
 
 ```{r variablen, include=FALSE}
-ii <- 1
 ```
 
 ```{r include=FALSE}
@@ -19,6 +18,11 @@ df_mapping <- tibble(Datum = c_Date)|>
          index = row_number())
 
 c_Datum <- c_Date[ii]
+
+c_linkDatum <- df_Abrechnung|>
+  filter(Datum == c_Date[ii])|>
+   select(`Link Datum`)|>
+   pull()
 
 c_suisa <- df_show|>
   filter(Datum == c_Date[ii])|>
@@ -37,7 +41,7 @@ Tunaustrasse 5 \
 
 ```{r}
 df_temp <- df_verleiherabgaben|>
-  filter(Datum == c_Datum)
+  filter(Datum %in% c(c_Datum, c_linkDatum))
 ```
 
 `r df_temp$Verleiher` \
@@ -53,10 +57,10 @@ Reinach den `r act_date`
 ## Verleiherabrechnung
 ```{r}
 df_show|>
-  filter(Datum == c_Datum )|>
+  filter(Datum %in% c(c_Datum, c_linkDatum))|>
   select(`Suisa Nummer`, Filmtitel, Datum, Anfang, Ende, Saal)|>
-  mutate(Anfang = paste0(lubridate::hour(Anfang),":", lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(SPC,"0")),
-         Ende = paste0(lubridate::hour(Ende),":", lubridate::minute(Ende)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(SPC,"0")),
+  mutate(Anfang = paste0(lubridate::hour(Anfang),":", lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(rebus::SPC,"0")),
+         Ende = paste0(lubridate::hour(Ende),":", lubridate::minute(Ende)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(rebus::SPC,"0")),
          Datum = paste0(day(Datum),".",month(Datum),".",year(Datum))
          )|>
   knitr::kable()
@@ -64,23 +68,28 @@ df_show|>
 
 ### Eintritte und Umsatz
 ```{r}
- c_linkDatum <- df_Abrechnung|>
-  filter(Datum == c_Date[ii])|>
-   select(`Link Datum`)|>
-   pull()
-
 df_temp <- df_Abrechnung|>
   filter(Datum %in%c(c_Datum, c_linkDatum))
+```
 
+
+```{r}
 c_suisa_prozent <- df_temp|>
   distinct(`SUISA-Vorabzug`)|>
   pull()
 
 df_temp <- df_Abrechnung_tickes|>
-  filter(Datum %in%c(c_Datum))|>
-  select(Platzkategorie, `Verkaufspreis [CHF]`, Anzahl, `Umsatz für Netto3 [CHF]`)|>
+  filter(Datum %in%c(c_Datum, c_linkDatum))
+
+df_temp <- df_temp|>
+  slice(1:(nrow(df_temp)/2))|>
+  select(Datum, Platzkategorie, `Verkaufspreis [CHF]`, Anzahl, `Umsatz für Netto3 [CHF]`)|>
   rename(`Umsatz [CHF]` = `Umsatz für Netto3 [CHF]`)
 
+```
+
+
+```{r}
 df_temp|>
   knitr::kable()
 ```
