@@ -288,9 +288,11 @@ server <- function(input, output, session) {
     # Überprüfen, ob beide Daten gültig sind
     if (start_datum <= end_datum) {
       # Aktion ausführen
-      ausgabe_text(paste("Die Filmabrechnungen für den Zeitraum von", 
+      ausgabe_text(paste("Die Filmabrechnungen für den Zeitraum von\n", 
                          format(start_datum, "%d.%m.%Y"), "bis", 
-                         format(end_datum, "%d.%m.%Y"), "wurden erstellt"))
+                         format(end_datum, "%d.%m.%Y"), "wurden erstellt",
+                         "</output/webserver/index.html>"
+                         ))
       
       ##############################################
       # Filmabrechnungen erstellen mit dateRange user input
