@@ -118,7 +118,6 @@ datum_vektor <- df_show$Datum
 # Variable, um Status zu speichern
 ausgabe_text <- paste0(calculate_warnings, 
                        collapse = "\n")|>
-  str_remove("eval(ei, envir)")|>
   reactiveVal()
 df_Render <- reactiveVal(NULL)
 
@@ -1231,7 +1230,6 @@ server <- function(input, output, session) {
            paste0("\n",(paste0(getwd(),"/output/webserver/", "index.html")), 
                   sep = "")
            )|>
-      str_remove("In eval(ei, envir)")|>
       ausgabe_text()
     renderText(calculate_warnings)
   })
