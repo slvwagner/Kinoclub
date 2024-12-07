@@ -19,12 +19,13 @@
 # 2024 V1.11 WordPress Filmvorschläge auswerten
 # 2024 V1.12 Verleiherrechnung nur erstellen falls nötig (Kinoförder Gratis => nein, in Verleiherabgaben.xlsx)
 # 2024 V1.13 Gemeinsame Abrechnung über Link Datum in Excel file "Verleiherabgaben.xlsx"
+# 2024 V1.14 GUI Graphical user interface 
 
 #############################################################################################################################################
 # Vorbereiten / Installieren
 #############################################################################################################################################
-rm(list = ls())
-c_script_version <- "2024 V1.13"
+# rm(list = ls())
+c_script_version <- "2024 V1.14"
 
 # Define libraries to be installed
 packages <- c("rmarkdown", "rebus", "openxlsx", "flextable", "tidyverse", "lubridate","DT")
