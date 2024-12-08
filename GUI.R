@@ -113,7 +113,7 @@ tryCatch({
 })
 
 # Vektor mit Datumseinträgen
-datum_vektor <- df_show$Datum
+datum_vektor <- (df_show$Datum)
 
 # Variable, um Status zu speichern
 ausgabe_text <- paste0(calculate_warnings, 
@@ -310,6 +310,7 @@ server <- function(input, output, session) {
   ######################################
   observeEvent(input$DatenEinlesen, {
     print(clc)
+    
     # Daten berechnen und laden, Warnings auffangen
     tryCatch({
       # Warnings abfangen
@@ -322,10 +323,13 @@ server <- function(input, output, session) {
     paste0("Bericht:\nDaten wurden eingelesen:\n",
            paste0(calculate_warnings, collapse = "\n"))|>
       ausgabe_text()
+    
+    datum_vektor <- df_show$Datum
+    
   })
   
   ######################################
-  # Überwachung Button Abrechnungen erstellen über Datum-Range
+  # Überwachung Button Abrechnunge erstellen über Datum-Range
   ######################################
   observeEvent(input$Abrechnung, {
     start_datum <- input$dateRange|>min()
