@@ -84,7 +84,9 @@ df_temp <- df_Abrechnung_tickes|>
 df_temp <- df_temp|>
   slice(1:(nrow(df_temp)/2))|>
   select(Datum, Platzkategorie, `Verkaufspreis [CHF]`, Anzahl, `Umsatz für Netto3 [CHF]`)|>
-  rename(`Umsatz [CHF]` = `Umsatz für Netto3 [CHF]`)
+  rename(`Umsatz [CHF]` = `Umsatz für Netto3 [CHF]`)|>
+  mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum))
+         )
 
 ```
 
