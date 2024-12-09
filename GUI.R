@@ -677,7 +677,7 @@ df_Render <- reactiveVal(NULL)
 # Datum Auswahl für Abrechnung Filmvorführung (Finde letztes Datum)
 End_date_choose <- (max(datum_vektor)-Sys.Date())|>
   as.integer()
-End_date_choose <- reactiveVal(Sys.Date() + End_date_choose)
+End_date_choose <- (Sys.Date() + End_date_choose)
 
 # Does the index.html file exist, is the webserver ready
 file_exists <- reactiveVal(file.exists("output/webserver/index.html"))
