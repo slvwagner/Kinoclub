@@ -677,8 +677,7 @@ df_Render <- reactiveVal(NULL)
 # Datum Auswahl für Abrechnung Filmvorführung (Finde letztes Datum)
 End_date_choose <- (max(datum_vektor)-Sys.Date())|>
   as.integer()
-End_date_choose <- Sys.Date() + End_date_choose
-End_date_choose
+End_date_choose <- reactiveVal(Sys.Date() + End_date_choose)
 
 # Does the index.html file exist, is the webserver ready
 file_exists <- reactiveVal(file.exists("output/webserver/index.html"))
@@ -827,8 +826,6 @@ ui <- fluidPage(
 #############################################################################################################################################
 server <- function(input, output, session) {
   
-
-  
   # Map the URL path "custom" to the local directory "output/webserver"
   shiny::addResourcePath("reports", "output/webserver")
   
@@ -850,7 +847,7 @@ server <- function(input, output, session) {
       stop("Fehler beim Laden von 'source/calculate.R': ", e$message)
     })
     datum_vektor <- df_show$Datum
-    
+    file_exists(file.exists("output/webserver/index.html"))
   })
   
   ######################################
@@ -885,6 +882,7 @@ server <- function(input, output, session) {
     } else {
       ausgabe_text("Das Enddatum darf nicht vor dem Startdatum liegen.")
     }
+    file_exists(file.exists("output/webserver/index.html"))
   })
   
   ######################################
@@ -901,6 +899,7 @@ server <- function(input, output, session) {
     }, error = function(e) {
       ausgabe_text(paste("Fehler beim Bericht erstellen:", e$message))
     })
+    file_exists(file.exists("output/webserver/index.html"))
   })
   
   ######################################
@@ -918,6 +917,7 @@ server <- function(input, output, session) {
     }, error = function(e) {
       ausgabe_text(paste("Fehler beim Bericht erstellen:", e$message))
     })
+    file_exists(file.exists("output/webserver/index.html"))
   })
 
   ######################################
@@ -939,7 +939,7 @@ server <- function(input, output, session) {
     }, error = function(e) {
       ausgabe_text(paste("Fehler beim Bericht erstellen:", e$message))
     })
-    
+    file_exists(file.exists("output/webserver/index.html"))
   })
   
   ######################################
@@ -958,9 +958,6 @@ server <- function(input, output, session) {
       ausgabe_text(paste("Fehler beim Bericht erstellen:", e$message))
     })
     file_exists(file.exists("output/webserver/index.html"))
-    print("index.html vorhanden?:")
-    print(file_exists())
-    
   })
   
   ######################################
@@ -1024,6 +1021,7 @@ server <- function(input, output, session) {
     }, error = function(e) {
       ausgabe_text(paste("Fehler beim Bericht erstellen:", e$message))
     })
+    file_exists(file.exists("output/webserver/index.html"))
   })
   
   ######################################
@@ -1033,6 +1031,7 @@ server <- function(input, output, session) {
     print(clc)
     toc(input$Inhaltsverzeichnis)
     print(toc())
+    file_exists(file.exists("output/webserver/index.html"))
   })
   
   ######################################
@@ -1061,12 +1060,11 @@ server <- function(input, output, session) {
         stop("\nDie verwendete Renderoption is nicht definiert")
       )
     )
-    
-    print(df_Render())
+    file_exists(file.exists("output/webserver/index.html"))
   })
   
   ######################################
-  # Ausgabe aktualisieren
+  # Ausgabe syste Rückmeldungen aktualisieren
   ######################################
   output$ausgabe <- renderText({
     ausgabe_text()
