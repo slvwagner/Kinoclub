@@ -749,7 +749,7 @@ ui <- fluidPage(
       ),
       
       #############################
-      # Button zum Ausführen von Code
+      # Button zum Ausführen von Code Filmabrechnunge(n) erstellen
       #############################
       actionButton("Abrechnung", "Filmabrechnunge(n) erstellen"),
       # Add tooltips using shinyBS
@@ -763,33 +763,33 @@ ui <- fluidPage(
       shiny::tags$h5("**********************"),
       
       #############################
-      # Button zum Ausführen von Code
+      # Button zum Ausführen von Code Statistik erstellen
       ############################# 
       actionButton("Statistik", "Statistik erstellen"),
 
       #############################
-      # Button zum Ausführen von Code 
+      # Button zum Ausführen von Code Jahresrechnung erstellen
       #############################
       actionButton("Jahresrechnung", "Jahresrechnung erstellen"),
       
       shiny::tags$h5("**********************"),
       
       #############################
-      # Button zum Ausführen von Code 
+      # Button zum Ausführen von Code Update Site-Map
       #############################
       actionButton("webserver", "Update Site-Map"),
             
       shiny::tags$h5("**********************"),
       
       #############################
-      # Button zum Ausführen von Code
+      # Button zum Ausführen von Code Filmumfrage Wordpress auswerten
       ############################# 
       actionButton("wordpress", "Filmumfrage Wordpress auswerten"),
       
       shiny::tags$h5("**********************"),
 
       #############################
-      # Button zum Ausführen von Code 
+      # Button zum Ausführen von Code Alles erstellen mit Webserver
       #############################
       actionButton("ErstelleAbrechnung", "Alles erstellen mit Webserver"),
       # Add tooltips using shinyBS
