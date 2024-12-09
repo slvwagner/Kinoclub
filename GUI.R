@@ -712,7 +712,7 @@ server <- function(input, output, session) {
   
   # Map the URL path "custom" to the local directory "output/webserver"
   shiny::addResourcePath("reports", "output/webserver")
-  
+
   ######################################
   # Überwachung Button Dateneinlesen
   ######################################
@@ -957,6 +957,19 @@ server <- function(input, output, session) {
   })
   
   ######################################
+  # Download Handler
+  ######################################
+  # Download Handler
+  output$downloadExcel <- downloadHandler(
+    filename = function() {
+      paste("Werbung", Sys.Date(), ".xlsx", sep = "")
+    },
+    content = function(file) {
+      write.xlsx(df_Besucherzahlen, file = file, asTable = TRUE, overwrite = TRUE)
+    }
+  )
+  
+  ######################################
   # Update table with all the dates in the selected range
   ######################################
   output$dateTable <- renderTable({
@@ -991,7 +1004,7 @@ server <- function(input, output, session) {
       shiny::tags$h4("Filme in der gewählten Periode"),
       tableOutput("dateTable"),
       shiny::tags$h4("System Rückmeldungen"),
-      verbatimTextOutput("ausgabe"),
+      verbatimTextOutput("ausgabe")
     )
   })
   
@@ -1000,6 +1013,10 @@ server <- function(input, output, session) {
   ######################################
   output$dynamicContent_side_panel <- renderUI({
     shiny::tagList(
+      
+      downloadButton("downloadExcel", "Download Werbung"),
+      shiny::tags$h5("**********************"),
+      
       #############################
       # Button Daten Einlesen
       #############################
