@@ -628,7 +628,6 @@ AbrechnungErstellen <- function(df_mapping__, df_Abrechnung) {
 #############################################################################################################################################
 # System Variablen und Vorlagen
 #############################################################################################################################################
-
 # Vorlage für Diagramme (Bei einer Änderung soll auch das css (".../source/Kinokulub_dark.css") geändert werden)
 my_template <-
   theme_bw() +
@@ -654,7 +653,7 @@ my_template <-
 # Variable, um Warnings zu speichern
 calculate_warnings <- reactiveVal(NULL)
 
-# Daten berechnen und laden, Warnings auffangen
+# Daten berechnen und laden, Warnings für user interaction im GUI anzeigen
 tryCatch({
   # Warnings abfangen
   calculate_warnings <- capture.output({
@@ -682,48 +681,9 @@ ui <- fluidPage(
   sidebarLayout(
     sidebarPanel(
       #############################
-      # Inhaltsverzeichnis
-      #############################
-      selectInput(
-        inputId = "Inhaltsverzeichnis",
-        label = "Inhaltsverzeichnis erstellen?",
-        choices = list(
-          "Ja" = TRUE,
-          "Nein" = FALSE
-        ),
-        selected = TRUE # Default value
-      ),
-
-      #############################
-      # Ausgabeformat
-      #############################
-      selectInput(
-        inputId = "render_option",
-        label = "Ausgabeformat wählen:",
-        choices = list(
-          "HTML" = "1",
-          "DOCX" = "2",
-          "PDF" = "3",
-          "HTML and DOCX" = "4",
-          "HTML and PDF" = "5",
-          "DOCX and PDF" = "6",
-          "HTML, DOCX, and PDF" = "7"
-        ),
-        selected = "1" # Default value
-      ),
-      # Add tooltips using shinyBS
-      bsTooltip(
-        id = "render_option",
-        title = "PDF options require LaTeX installation (e.g., MikTeX for Windows, MacTeX for Mac).",
-        placement = "right",
-        trigger = "hover"
-      ),
-      
-      shiny::tags$h5("**********************"),
-      #############################
       # Button Daten Einlesen
       #############################
-      actionButton("DatenEinlesen", "Daten Einlesen"),
+      actionButton("DatenEinlesen", "Daten nochmals Einlesen"),
       # Add tooltips using shinyBS
       bsTooltip(
         id = "DatenEinlesen",
@@ -740,7 +700,7 @@ ui <- fluidPage(
       dateRangeInput(
         inputId = "dateRange", 
         label = "Wählen Sie einen Datumsbereich aus:",
-        start = Sys.Date() - 14,  # Default start date (one week ago)
+        start = Sys.Date() - 2,  # Default start date (one week ago)
         end = max(datum_vektor), # Default end date (last show)
         min = min(datum_vektor), # Earliest selectable date
         max = max(datum_vektor), # Latest selectable date
@@ -799,6 +759,46 @@ ui <- fluidPage(
         placement = "right",
         trigger = "hover"
       ),
+      shiny::tags$h5("**********************"),
+      
+      #############################
+      # Inhaltsverzeichnis
+      #############################
+      selectInput(
+        inputId = "Inhaltsverzeichnis",
+        label = "Inhaltsverzeichnis erstellen?",
+        choices = list(
+          "Ja" = TRUE,
+          "Nein" = FALSE
+        ),
+        selected = TRUE # Default value
+      ),
+      
+      #############################
+      # Ausgabeformat
+      #############################
+      selectInput(
+        inputId = "render_option",
+        label = "Ausgabeformat wählen:",
+        choices = list(
+          "HTML" = "1",
+          "DOCX" = "2",
+          "PDF" = "3",
+          "HTML and DOCX" = "4",
+          "HTML and PDF" = "5",
+          "DOCX and PDF" = "6",
+          "HTML, DOCX, and PDF" = "7"
+        ),
+        selected = "1" # Default value
+      ),
+      # Add tooltips using shinyBS
+      bsTooltip(
+        id = "render_option",
+        title = "PDF options require LaTeX installation (e.g., MikTeX for Windows, MacTeX for Mac).",
+        placement = "right",
+        trigger = "hover"
+      ),
+      
     ),
     
     #############################
@@ -999,22 +999,14 @@ server <- function(input, output, session) {
   ######################################
   observeEvent(input$ErstelleAbrechnung, {
     print(clc)
-    ####################
-    # User Interaktion
-    ####################
-    print(clc)
-    paste0("****************************************\n",
-           "\n\nAlles wurde korrekt ausgeführt.", if(warnings()|>length()>0) {"\nEs Fehlen noch Datensätze. \nBitte beachte die Fehlermeldungen unten in orange."},"\n\n",
-           paste0("Dateinen wurden im folgenden Verzeichniss erstellt:\n", getwd(), "/output/"),
-           "\n****************************************\n")|>
-      writeLines()
-    
+    # User interaction
     paste0("Script wurde korrekt ausgeführt.",
            "\nWebserver erstellt.",
            paste0("\n",(paste0(getwd(),"/output/webserver/", "index.html")), 
                   sep = "")
            )|>
       ausgabe_text()
+    
     tryCatch({
       # erstellen von Verzeichnissen
       #########
