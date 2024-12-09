@@ -675,9 +675,7 @@ ausgabe_text <- paste0(calculate_warnings,
 df_Render <- reactiveVal(NULL)
 
 # Datum Auswahl für Abrechnung Filmvorführung (Finde letztes Datum)
-End_date_choose <- (max(datum_vektor)-Sys.Date())|>
-  as.integer()
-End_date_choose <- (Sys.Date() + End_date_choose)
+End_date_choose <- reactiveVal(Sys.Date() + ((max(datum_vektor)-Sys.Date())|>as.integer()))
 
 # Does the index.html file exist, is the webserver ready
 file_exists <- reactiveVal(file.exists("output/webserver/index.html"))
@@ -690,129 +688,15 @@ ui <- fluidPage(
   titlePanel("Kinoklub GUI"),
   
   sidebarLayout(
+    #############################
+    # Render the side panel 
+    #############################
     sidebarPanel(
-      #############################
-      # Button Daten Einlesen
-      #############################
-      actionButton("DatenEinlesen", "Daten nochmals Einlesen"),
-      # Add tooltips using shinyBS
-      bsTooltip(
-        id = "DatenEinlesen",
-        title = "Es werden alle files in ordner .../Kinoklub/input eingelesen.",
-        placement = "right",
-        trigger = "hover"
-      ),
-      
-      shiny::tags$h5("**********************"),
-      
-      #############################
-      # Datumsbereich auswählen für die Abrechnung Filmvorführungen
-      #############################
-      dateRangeInput(
-        inputId = "dateRange", 
-        label = "Wählen Sie einen Datumsbereich aus:",
-        start = End_date_choose,  # Default start date (one week ago)
-        end = End_date_choose, # Default end date (last show)
-        min = min(datum_vektor), # Earliest selectable date
-        max = max(datum_vektor), # Latest selectable date
-        format = "dd.mm.yyyy",   # Set input format to German (DD.MM.YYYY)
-        separator = " bis "      # Separator for the two dates in German
-      ),
-      
-      #############################
-      # Button zum Ausführen von Code Filmabrechnunge(n) erstellen
-      #############################
-      actionButton("Abrechnung", "Filmabrechnunge(n) erstellen"),
-      # Add tooltips using shinyBS
-      bsTooltip(
-        id = "Abrechnung",
-        title = "Es werden die Filmabrechnungen im gewählten Datumsbereich erstellt.",
-        placement = "right",
-        trigger = "hover"
-      ),
-      
-      shiny::tags$h5("**********************"),
-      
-      #############################
-      # Button zum Ausführen von Code Statistik erstellen
-      ############################# 
-      actionButton("Statistik", "Statistik erstellen"),
-
-      #############################
-      # Button zum Ausführen von Code Jahresrechnung erstellen
-      #############################
-      actionButton("Jahresrechnung", "Jahresrechnung erstellen"),
-      
-      shiny::tags$h5("**********************"),
-      
-      #############################
-      # Button zum Ausführen von Code Update Site-Map
-      #############################
-      actionButton("webserver", "Update Site-Map"),
-            
-      shiny::tags$h5("**********************"),
-      
-      #############################
-      # Button zum Ausführen von Code Filmumfrage Wordpress auswerten
-      ############################# 
-      actionButton("wordpress", "Filmumfrage Wordpress auswerten"),
-      
-      shiny::tags$h5("**********************"),
-
-      #############################
-      # Button zum Ausführen von Code Alles erstellen mit Webserver
-      #############################
-      actionButton("ErstelleAbrechnung", "Alles erstellen mit Webserver"),
-      # Add tooltips using shinyBS
-      bsTooltip(
-        id = "ErstelleAbrechnung",
-        title = "Achtung die Ausführung braucht Zeit!",
-        placement = "right",
-        trigger = "hover"
-      ),
-      shiny::tags$h5("**********************"),
-      
-      #############################
-      # Inhaltsverzeichnis
-      #############################
-      selectInput(
-        inputId = "Inhaltsverzeichnis",
-        label = "Inhaltsverzeichnis erstellen?",
-        choices = list(
-          "Ja" = TRUE,
-          "Nein" = FALSE
-        ),
-        selected = TRUE # Default value
-      ),
-      
-      #############################
-      # Ausgabeformat
-      #############################
-      selectInput(
-        inputId = "render_option",
-        label = "Ausgabeformat wählen:",
-        choices = list(
-          "HTML" = "1",
-          "DOCX" = "2",
-          "PDF" = "3",
-          "HTML and DOCX" = "4",
-          "HTML and PDF" = "5",
-          "DOCX and PDF" = "6",
-          "HTML, DOCX, and PDF" = "7"
-        ),
-        selected = "1" # Default value
-      ),
-      # Add tooltips using shinyBS
-      bsTooltip(
-        id = "render_option",
-        title = "PDF options require LaTeX installation (e.g., MikTeX for Windows, MacTeX for Mac).",
-        placement = "right",
-        trigger = "hover"
-      ),
+      uiOutput("dynamicContent_side_panel")
     ),
     
     #############################
-    # Render the output
+    # Render the main panel 
     #############################
     mainPanel(
       uiOutput("dynamicContent_main_panel")
@@ -848,6 +732,7 @@ server <- function(input, output, session) {
     })
     datum_vektor <- df_show$Datum
     file_exists(file.exists("output/webserver/index.html"))
+    End_date_choose(Sys.Date() + ((max(datum_vektor)-Sys.Date())|>as.integer()))
   })
   
   ######################################
@@ -1106,6 +991,132 @@ server <- function(input, output, session) {
       tableOutput("dateTable"),
       shiny::tags$h4("System Rückmeldungen"),
       verbatimTextOutput("ausgabe"),
+    )
+  })
+  
+  ######################################
+  # Dynamically update the side panel content
+  ######################################
+  output$dynamicContent_side_panel <- renderUI({
+    shiny::tagList(
+      #############################
+      # Button Daten Einlesen
+      #############################
+      actionButton("DatenEinlesen", "Daten nochmals Einlesen"),
+      # Add tooltips using shinyBS
+      bsTooltip(
+        id = "DatenEinlesen",
+        title = "Es werden alle files in ordner .../Kinoklub/input eingelesen.",
+        placement = "right",
+        trigger = "hover"
+      ),
+      
+      shiny::tags$h5("**********************"),
+      
+      #############################
+      # Datumsbereich auswählen für die Abrechnung Filmvorführungen
+      #############################
+      dateRangeInput(
+        inputId = "dateRange",
+        label = "Wählen Sie einen Datumsbereich aus:",
+        start = End_date_choose(),  # Default start date (one week ago)
+        end = End_date_choose(), # Default end date (last show)
+        min = min(datum_vektor), # Earliest selectable date
+        max = max(datum_vektor), # Latest selectable date
+        format = "dd.mm.yyyy",   # Set input format to German (DD.MM.YYYY)
+        separator = " bis "      # Separator for the two dates in German
+      ),
+      
+      #############################
+      # Button zum Ausführen von Code Filmabrechnunge(n) erstellen
+      #############################
+      actionButton("Abrechnung", "Filmabrechnunge(n) erstellen"),
+      # Add tooltips using shinyBS
+      bsTooltip(
+        id = "Abrechnung",
+        title = "Es werden die Filmabrechnungen im gewählten Datumsbereich erstellt.",
+        placement = "right",
+        trigger = "hover"
+      ),
+      
+      shiny::tags$h5("**********************"),
+      
+      #############################
+      # Button zum Ausführen von Code Statistik erstellen
+      #############################
+      actionButton("Statistik", "Statistik erstellen"),
+      
+      #############################
+      # Button zum Ausführen von Code Jahresrechnung erstellen
+      #############################
+      actionButton("Jahresrechnung", "Jahresrechnung erstellen"),
+      
+      shiny::tags$h5("**********************"),
+      
+      #############################
+      # Button zum Ausführen von Code Update Site-Map
+      #############################
+      actionButton("webserver", "Update Site-Map"),
+      
+      shiny::tags$h5("**********************"),
+      
+      #############################
+      # Button zum Ausführen von Code Filmumfrage Wordpress auswerten
+      #############################
+      actionButton("wordpress", "Filmumfrage Wordpress auswerten"),
+      
+      shiny::tags$h5("**********************"),
+      
+      #############################
+      # Button zum Ausführen von Code Alles erstellen mit Webserver
+      #############################
+      actionButton("ErstelleAbrechnung", "Alles erstellen mit Webserver"),
+      # Add tooltips using shinyBS
+      bsTooltip(
+        id = "ErstelleAbrechnung",
+        title = "Achtung die Ausführung braucht Zeit!",
+        placement = "right",
+        trigger = "hover"
+      ),
+      shiny::tags$h5("**********************"),
+      
+      #############################
+      # Inhaltsverzeichnis
+      #############################
+      selectInput(
+        inputId = "Inhaltsverzeichnis",
+        label = "Inhaltsverzeichnis erstellen?",
+        choices = list(
+          "Ja" = TRUE,
+          "Nein" = FALSE
+        ),
+        selected = TRUE # Default value
+      ),
+      
+      #############################
+      # Ausgabeformat
+      #############################
+      selectInput(
+        inputId = "render_option",
+        label = "Ausgabeformat wählen:",
+        choices = list(
+          "HTML" = "1",
+          "DOCX" = "2",
+          "PDF" = "3",
+          "HTML and DOCX" = "4",
+          "HTML and PDF" = "5",
+          "DOCX and PDF" = "6",
+          "HTML, DOCX, and PDF" = "7"
+        ),
+        selected = "1" # Default value
+      ),
+      # Add tooltips using shinyBS
+      bsTooltip(
+        id = "render_option",
+        title = "PDF options require LaTeX installation (e.g., MikTeX for Windows, MacTeX for Mac).",
+        placement = "right",
+        trigger = "hover"
+      ),
     )
   })
 }
