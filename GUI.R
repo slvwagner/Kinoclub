@@ -670,7 +670,15 @@ datum_vektor <- (df_show$Datum)
 ausgabe_text <- paste0(calculate_warnings, 
                        collapse = "\n")|>
   reactiveVal()
+
+# Filmtabelle anzeigen 
 df_Render <- reactiveVal(NULL)
+
+# Datum Auswahl für Abrechnung Filmvorführung (Finde letztes Datum)
+End_date_choose <- (max(datum_vektor)-Sys.Date())|>
+  as.integer()
+End_date_choose <- Sys.Date() + End_date_choose
+End_date_choose
 
 #############################################################################################################################################
 # UI-Definition
@@ -700,8 +708,8 @@ ui <- fluidPage(
       dateRangeInput(
         inputId = "dateRange", 
         label = "Wählen Sie einen Datumsbereich aus:",
-        start = Sys.Date() - 2,  # Default start date (one week ago)
-        end = max(datum_vektor), # Default end date (last show)
+        start = End_date_choose,  # Default start date (one week ago)
+        end = End_date_choose, # Default end date (last show)
         min = min(datum_vektor), # Earliest selectable date
         max = max(datum_vektor), # Latest selectable date
         format = "dd.mm.yyyy",   # Set input format to German (DD.MM.YYYY)
