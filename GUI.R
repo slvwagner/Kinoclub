@@ -1023,7 +1023,7 @@ server <- function(input, output, session) {
         start = End_date_choose(),  # Default start date (one week ago)
         end = End_date_choose(), # Default end date (last show)
         min = min(datum_vektor), # Earliest selectable date
-        max = max(datum_vektor), # Latest selectable date
+        max = End_date_choose(), # Latest selectable date
         format = "dd.mm.yyyy",   # Set input format to German (DD.MM.YYYY)
         separator = " bis "      # Separator for the two dates in German
       ),
