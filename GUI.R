@@ -680,6 +680,10 @@ End_date_choose <- (max(datum_vektor)-Sys.Date())|>
 End_date_choose <- Sys.Date() + End_date_choose
 End_date_choose
 
+# Does the index.html file exist, is the webserver ready
+file_exists <- reactiveVal(file.exists("output/webserver/index.html"))
+
+
 #############################################################################################################################################
 # UI-Definition
 #############################################################################################################################################
@@ -806,22 +810,13 @@ ui <- fluidPage(
         placement = "right",
         trigger = "hover"
       ),
-      
     ),
     
     #############################
     # Render the output
     #############################
     mainPanel(
-      if(file.exists("output/webserver/index.html")) shiny::tags$h4("Webserver:"), 
-      if(file.exists("output/webserver/index.html")) shiny::tags$a (href = "reports/index.html", "Site-map", target = "_blank", style = "font-size: 24px;"),
-      shiny::tags$h4 ("Filme in der gewählten Periode"),
-      tableOutput("dateTable"),
-      # Rückmeldung
-      shiny::tags$h4 ("System Rückmeldungen"),
-      verbatimTextOutput("ausgabe"),
-      # Bereich, um Warnings darzustellen
-      verbatimTextOutput("warnings_output")
+      uiOutput("dynamicContent_main_panel")
     )
   )
 )
@@ -831,6 +826,8 @@ ui <- fluidPage(
 # Server-Logik
 #############################################################################################################################################
 server <- function(input, output, session) {
+  
+
   
   # Map the URL path "custom" to the local directory "output/webserver"
   shiny::addResourcePath("reports", "output/webserver")
@@ -960,8 +957,11 @@ server <- function(input, output, session) {
     }, error = function(e) {
       ausgabe_text(paste("Fehler beim Bericht erstellen:", e$message))
     })
+    file_exists(file.exists("output/webserver/index.html"))
+    print("index.html vorhanden?:")
+    print(file_exists())
+    
   })
-  
   
   ######################################
   # Überwachung Button Erstelle Abrechnung (source("Erstelle Abrechnung.R"))
@@ -1024,8 +1024,6 @@ server <- function(input, output, session) {
     }, error = function(e) {
       ausgabe_text(paste("Fehler beim Bericht erstellen:", e$message))
     })
-    
-    renderText(calculate_warnings)
   })
   
   ######################################
@@ -1086,6 +1084,31 @@ server <- function(input, output, session) {
       mutate(Datum = format(Datum, "%d.%m.%Y"),
              Zeit  = format(Anfang, "%H%M"))|>
       select(Datum, Zeit, Filmtitel, `Suisa Nummer`)
+  })
+  
+  ######################################
+  # Dynamically update the main panel content
+  ######################################
+  output$dynamicContent_main_panel <- renderUI({
+    # Example: Change content based on the action button clicks
+    tagList(
+      if (file_exists()) {
+        shiny::tags$h4("Webserver:")
+      },
+      if (file_exists()) {
+        shiny::tags$h4("Webserver:")
+        shiny::tags$a(
+          href = "reports/index.html", 
+          "Site-map", 
+          target = "_blank", 
+          style = "font-size: 24px;"
+        )
+      },
+      shiny::tags$h4("Filme in der gewählten Periode"),
+      tableOutput("dateTable"),
+      shiny::tags$h4("System Rückmeldungen"),
+      verbatimTextOutput("ausgabe"),
+    )
   })
 }
 
