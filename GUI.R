@@ -814,7 +814,7 @@ ui <- fluidPage(
     #############################
     mainPanel(
       if(file.exists("output/webserver/index.html")) shiny::tags$h4("Webserver:"), 
-      if(file.exists("output/webserver/index.html")) shiny::tags$a (href = "reports/index.html", "Site-map", target = "_blank", style = "font-size: 16px;"),
+      if(file.exists("output/webserver/index.html")) shiny::tags$a (href = "reports/index.html", "Site-map", target = "_blank", style = "font-size: 24px;"),
       shiny::tags$h4 ("Filme in der gewählten Periode"),
       tableOutput("dateTable"),
       # Rückmeldung
