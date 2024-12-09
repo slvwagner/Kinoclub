@@ -962,7 +962,7 @@ server <- function(input, output, session) {
   # Download Handler
   output$downloadExcel <- downloadHandler(
     filename = function() {
-      paste("Werbung", Sys.Date(), ".xlsx", sep = "")
+      paste("Werbung.xlsx", sep = "")
     },
     content = function(file) {
       write.xlsx(df_Besucherzahlen, file = file, asTable = TRUE, overwrite = TRUE)
