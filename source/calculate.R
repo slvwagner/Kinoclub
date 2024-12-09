@@ -336,29 +336,20 @@ df_Besucherzahlen
 ########################################################################
 # write to Excel
 ########################################################################
-list(`Abrechnung Werbung` = df_Besucherzahlen,
-     `Abrechnung Tickets` = df_Abrechnung_tickes,
-     `Abrechnung Kiosk` = df_Abrechnung_kiosk,
-     `Abrechnung Eventeinnahmen` = df_Abrechnung_Eventeinnahmen,
-     `Abrechnung Eventausgaben` = df_Abrechnung_Eventausgaben,
-     `Abrechnung Überschuss/Manko` = df_manko_uerberschuss,
-     `Abrechnung Filmvorführung` = df_Abrechnung
+list(`Werbung` = df_Besucherzahlen,
+     `Tickets` = df_Abrechnung_tickes,
+     `Kiosk` = df_Abrechnung_kiosk,
+     `Eventeinnahmen` = df_Abrechnung_Eventeinnahmen,
+     `Eventausgaben` = df_Abrechnung_Eventausgaben,
+     `Überschuss Manko` = df_manko_uerberschuss,
+     `Filmvorführung` = df_Abrechnung
        )|>
-  write.xlsx(file="output/Data/Auswertung.xlsx", asTable = TRUE)
+  write.xlsx(file="output/Data/Auswertung.xlsx", asTable = TRUE, overwrite = TRUE)
 
 
 
 ########################################################################
 # user interaction
 ########################################################################
-# remove(df_temp, df_Verteilprodukt, c_Verleiherrechnungsbetrag, file_datum, p, 
-#        c_test, c_sheets, c_suisa_nr, c_path, c_names, c_raw, c_lenght, c_files, c_fileDate, c_file,
-#        )
-
 writeLines("Berechnungen erfolgt")
-
-
-df_verleiherabgaben
-Einnahmen_und_Ausgaben$Ausgaben|>
-  filter(Datum == as.Date("2024-10-11"))
 
