@@ -906,6 +906,7 @@ server <- function(input, output, session) {
     }, error = function(e) {
       ausgabe_text(paste("Fehler beim Bericht erstellen:", e$message))
     })
+    End_date_choose(Sys.Date() + ((max(datum_vektor)-Sys.Date())|>as.integer()))
     file_exists(file.exists("output/webserver/index.html"))
   })
   
