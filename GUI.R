@@ -3,14 +3,13 @@
 # Diese App kann mit Run App in Rstudio gestartet werden. 
 #############################################################################################################################################
 
-
 #############################################################################################################################################
 # Vorbereiten / Installieren
 #############################################################################################################################################
 rm(list = ls())
 
 # Define libraries to be installed
-packages <- c("rmarkdown", "rebus", "openxlsx", "flextable", "tidyverse", "lubridate","DT", "shiny", "shinyBS")
+packages <- c("rmarkdown", "rebus", "openxlsx", "flextable", "tidyverse", "lubridate","DT", "shiny", "shinyBS", "magick", "webshot")
 # Install packages not yet installed
 installed_packages <- packages %in% rownames(installed.packages())
 if (any(installed_packages == FALSE)) {
@@ -45,36 +44,6 @@ df_P_kat_verechnen <- tibble(Kinoförderer = "Kinoförderer", Verkaufspreis =  1
 # 6 = docx and pdf (Achtung für pdf install Latex for Windows (Miktex) for Mac (MacTex))
 # 7 = html, docx and pdf (Achtung für pdf install Latex for Windows (Miktex) for Mac (MacTex))
 c_render_option <- reactiveVal("1") 
-
-#############################################################################################################################################
-# package installation 
-#############################################################################################################################################
-
-# Package names
-packages <- c("magick")
-
-# Install packages not yet installed
-installed_packages <- packages %in% rownames(installed.packages())
-
-if (any(installed_packages == FALSE)) {
-  install.packages(packages[!installed_packages])
-}
-# Packages loading
-invisible(lapply(packages, library, character.only = TRUE))
-
-# Package names
-packages <- c("webshot")
-
-# Install packages not yet installed
-installed_packages <- packages %in% rownames(installed.packages())
-
-if (any(installed_packages == FALSE)) {
-  install.packages(packages[!installed_packages])
-  webshot::install_phantomjs()
-}
-# Packages loading
-invisible(lapply(packages, library, character.only = TRUE))
-
 
 #############################################################################################################################################
 # Functions
