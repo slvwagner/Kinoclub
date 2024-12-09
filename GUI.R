@@ -9,7 +9,7 @@
 rm(list = ls())
 
 # Define libraries to be installed
-packages <- c("rmarkdown", "rebus", "openxlsx", "flextable", "tidyverse", "lubridate","DT", "shiny", "shinyBS", "magick", "webshot")
+packages <- c("rmarkdown", "rebus", "openxlsx", "tidyverse", "lubridate","DT", "shiny", "shinyBS", "magick", "webshot")
 # Install packages not yet installed
 installed_packages <- packages %in% rownames(installed.packages())
 if (any(installed_packages == FALSE)) {

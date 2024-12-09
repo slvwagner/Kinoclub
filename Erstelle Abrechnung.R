@@ -29,7 +29,7 @@ rm(list = ls())
 c_script_version <- "2024 V1.14"
 
 # Define libraries to be installed
-packages <- c("rmarkdown", "rebus", "openxlsx", "flextable", "tidyverse", "lubridate","DT")
+packages <- c("rmarkdown", "rebus", "openxlsx", "tidyverse", "lubridate","DT")
 # Install packages not yet installed
 installed_packages <- packages %in% rownames(installed.packages())
 if (any(installed_packages == FALSE)) {
@@ -78,29 +78,16 @@ c_SiteMap <- TRUE
 
 #########
 # package installation 
-
+#########
 if(c_SiteMap){ # Wenn Site-Maps erstellen aktiviert wurden dann müssen noch weitere Libraries installiert werden.
   # Package names
-  packages <- c("magick")
+  packages <- c("magick", "webshot")
   
   # Install packages not yet installed
   installed_packages <- packages %in% rownames(installed.packages())
   
   if (any(installed_packages == FALSE)) {
     install.packages(packages[!installed_packages])
-  }
-  # Packages loading
-  invisible(lapply(packages, library, character.only = TRUE))
-  
-  # Package names
-  packages <- c("webshot")
-  
-  # Install packages not yet installed
-  installed_packages <- packages %in% rownames(installed.packages())
-  
-  if (any(installed_packages == FALSE)) {
-    install.packages(packages[!installed_packages])
-    webshot::install_phantomjs()
   }
   # Packages loading
   invisible(lapply(packages, library, character.only = TRUE))
@@ -108,7 +95,7 @@ if(c_SiteMap){ # Wenn Site-Maps erstellen aktiviert wurden dann müssen noch wei
 
 ##########
 # Vorlage für Diagramme (Bei einer Änderung soll auch das css (".../source/Kinokulub_dark.css") geändert werden)
-
+#########
 my_template <-
   theme_bw() +
   theme(
@@ -132,7 +119,7 @@ my_template <-
 
 #########
 # Ausgabeformat(e)
-
+#########
 df_Render <- switch (
   c_render_option,
   "1" = tibble::tibble(Render  = c("html_document"),
@@ -154,12 +141,14 @@ df_Render <- switch (
 
 #########
 # erstellen von Verzeichnissen
+#########
 dir.create("output/") |> suppressWarnings()
 dir.create("output/data/") |> suppressWarnings()
 
 
 #########
 # löschen aller files im output folder
+#########
 c_path <- "output"
 
 if(dir.exists(c_path)){
@@ -170,6 +159,7 @@ if(dir.exists(c_path)){
 
 #########
 # löschen aller files im output folder
+#########
 if(dir.exists(c_path)){
   c_files <- paste0(c_path,"/data",list.files(c_path))
   c_files
