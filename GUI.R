@@ -871,7 +871,9 @@ server <- function(input, output, session) {
   ######################################
   observeEvent(input$DatenEinlesen, {
     print(clc)
-    
+    paste0("Bericht:\nDaten wurden eingelesen:\n",
+           paste0(calculate_warnings, collapse = "\n"))|>
+      ausgabe_text()
     # Laden und Berechnen der Input-Daten, Warnings auffangen
     tryCatch({
       # Warnings abfangen
@@ -881,10 +883,6 @@ server <- function(input, output, session) {
     }, error = function(e) {
       stop("Fehler beim Laden von 'source/calculate.R': ", e$message)
     })
-    paste0("Bericht:\nDaten wurden eingelesen:\n",
-           paste0(calculate_warnings, collapse = "\n"))|>
-      ausgabe_text()
-    
     datum_vektor <- df_show$Datum
     
   })
@@ -910,9 +908,11 @@ server <- function(input, output, session) {
       tryCatch({
         print(clc)
         print("Erstelle Abrechnung")
+        
         df_mapping__ <- mapping(c_Date)|>
           filter(between(Datum, start_datum, end_datum))
         AbrechnungErstellen(df_mapping__, df_Abrechnung)
+        
       }, error = function(e) {
         ausgabe_text(paste("Fehler beim Bericht erstellen:", e$message))
       })
@@ -926,11 +926,15 @@ server <- function(input, output, session) {
   ######################################
   observeEvent(input$Statistik, {
     print(clc)    
-    StatistikErstellen()
     # User feedback
     ausgabe_text(paste0("Bericht: \nStatistik erstellt",
                        paste0("\n",getwd(), "/output")
-                       ))
+                       ))    
+    tryCatch({
+      StatistikErstellen()
+    }, error = function(e) {
+      ausgabe_text(paste("Fehler beim Bericht erstellen:", e$message))
+    })
   })
   
   ######################################
@@ -938,12 +942,16 @@ server <- function(input, output, session) {
   ######################################
   observeEvent(input$Jahresrechnung, {
     print(clc)
-    JahresrechnungErstellen()
     # User feedback
     paste0("Bericht: \nJahresrechnung erstellt",
           paste0("\n",getwd(), "/output")
           )|>
       ausgabe_text()
+    tryCatch({
+      JahresrechnungErstellen()
+    }, error = function(e) {
+      ausgabe_text(paste("Fehler beim Bericht erstellen:", e$message))
+    })
   })
 
   ######################################
@@ -951,12 +959,21 @@ server <- function(input, output, session) {
   ######################################
   observeEvent(input$wordpress, {
     print(clc)
-    source("source/read_and_convert_wordPress.R")
+    
     paste0("Bericht:\nFilmumfrage auswertung ausgeführt",
            "\nFinde die Berechneten daten im Verzeichnis:",
            "\n", getwd(), "output/data/Filmvorschläge.xlsx"
            )|>
       ausgabe_text()
+    
+    tryCatch({
+      print(clc)
+      source("source/read_and_convert_wordPress.R")
+      
+    }, error = function(e) {
+      ausgabe_text(paste("Fehler beim Bericht erstellen:", e$message))
+    })
+    
   })
   
   ######################################
@@ -964,12 +981,16 @@ server <- function(input, output, session) {
   ######################################
   observeEvent(input$webserver , {
     print(clc)
-    webserver() 
     paste0("Bericht:",
            "\nWebserver und Site-Map wurden aktualisiert.",
            "\n", getwd(), "output/webserver"
     )|>
       ausgabe_text()
+    tryCatch({
+      webserver() 
+    }, error = function(e) {
+      ausgabe_text(paste("Fehler beim Bericht erstellen:", e$message))
+    })
   })
   
   
@@ -978,53 +999,6 @@ server <- function(input, output, session) {
   ######################################
   observeEvent(input$ErstelleAbrechnung, {
     print(clc)
-
-    #########
-    # erstellen von Verzeichnissen
-    #########
-    dir.create("output/") |> suppressWarnings()
-    dir.create("output/data/") |> suppressWarnings()
-    
-    ####################
-    # Daten einlesen und konvertieren
-    ####################
-    source("source/calculate.R")
-    
-    ####################
-    # Statistik-Bericht erstellen
-    ####################
-    StatistikErstellen()
-    paste("Bericht: \nStatistik erstellt")|>
-      writeLines()
-    
-    
-    ####################
-    # Jahresrechnung-Bericht erstellen
-    ####################
-    print(clc)
-    JahresrechnungErstellen()
-    
-    paste("Bericht: \nJahresrechnung erstellt")|>
-      writeLines()
-    
-
-    ####################
-    # Bericht(e) Abrechnung pro Filmforführung erstellen
-    ####################
-    
-    df_mapping__ <- mapping(c_Date)
-    AbrechnungErstellen(df_mapping__, df_Abrechnung)
-    
-    print(clc)
-    
-    paste("Bericht: \nAlle Abrechnungen für Filmvorführungen wurden erstellt.")|>
-      writeLines()
-    
-    ####################
-    # Create webserver data 
-    ####################
-    webserver() 
-    
     ####################
     # User Interaktion
     ####################
@@ -1041,6 +1015,55 @@ server <- function(input, output, session) {
                   sep = "")
            )|>
       ausgabe_text()
+    tryCatch({
+      # erstellen von Verzeichnissen
+      #########
+      dir.create("output/") |> suppressWarnings()
+      dir.create("output/data/") |> suppressWarnings()
+      
+      ####################
+      # Daten einlesen und konvertieren
+      ####################
+      source("source/calculate.R")
+      
+      ####################
+      # Statistik-Bericht erstellen
+      ####################
+      StatistikErstellen()
+      paste("Bericht: \nStatistik erstellt")|>
+        writeLines()
+      
+      
+      ####################
+      # Jahresrechnung-Bericht erstellen
+      ####################
+      print(clc)
+      JahresrechnungErstellen()
+      
+      paste("Bericht: \nJahresrechnung erstellt")|>
+        writeLines()
+      
+      
+      ####################
+      # Bericht(e) Abrechnung pro Filmforführung erstellen
+      ####################
+      
+      df_mapping__ <- mapping(c_Date)
+      AbrechnungErstellen(df_mapping__, df_Abrechnung)
+      
+      print(clc)
+      
+      paste("Bericht: \nAlle Abrechnungen für Filmvorführungen wurden erstellt.")|>
+        writeLines()
+      
+      ####################
+      # Create webserver data 
+      ####################
+      webserver() 
+    }, error = function(e) {
+      ausgabe_text(paste("Fehler beim Bericht erstellen:", e$message))
+    })
+    
     renderText(calculate_warnings)
   })
   
