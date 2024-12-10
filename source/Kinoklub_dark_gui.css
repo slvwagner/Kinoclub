@@ -41,15 +41,46 @@ a:hover {
 }
 
 div.datatables {
-    color: #d3bebe;
+  color: #d3bebe;
 }
 
 :root {
-    dt-row-hover: 255, 255, 255;
+  dt-row-hover: 255, 255, 255;
 
 }
 
 pre:not([class]) { /* R output */
-    background-color: #BBEEF6;
+  background-color: #BBEEF6;
 }
+
+
+
+
+
+pre{
+  background-color: #330937;
+  color: #f4eacc;
+  border: #000000;
+}
+
+.well{
+  background-color: #57163a;
+  border: #000000;
+}
+
+.btn-default {
+  color: #f4eacc;
+  background-color: #322f3b;
+}
+
+.form-control {
+  color: #f4eacc;
+  background-color: #322f3b;
+}
+
+.input-group-addon {
+  color: #f4eacc;
+  background-color: #322f3b;
+}
+
 

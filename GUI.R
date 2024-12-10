@@ -687,9 +687,8 @@ file_exists <- reactiveVal(file.exists("output/webserver/index.html"))
 ui <- fluidPage(
   
   shiny::tags$head(
-    shiny::tags$link(rel = "stylesheet", type = "text/css", href = "custom_styles/Kinoklub_dark.css")
+    shiny::tags$link(rel = "stylesheet", type = "text/css", href = "custom_styles/Kinoklub_dark_gui.css")
   ),
-  
   
   titlePanel("Kinoklub GUI"),
   
