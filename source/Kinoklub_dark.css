@@ -53,33 +53,30 @@ pre:not([class]) { /* R output */
     background-color: #BBEEF6;
 }
 
-
-
-
-
 pre{
   background-color: #330937;
   color: #f4eacc;
+  border: #000000;
 }
 
 
 .well{
-      background-color: #330937
+  background-color: #57163a;
+  border: #000000;
 }
 
 .btn-default {
     color: #f4eacc;
-    background-color: #393761;
-    border-color: #000000;
+    background-color: #322f3b;
 }
 
 .form-control {
     color: #f4eacc;
-    background-color: #393761;
+    background-color: #322f3b;
 }
 
 .input-group-addon {
     color: #f4eacc;
-    background-color: #393761;
+    background-color: #322f3b;
 
 }
