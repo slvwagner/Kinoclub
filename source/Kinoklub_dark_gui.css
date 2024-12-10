@@ -17,11 +17,12 @@ footer {
   color: #f4cccc;
 }
 
-
+/*
 code {
   background-color: #ff2f3b;
   color: black;
 }
+*/
 
 a {
   color: #9966FF; /* Set your desired color using a hex code, RGB, or color name */
@@ -49,20 +50,19 @@ div.datatables {
 
 }
 
+/*Text output*/
 pre:not([class]) { /* R output */
   background-color: #BBEEF6;
 }
 
-
-
-
-
+/*main panel*/
 pre{
   background-color: #330937;
   color: #f4eacc;
   border: #000000;
 }
 
+/*side panel*/
 .well{
   background-color: #57163a;
   border: #000000;
@@ -70,17 +70,25 @@ pre{
 
 .btn-default {
   color: #f4eacc;
-  background-color: #322f3b;
+  background-color: #330937;
 }
 
 .form-control {
   color: #f4eacc;
-  background-color: #322f3b;
+  background-color: #330937;
 }
 
 .input-group-addon {
   color: #f4eacc;
-  background-color: #322f3b;
+  background-color: #330937;
 }
 
+/*
+.selectize-dropdown,.selectize-dropdown.form-control {
+  color: #040404;
+}
 
+.selectize-input.full {
+  background-color: #935795;
+}
+*/
