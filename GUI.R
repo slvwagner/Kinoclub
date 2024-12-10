@@ -958,7 +958,7 @@ server <- function(input, output, session) {
   })
   
   ######################################
-  # Ausgabe syste Rückmeldungen aktualisieren
+  # Systemrückmeldungen aktualisieren
   ######################################
   output$ausgabe <- renderText({
     ausgabe_text()
