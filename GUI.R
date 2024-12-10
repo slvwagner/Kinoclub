@@ -685,6 +685,12 @@ file_exists <- reactiveVal(file.exists("output/webserver/index.html"))
 # UI-Definition
 #############################################################################################################################################
 ui <- fluidPage(
+  
+  shiny::tags$head(
+    shiny::tags$link(rel = "stylesheet", type = "text/css", href = "custom_styles/Kinoklub_dark.css")
+  ),
+  
+  
   titlePanel("Kinoklub GUI"),
   
   sidebarLayout(
@@ -712,6 +718,9 @@ server <- function(input, output, session) {
   
   # Map the URL path "custom" to the local directory "output/webserver"
   shiny::addResourcePath("reports", "output/webserver")
+  
+  # Serve the custom_styles directory
+  addResourcePath("custom_styles", "source")
 
   ######################################
   # Überwachung Button Dateneinlesen

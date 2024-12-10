@@ -52,3 +52,34 @@ div.datatables {
 pre:not([class]) { /* R output */
     background-color: #BBEEF6;
 }
+
+
+
+
+
+pre{
+  background-color: #330937;
+  color: #f4eacc;
+}
+
+
+.well{
+      background-color: #330937
+}
+
+.btn-default {
+    color: #f4eacc;
+    background-color: #393761;
+    border-color: #000000;
+}
+
+.form-control {
+    color: #f4eacc;
+    background-color: #393761;
+}
+
+.input-group-addon {
+    color: #f4eacc;
+    background-color: #393761;
+
+}
