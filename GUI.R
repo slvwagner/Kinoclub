@@ -680,6 +680,12 @@ End_date_choose <- reactiveVal(Sys.Date() + ((max(datum_vektor)-Sys.Date())|>as.
 # Does the index.html file exist, is the webserver ready
 file_exists <- reactiveVal(file.exists("output/webserver/index.html"))
 
+# Serve the custom_styles directory
+addResourcePath("custom_styles", "source")
+
+# Map the URL path "custom" to the local directory "output/webserver"
+shiny::addResourcePath("reports", "output/webserver")
+
 
 #############################################################################################################################################
 # UI-Definition
@@ -715,11 +721,8 @@ ui <- fluidPage(
 #############################################################################################################################################
 server <- function(input, output, session) {
   
-  # Map the URL path "custom" to the local directory "output/webserver"
-  shiny::addResourcePath("reports", "output/webserver")
+
   
-  # Serve the custom_styles directory
-  addResourcePath("custom_styles", "source")
 
   ######################################
   # Überwachung Button Dateneinlesen
