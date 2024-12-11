@@ -20,6 +20,13 @@ invisible(lapply(packages, library, character.only = TRUE))
 
 source("source/functions.R")
 
+# import scrip version from "Erstelle Abrechnung.R"
+c_raw <- readLines("Erstelle Abrechnung.R")
+c_script_version <- c_raw[c_raw|>str_detect("c_script_version <-")]|>
+  str_split(pattern = "\"")|>
+  unlist()
+c_script_version <- c_script_version[2]
+
 #############################################################################################################################################
 # Benutzereinstellungen 
 #############################################################################################################################################
@@ -695,8 +702,8 @@ ui <- fluidPage(
   shiny::tags$head(
     shiny::tags$link(rel = "stylesheet", type = "text/css", href = "custom_styles/Kinoklub_dark_gui.css")
   ),
-  
-  titlePanel("Kinoklub GUI"),
+  paste("Kinoklub GUI", c_script_version)|>
+    titlePanel(),
   
   sidebarLayout(
     #############################
