@@ -351,6 +351,20 @@ df_verleiherabgaben <- readxl::read_excel(c_file,c_sheets[1])|>
          `Link Datum` = as.Date(`Link Datum`))|>
   left_join(readxl::read_excel(c_file,c_sheets[2]), by = "Verleiher")
 
+# error handling 
+df_temp <- df_verleiherabgaben|>
+  filter(is.na(Verleiher))
+
+if(nrow(df_temp)>0){
+  stop(paste0("\nEs gibt keinen Verleiherangeben für den Film, ",df_temp$Titel," am ",day(df_temp$Datum), ".", month(df_temp$Datum), ".", year(df_temp$Datum),".",   
+             "\nBitte korrrigieren in der Exceldatei .../Kinoklub/input/Verleiherabgaben.xlsx"))
+}
+
+
+
+########################################################################
+# Eintrite 
+########################################################################
 df_Eintritt <- df_Eintritt|>
   left_join(df_verleiherabgaben|>
               select(-Titel, -Adresse, -PLZ, -Ort),
