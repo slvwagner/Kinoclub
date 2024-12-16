@@ -20,7 +20,7 @@ invisible(lapply(packages, library, character.only = TRUE))
 
 source("source/functions.R")
 
-# import scrip version from "Erstelle Abrechnung.R"
+# import script version from "Erstelle Abrechnung.R"
 c_raw <- readLines("Erstelle Abrechnung.R")
 c_script_version <- c_raw[c_raw|>str_detect("c_script_version <-")]|>
   str_split(pattern = "\"")|>
