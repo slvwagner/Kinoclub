@@ -20,13 +20,14 @@
 # 2024 V1.12 Verleiherrechnung nur erstellen falls nötig (Kinoförder Gratis => nein, in Verleiherabgaben.xlsx)
 # 2024 V1.13 Gemeinsame Abrechnung über Link Datum in Excel file "Verleiherabgaben.xlsx"
 # 2024 V1.14 GUI Graphical user interface 
+# 2024 V1.15 Fake Suisa Nummer von Advanced Tickets kann nun auch verarbeitet werden 
 
 
 #############################################################################################################################################
 # Vorbereiten / Installieren
 #############################################################################################################################################
 rm(list = ls())
-c_script_version <- "2024 V1.14"
+c_script_version <- "2024 V1.15"
 
 # Define libraries to be installed
 packages <- c("rmarkdown", "rebus", "openxlsx", "tidyverse", "lubridate","DT")
