@@ -70,7 +70,8 @@ convert_data_Film_txt <- function(c_fileName) {
     l_temp <- list()
     
     # Extract suisa
-    p <- START%R%DGT%R%DGT%R%DGT%R%DGT%R%DOT%R%DGT%R%DGT%R%DGT #suisa
+    p <- or(START%R%DGT%R%DGT%R%DGT%R%DGT%R%DOT%R%DGT%R%DGT%R%DGT,
+            START%R%WRD%R%WRD%R%WRD%R%DGT%R%DOT%R%one_or_more(DGT)) #suisa
     index <- c_raw|>
       str_detect(p)
     
