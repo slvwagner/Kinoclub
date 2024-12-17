@@ -80,7 +80,10 @@ df_keine_Rechnnung
 #########################################################################################################
 # l_abrechnung[["2024-12-07"]]$Abrechnung
 
-df_temp <- l_abrechnung[["2024-11-30"]]$Abrechnung
+l_abrechnung[["2024-11-30"]]$Abrechnung
+
+l_abrechnung[[ii]]$Abrechnung 
+ii <- 9
 
 for (ii in 1:length(c_Date)) {
   # Je nach dem ob ein fixer betrag oder Prozentualeabgaben mit dem Verleiher vereinbart wurden muss anders gerechnet werden. 
@@ -98,7 +101,7 @@ for (ii in 1:length(c_Date)) {
                                          sum(`Umsatz für Netto3`) * (`SUISA-Vorabzug` / 100) *  Verteilprodukt),
         Netto3 = if_else(`Kinoförderer gratis?`, # Der Suisa-Vorabzug muss anders berechnet werden wenn die Kinoförderer verrechnet werden müssen
                          (sum(Umsatz) - sum(`SUISA-Vorabzug [CHF]`)) * Verteilprodukt,
-                         (sum(`Umsatz`) - sum(`SUISA-Vorabzug [CHF]`)) * Verteilprodukt
+                         (sum(`Umsatz für Netto3`) - sum(`SUISA-Vorabzug [CHF]`)) * Verteilprodukt
                          ),
         # fixer betrag mit dem Verleiher vereinbart! 
         `Verleiherabzug [CHF]` = if_else(is.na(Verleiherrechnungsbetrag),
@@ -108,12 +111,15 @@ for (ii in 1:length(c_Date)) {
         `MWST [CHF]` = if_else(is.na(Verleiherrechnungsbetrag),
                                sum(`Verleiherabzug [CHF]`) * (c_MWST / 100) * Verteilprodukt,
                                (Verleiherrechnungsbetrag[1] - (Verleiherrechnungsbetrag[1] / (1+(c_MWST/100)))) * Verteilprodukt
-                               ),
+        ),
         `Sonstige Kosten [CHF]` = if_else(is.na(Verleiherrechnungsbetrag),
-                                          NA,
-                                          (Verleiherrechnungsbetrag - sum(`MWST [CHF]`) - sum(`Verleiherabzug [CHF]`)) * Verteilprodukt
-                                          ),
-        `Gewinn/Verlust Tickets [CHF]` = (sum(Umsatz)- sum(`SUISA-Vorabzug [CHF]`) - sum(`Verleiherabzug [CHF]`) - sum(`MWST [CHF]`)) * Verteilprodukt
+                                          NA,                                                                                                                          # keine Verleiherrechnung
+                                          (Verleiherrechnungsbetrag - sum(`SUISA-Vorabzug [CHF]`) - sum(`MWST [CHF]`) - sum(`Verleiherabzug [CHF]`)) * Verteilprodukt  # Sonstige kosten 
+        ),
+        `Gewinn/Verlust Tickets [CHF]` = if_else(is.na(Verleiherrechnungsbetrag),
+                                                 (sum(Umsatz) -                   sum(`SUISA-Vorabzug [CHF]`) - sum(`Verleiherabzug [CHF]`) - sum(`MWST [CHF]`)) * Verteilprodukt,
+                                                 (sum(Verleiherrechnungsbetrag) - sum(`SUISA-Vorabzug [CHF]`) - sum(`Verleiherabzug [CHF]`)) * Verteilprodukt)
+        
       )
   }else{ # Prozentualerabzug mit dem Verleiher vereinbart! 
     l_abrechnung[[ii]]$Abrechnung <- 
@@ -128,7 +134,7 @@ for (ii in 1:length(c_Date)) {
                                          sum(`Umsatz für Netto3`) * (`SUISA-Vorabzug` / 100) *  Verteilprodukt),
         Netto3 = if_else(`Kinoförderer gratis?`, # Der Suisa-Vorabzug muss anders berechnet werden wenn die Kinoförderer verrechnet werden müssen
                          (sum(Umsatz) - sum(`SUISA-Vorabzug [CHF]`)) * Verteilprodukt,
-                         (sum(`Umsatz`) - sum(`SUISA-Vorabzug [CHF]`)) * Verteilprodukt
+                         (sum(`Umsatz für Netto3`) - sum(`SUISA-Vorabzug [CHF]`)) * Verteilprodukt
         ),
         # Prozentualerabzug mit dem Verleiher vereinbart!
         `Verleiherabzug [CHF]` = if_else(is.na(Verleiherrechnungsbetrag),
@@ -144,10 +150,12 @@ for (ii in 1:length(c_Date)) {
                                (Verleiherrechnungsbetrag[1] - (Verleiherrechnungsbetrag[1] / (1+(c_MWST/100)))) * Verteilprodukt
         ),
         `Sonstige Kosten [CHF]` = if_else(is.na(Verleiherrechnungsbetrag),
-                                          NA,
-                                          (Verleiherrechnungsbetrag - sum(`MWST [CHF]`) - sum(`Verleiherabzug [CHF]`)) * Verteilprodukt
+                                          NA,                                                                                                                          # keine Verleiherrechnung
+                                          (Verleiherrechnungsbetrag - sum(`SUISA-Vorabzug [CHF]`) - sum(`MWST [CHF]`) - sum(`Verleiherabzug [CHF]`)) * Verteilprodukt  # Sonstige kosten 
         ),
-        `Gewinn/Verlust Tickets [CHF]` = (sum(Umsatz)- sum(`SUISA-Vorabzug [CHF]`) - sum(`Verleiherabzug [CHF]`) - sum(`MWST [CHF]`)) * Verteilprodukt
+        `Gewinn/Verlust Tickets [CHF]` = if_else(is.na(Verleiherrechnungsbetrag),
+                                                 (sum(Umsatz) -                   sum(`SUISA-Vorabzug [CHF]`) - sum(`Verleiherabzug [CHF]`) - sum(`MWST [CHF]`)) * Verteilprodukt,
+                                                 (sum(Verleiherrechnungsbetrag) - sum(`SUISA-Vorabzug [CHF]`) - sum(`Verleiherabzug [CHF]`)) * Verteilprodukt)
       )
   }
 

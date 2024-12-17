@@ -16,7 +16,7 @@ act_date <- paste0(day(act_date),".", month(act_date),".", year(act_date))
 Bericht wurde am `r act_date` erstellt.
 
 ```{r variablen, include=FALSE}
-ii <- 12
+ii <- 9
 ```
 
 ```{r echo=FALSE}
@@ -86,15 +86,17 @@ if(nrow(df_temp) > 0) {
 df_temp <- df_Eintritt|>
   filter(Datum == c_Datum & `Suisa Nummer` == c_suisa)|>
   select(Platzkategorie, Verkaufspreis, Anzahl, Umsatz)|>
-  rename(`Film Umsatz [sFR]` = `Umsatz`)
+  rename(`Umsatz [sFR]` = `Umsatz`)
 
 df_temp|>
   knitr::kable()
 ```
 
 ```{r echo=FALSE}
-df_temp|>
-  reframe(`Film Umsatz [CHF]` = sum(`Film Umsatz [sFR]`, na.rm = T))|>
+Umsatz <- df_temp|>
+  reframe(`Summe Umsatz [CHF]` = sum(`Umsatz [sFR]`, na.rm = T))
+
+Umsatz|>
   knitr::kable()
 
 ```
@@ -125,7 +127,6 @@ df_temp|>
 
 
 ### Filmabgaben
-#### Verleiherrechnung
 
 ```{r echo=FALSE}
 df_temp <- df_keine_Rechnnung|>
@@ -146,7 +147,6 @@ if(nrow(df_temp) > 0) {
 }
 ```
 
-
 ```{r}
 c_Verleiher_garantie <- df_verleiherabgaben|>
   filter(Datum == c_Datum )|>
@@ -154,69 +154,30 @@ c_Verleiher_garantie <- df_verleiherabgaben|>
   pull()
 ```
 
-
-#### Prozentualle Abgaben
-Für diesen Film muss an den Verleiher **`r c_verleiherabgaben`%** des Ticket-Umsatz gezahlt werden. Die minimale Abgaben an den Verleiher ist **`r c_Verleiher_garantie`.- [CHF].**
-Der Abgabeprozentsatz ist für jeden Film und Spielwoche mit dem jeweiligen Verleiher verhandelt.
 ```{r echo=FALSE}
 df_temp <- df_Abrechnung|>
   filter(Datum == c_Datum & `Suisa Nummer` == c_suisa)|>
-  mutate(`Total Abgaben [CHF]` = sum(`SUISA-Vorabzug [CHF]`,`Verleiherabzug [CHF]`,na.rm = T))|>
-  select(`SUISA-Vorabzug [CHF]`, `Verleiherabzug [CHF]`, `Total Abgaben [CHF]`)
+  mutate(`Total Abgaben [CHF]` = sum(`SUISA-Vorabzug [CHF]`,`Verleiherabzug [CHF]`,na.rm = T))
 ```
 
+#### Abgaben
+Für diesen Film wurden mit dem Verleiher **`r c_verleiherabgaben`%** des Ticket-Umsatz ausgehandelt die durch den Verleiher verrechnet werden. Die minimalen Abgaben (Garantierter Umsatz) an den Verleiher ist **`r c_Verleiher_garantie`.- [CHF].**.
+Der Abgabeprozentsatz und die mindest Garantie muss für jeden Film und Spielwoche mit dem jeweiligen Verleiher verhandelt.
+
+
 ```{r}
+Filmvorführungen <- df_temp$`Gewinn/Verlust Tickets [CHF]`
+```
+
+
+
+```{r}
+df_temp <- df_Abrechnung|>
+  filter(Datum == c_Datum & `Suisa Nummer` == c_suisa)
+
 df_temp|>
-  knitr::kable(digits = 2)
-
-```
-
-
-
-#### Reklamematerial und Porto
-
-```{r echo=FALSE}
-df_temp <- df_keine_Rechnnung|>
-  filter(Datum == c_Date[ii])
-
-if(nrow(df_temp) > 0) {
-  writeLines("Achtung es gibt noch keine Verleiherabrechnung für diesen Film. Deshalb fehlen die Reklame- und Portokosten.")
-  }
-```
-
-```{r echo=FALSE}
-
-df_Abrechnung|>
-  filter(Datum %in% c(c_Datum))|>
-  select(`Sonstige Kosten [CHF]`)|>
-  mutate(`Reklamematerial und Porto [CHF]` = `Sonstige Kosten [CHF]` * c_verteilprodukt,
-         `Sonstige Kosten [CHF]` = NULL)|>
-  filter(!is.na(`Reklamematerial und Porto [CHF]`))|>
-  knitr::kable(digits = 2)
-```
-
-#### MWST auf Verleiherrechnung
-```{r}
-df_Abrechnung|>
-  filter(Datum == c_Date[ii])|>
-  select(`MWST [CHF]`)|>
-  knitr::kable(digits = 2)
-```
-
-
-
-### Differenz
-```{r}
-Filmvorführungen <- df_Abrechnung|>
-  distinct(Datum,.keep_all = T)|>
-  filter(Datum == c_Date[ii])|>
-  select(`Gewinn/Verlust Tickets [CHF]`)
-```
-
-
-```{r}
-Filmvorführungen|>
-  knitr::kable(digits = 2)
+  select(`Gewinn/Verlust Tickets [CHF]`)|>
+  knitr::kable()
 ```
 
 \
@@ -438,7 +399,7 @@ Kiosk|>
 ```{r}
 df_temp <- tibble(
   Bezeichnung = c("Flimvorführung", "Event", "Kiosk"),
-  `Betrag [CHF]` = c(Filmvorführungen|>pull(),
+  `Betrag [CHF]` = c(Filmvorführungen,
                      Event|>pull(),
                      Kiosk|>pull()
   )
