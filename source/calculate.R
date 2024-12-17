@@ -102,8 +102,8 @@ for (ii in 1:length(c_Date)) {
                          ),
         # fixer betrag mit dem Verleiher vereinbart! 
         `Verleiherabzug [CHF]` = if_else(is.na(Verleiherrechnungsbetrag),
-                                         `Abzug fix [CHF]`[1] * Verteilprodukt, # keine Verleiherrechnung vorhanden
-                                         Verleiherrechnungsbetrag               # Verleiherrechnung ist vorhanden
+                                         `Abzug fix [CHF]`[1] * Verteilprodukt,     # keine Verleiherrechnung vorhanden
+                                         Verleiherrechnungsbetrag * Verteilprodukt  # Verleiherrechnung ist vorhanden
                                          ),
         `MWST [CHF]` = if_else(is.na(Verleiherrechnungsbetrag),
                                sum(`Verleiherabzug [CHF]`) * (c_MWST / 100) * Verteilprodukt,
@@ -133,7 +133,7 @@ for (ii in 1:length(c_Date)) {
         # Prozentualerabzug mit dem Verleiher vereinbart!
         `Verleiherabzug [CHF]` = if_else(is.na(Verleiherrechnungsbetrag),
                                          sum(Netto3) * (`Abzug [%]`[1] / 100) * Verteilprodukt, # keine Verleiherrechnung vorhanden
-                                         Verleiherrechnungsbetrag                               # Verleiherrechnung ist vorhanden
+                                         Verleiherrechnungsbetrag * Verteilprodukt              # Verleiherrechnung ist vorhanden
                                          ), 
         `Verleiherabzug [CHF]` = if_else((`Verleiherabzug [CHF]`) > (`Minimal Abzug`[1] * Verteilprodukt),
                                          sum(`Verleiherabzug [CHF]`) * Verteilprodukt,
