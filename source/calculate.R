@@ -101,8 +101,10 @@ for (ii in 1:length(c_Date)) {
                          (sum(`Umsatz`) - sum(`SUISA-Vorabzug [CHF]`)) * Verteilprodukt
                          ),
         # fixer betrag mit dem Verleiher vereinbart! 
-        `Verleiherabzug [CHF]` = `Abzug fix [CHF]`[1] * Verteilprodukt,
-        
+        `Verleiherabzug [CHF]` = if_else(is.na(Verleiherrechnungsbetrag),
+                                         `Abzug fix [CHF]`[1] * Verteilprodukt, # keine Verleiherrechnung vorhanden
+                                         Verleiherrechnungsbetrag               # Verleiherrechnung ist vorhanden
+                                         ),
         `MWST [CHF]` = if_else(is.na(Verleiherrechnungsbetrag),
                                sum(`Verleiherabzug [CHF]`) * (c_MWST / 100) * Verteilprodukt,
                                (Verleiherrechnungsbetrag[1] - (Verleiherrechnungsbetrag[1] / (1+(c_MWST/100)))) * Verteilprodukt
@@ -128,8 +130,11 @@ for (ii in 1:length(c_Date)) {
                          (sum(Umsatz) - sum(`SUISA-Vorabzug [CHF]`)) * Verteilprodukt,
                          (sum(`Umsatz`) - sum(`SUISA-Vorabzug [CHF]`)) * Verteilprodukt
         ),
-        # Prozentualerabzug mit dem Verleiher vereinbart?
-        `Verleiherabzug [CHF]` = sum(Netto3) * (`Abzug [%]`[1] / 100) * Verteilprodukt,
+        # Prozentualerabzug mit dem Verleiher vereinbart!
+        `Verleiherabzug [CHF]` = if_else(is.na(Verleiherrechnungsbetrag),
+                                         sum(Netto3) * (`Abzug [%]`[1] / 100) * Verteilprodukt, # keine Verleiherrechnung vorhanden
+                                         Verleiherrechnungsbetrag                               # Verleiherrechnung ist vorhanden
+                                         ), 
         `Verleiherabzug [CHF]` = if_else((`Verleiherabzug [CHF]`) > (`Minimal Abzug`[1] * Verteilprodukt),
                                          sum(`Verleiherabzug [CHF]`) * Verteilprodukt,
                                          `Minimal Abzug`[1] * Verteilprodukt
