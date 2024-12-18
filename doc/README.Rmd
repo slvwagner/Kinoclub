@@ -315,7 +315,57 @@ Es wird eine Filmabrechnung pro Event (Datum) erstellt.
 -   Gewinn / Verlust\
     Summe aus Einnahmen und Ausgaben
 
+#### Berechnung der prozentuallen Abgaben 
 
+- Verleiherrechnung noch nicht vorhanden
+    -   Umsatz: \
+    Der Umsatz muss je nach Verleiher anders berechnet werden. Bei gewissen Verleihern müssen die Kinoförderer als Umsatz ausgewiesen werden obwohl kein Umsatz an der Kinokasse gemacht wurde.(Die Kinoförderer Tickets werden gegen einen Mitgliederbeitrag abgegeben und wurden demnach Verkauft.)
+    -   Suisa-Vorabzug: \
+    $U_{msatz}\cdot  \frac {s_{uisaVorabzugProzent}}{100}$
+    -   Netto3: \
+    $U_{msatz}-S_{uisa-Vorabzug}$
+    -   Verleiherabgaben: \
+    $N_{etto3} \cdot V_{erleiherabgabenProzent} > M_{indestGarantie} => N_{etto3} \cdot V_{erleiherabgabenProzent}$ \
+    $N_{etto3} \cdot V_{erleiherabgabenProzent} < M_{indestGarantie} => M_{indestGarantie}$
+    -   Mehrwertsteuer: \
+    $V_{erleiherabgaben}\cdot \frac{M_{WST}}{100}$
+    -   Gewinn / Verlust: \
+    $U_{msatzKinokasse} - (S_{uisa-Vorabzug} + V_{erleiherabgaben} + M_{WST})$ 
+    
+- Verleiherrechnung vorhanden
+    -   Umsatz: \
+    Der Umsatz muss je nach Verleiher anders berechnet werden. Bei gewissen Verleihern müssen die Kinoförderer als Umsatz ausgewiesen werden obwohl kein Umsatz an der Kinokasse gemacht wurde.(Die Kinoförderer Tickets werden gegen einen Mitgliederbeitrag abgegeben und wurden demnach Verkauft.)
+    -   Suisa-Vorabzug: \
+    $U_{msatz}\cdot  \frac {s_{uisaVorabzugProzent}}{100}$
+    -   Verleiherrechnung: \
+    Verleiherrechnungsbetrag inklusive Mehrwertsteuer \
+    $\frac {V_{erleiherrechnung}}{1+\frac{M_{WST}}{100}}\cdot\frac{M_{WST}}{100}$
+    -   Gewinn / Verlust: \
+    $U_{msatzKinokasse} - (S_{uisa-Vorabzug} + V_{erleiherrechnung})$ 
+
+#### Berechnung der Fixen Abgaben
+
+- Verleiherrechnung noch nicht vorhanden
+    -   Umsatz: \
+    Der Umsatz muss je nach Verleiher anders berechnet werden. Bei gewissen Verleihern müssen die Kinoförderer als Umsatz ausgewiesen werden obwohl kein Umsatz an der Kinokasse gemacht wurde.(Die Kinoförderer Tickets werden gegen einen Mitgliederbeitrag abgegeben und wurden demnach Verkauft.)
+    -   Suisa-Vorabzug: \
+    $U_{msatz}\cdot  \frac {s_{uisaVorabzugProzent}}{100}$
+    -   Verleiherabgaben \
+    -   Mehrwertsteuer: \
+    $V_{erleiherabgaben}\cdot \frac{M_{WST}}{100}$
+    -   Gewinn / Verlust: \
+    $U_{msatzKinokasse} - (S_{uisa-Vorabzug} + V_{erleiherabgaben} + M_{WST})$ 
+    
+- Verleiherrechnung vorhanden
+    -   Umsatz: \
+    Der Umsatz muss je nach Verleiher anders berechnet werden. Bei gewissen Verleihern müssen die Kinoförderer als Umsatz ausgewiesen werden obwohl kein Umsatz an der Kinokasse gemacht wurde.(Die Kinoförderer Tickets werden gegen einen Mitgliederbeitrag abgegeben und wurden demnach Verkauft.)
+    -   Suisa-Vorabzug: \
+    $U_{msatz}\cdot  \frac {s_{uisaVorabzugProzent}}{100}$
+    -   Verleiherrechnung: \
+    Verleiherrechnungsbetrag inklusive Mehrwertsteuer \
+    $\frac {V_{erleiherrechnung}}{1+\frac{M_{WST}}{100}}\cdot\frac{M_{WST}}{100}$
+    -   Gewinn / Verlust: \
+    $U_{msatzKinokasse} - (S_{uisa-Vorabzug} + V_{erleiherrechnung})$ 
 
 ### Jahresabrechnungen
 

@@ -80,10 +80,19 @@ df_keine_Rechnnung
 #########################################################################################################
 # l_abrechnung[["2024-12-07"]]$Abrechnung
 
-l_abrechnung[["2024-11-30"]]$Abrechnung
+l_abrechnung[["2024-10-12"]]
 
-l_abrechnung[[ii]]$Abrechnung 
+l_abrechnung[["2024-10-12"]]$Abrechnung|>
+  as.data.frame()|>
+  print()
+
+l_abrechnung[["2024-10-11"]]$Abrechnung|>
+  as.data.frame()|>
+  print()
+
 ii <- 9
+l_abrechnung[[ii]]$Abrechnung 
+
 
 for (ii in 1:length(c_Date)) {
   # Je nach dem ob ein fixer betrag oder Prozentualeabgaben mit dem Verleiher vereinbart wurden muss anders gerechnet werden. 
@@ -92,10 +101,7 @@ for (ii in 1:length(c_Date)) {
     l_abrechnung[[ii]]$Abrechnung <- 
       l_abrechnung[[ii]]$Abrechnung|>
       mutate(
-        Verteilprodukt = if_else(`Kinoförderer gratis?`, # Das Verteilprodukt muss anders berechnet werden wenn die Kinoförderer verrechnet werden müssen
-                                 Umsatz / sum(Umsatz),
-                                 `Umsatz für Netto3` /  sum(`Umsatz für Netto3`)
-                                 ),
+        Verteilprodukt = Umsatz / sum(Umsatz),
         `SUISA-Vorabzug [CHF]` = if_else(`Kinoförderer gratis?`, # Der Suisa-Vorabzug muss anders berechnet werden wenn die Kinoförderer verrechnet werden müssen
                                          sum(Umsatz) * (`SUISA-Vorabzug` /100) * Verteilprodukt,
                                          sum(`Umsatz für Netto3`) * (`SUISA-Vorabzug` / 100) *  Verteilprodukt),
@@ -103,7 +109,7 @@ for (ii in 1:length(c_Date)) {
                          (sum(Umsatz) - sum(`SUISA-Vorabzug [CHF]`)) * Verteilprodukt,
                          (sum(`Umsatz für Netto3`) - sum(`SUISA-Vorabzug [CHF]`)) * Verteilprodukt
                          ),
-        # fixer betrag mit dem Verleiher vereinbart! 
+        # fixer Betrag inklusive Mehrwertsteuer mit dem Verleiher vereinbart! 
         `Verleiherabzug [CHF]` = if_else(is.na(Verleiherrechnungsbetrag),
                                          `Abzug fix [CHF]`[1] * Verteilprodukt,     # keine Verleiherrechnung vorhanden
                                          Verleiherrechnungsbetrag * Verteilprodukt  # Verleiherrechnung ist vorhanden
@@ -112,12 +118,8 @@ for (ii in 1:length(c_Date)) {
                                sum(`Verleiherabzug [CHF]`) * (c_MWST / 100) * Verteilprodukt,
                                (Verleiherrechnungsbetrag[1] - (Verleiherrechnungsbetrag[1] / (1+(c_MWST/100)))) * Verteilprodukt
         ),
-        `Sonstige Kosten [CHF]` = if_else(is.na(Verleiherrechnungsbetrag),
-                                          NA,                                                                                                                          # keine Verleiherrechnung
-                                          (Verleiherrechnungsbetrag - sum(`SUISA-Vorabzug [CHF]`) - sum(`MWST [CHF]`) - sum(`Verleiherabzug [CHF]`)) * Verteilprodukt  # Sonstige kosten 
-        ),
         `Gewinn/Verlust Tickets [CHF]` = if_else(is.na(Verleiherrechnungsbetrag),
-                                                 (sum(Umsatz) - sum(`SUISA-Vorabzug [CHF]`) - sum(`Verleiherabzug [CHF]`) - sum(`MWST [CHF]`)) * Verteilprodukt,
+                                                 (sum(Umsatz) - sum(`SUISA-Vorabzug [CHF]`) - sum(`Verleiherabzug [CHF]`)) * Verteilprodukt,
                                                  (sum(Umsatz) - sum(`SUISA-Vorabzug [CHF]`) - sum(Verleiherrechnungsbetrag)) * Verteilprodukt)
         
       )
@@ -125,10 +127,7 @@ for (ii in 1:length(c_Date)) {
     l_abrechnung[[ii]]$Abrechnung <- 
       l_abrechnung[[ii]]$Abrechnung|>
       mutate(
-        Verteilprodukt = if_else(`Kinoförderer gratis?`, # Das Verteilprodukt muss anders berechnet werden wenn die Kinoförderer verrechnet werden müssen
-                                 Umsatz / sum(Umsatz),
-                                 `Umsatz für Netto3` /  sum(`Umsatz für Netto3`)
-        ),
+        Verteilprodukt =  Umsatz / sum(Umsatz),
         `SUISA-Vorabzug [CHF]` = if_else(`Kinoförderer gratis?`, # Der Suisa-Vorabzug muss anders berechnet werden wenn die Kinoförderer verrechnet werden müssen
                                          sum(Umsatz) * (`SUISA-Vorabzug` /100) * Verteilprodukt,
                                          sum(`Umsatz für Netto3`) * (`SUISA-Vorabzug` / 100) *  Verteilprodukt),
@@ -148,10 +147,6 @@ for (ii in 1:length(c_Date)) {
         `MWST [CHF]` = if_else(is.na(Verleiherrechnungsbetrag),
                                sum(`Verleiherabzug [CHF]`) * (c_MWST / 100) * Verteilprodukt,
                                (Verleiherrechnungsbetrag[1] - (Verleiherrechnungsbetrag[1] / (1+(c_MWST/100)))) * Verteilprodukt
-        ),
-        `Sonstige Kosten [CHF]` = if_else(is.na(Verleiherrechnungsbetrag),
-                                          NA,                                                                                                                          # keine Verleiherrechnung
-                                          (Verleiherrechnungsbetrag - sum(`SUISA-Vorabzug [CHF]`) - sum(`MWST [CHF]`) - sum(`Verleiherabzug [CHF]`)) * Verteilprodukt  # Sonstige kosten 
         ),
         `Gewinn/Verlust Tickets [CHF]` = if_else(is.na(Verleiherrechnungsbetrag),
                                                  (sum(Umsatz) - sum(`SUISA-Vorabzug [CHF]`) - sum(`Verleiherabzug [CHF]`) - sum(`MWST [CHF]`)) * Verteilprodukt,
@@ -225,12 +220,11 @@ for (ii in 1:length(c_Date)) {
   # Verteilen für gemeinsame Abrechnung
   ########################################################################
   l_abrechnung[[ii]]$Abrechnung <- l_abrechnung[[ii]]$Abrechnung|>
-    mutate(`Umsatz für Netto3` = NULL,
-           `SUISA-Vorabzug [CHF]` = `SUISA-Vorabzug [CHF]` * Verteilprodukt,
-           `Verleiherabzug [CHF]` = (`Verleiherabzug [CHF]` * Verteilprodukt),
+    mutate(`Netto3 [CHF]` = Netto3,
+           `SUISA-Vorabzug [CHF]` = `SUISA-Vorabzug [CHF]` *  Verteilprodukt,
+           `Verleiherabzug [CHF]` = `Verleiherabzug [CHF]` *  Verteilprodukt,
            `MWST [CHF]` = `MWST [CHF]` * Verteilprodukt,
-           `Sonstige Kosten [CHF]` = `Sonstige Kosten [CHF]` * Verteilprodukt,
-           `Gewinn/Verlust Tickets [CHF]` = `Gewinn/Verlust Tickets [CHF]` * Verteilprodukt,
+           `Gewinn/Verlust Tickets [CHF]` = `Gewinn/Verlust Tickets [CHF]` *  Verteilprodukt ,
            `Gewinn/Verlust Kiosk [CHF]` = sum(l_abrechnung[[ii]]$Kiosk$Gewinn) , # Kiosk wird nicht verteilt
            `Überschuss / Manko Kiosk [CHF]` = l_abrechnung[[ii]]$`Manko oder Überschuss [CHF]`$`Überschuss / Manko`, # Manko, Überschuss wird nicht verteilt
            `Eventeinnahmen [CHF]` = sum(l_abrechnung[[ii]]$Eventeinnahmen$Betrag), # Eventeinnahmen wurden bereits mit Verteilprodukt berechnet
@@ -248,13 +242,13 @@ for (ii in 1:length(c_Date)) {
     filter(Datum == c_Date[ii])
 }
 
-l_abrechnung[["2024-12-07"]]$Abrechnung$`Verleiherabzug [CHF]`
+l_abrechnung[["2024-10-12"]]$Abrechnung|>
+  as.data.frame()|>
+  print()
 
-
-l_abrechnung[[1]]
-l_abrechnung[[12]]
-l_abrechnung[[13]]
-l_abrechnung[[29]]
+l_abrechnung[["2024-10-11"]]$Abrechnung|>
+  as.data.frame()|>
+  print()
 
 ##############################################################################
 # Abrechnung Filmvorführung erstellen (für Berichte verwendet)
@@ -264,16 +258,15 @@ df_Abrechnung <- bind_cols(
   l_abrechnung|>
     lapply(function(x){
       x$Abrechnung|>
-        select(1:14)
+        select(!ends_with("[CHF]"))
     })|>
     bind_rows(),
   l_abrechnung|>
     lapply(function(x){
       c_temp <- x$Abrechnung|>
-        select((ncol(x$Abrechnung)-10):ncol(x$Abrechnung))|>
+        select(ends_with("[CHF]"))|>
         as_vector()|>
-        round5Rappen()|>
-        round(2)
+        round5Rappen()
       as.data.frame(c_temp)|>
         t()|>
         as_tibble()
