@@ -47,7 +47,7 @@ c_verleiherabgaben <- df_verleiherabgaben|>
   pull()
 ```
 
-## Übersicht 
+## Übersicht
 
 ```{r echo=FALSE}
 df_temp <- df_show|>
@@ -57,7 +57,6 @@ df_temp <- df_show|>
          )|>
   select(-Saal)
 ```
-
 
 ```{r echo=FALSE}
 df_temp|>
@@ -80,6 +79,7 @@ if(nrow(df_temp) > 0) {
 \
 
 ## Filmvorführung
+
 ### Kino Umsatz
 
 ```{r echo=FALSE}
@@ -112,7 +112,6 @@ df_temp <- df_Eintritt|>
 
 ```
 
-
 ```{r echo=FALSE}
 df_temp|>
   knitr::kable()
@@ -125,8 +124,42 @@ df_temp|>
 
 ```
 
-
 ### Filmabgaben
+
+Für jeden gezeigten Film sind verschiedenen Abgaben und Gebühren zu entrichten. Es müssen verschieden Scenarien unterschieden werden.
+
+#### Berechnung der Abgaben 
+Normalfall: \
+Je nach Besucherzahlen ändern sich die Abgaben
+
+- Verleiherrechnung noch nicht vorhanden
+    -   Umsatz: \
+    Der Umsatz muss je nach Verleiher anders berechnet werden. Bei gewissen Verleihern müssen die Kinoförderer als Umsatz ausgewiesen werden obwohl kein Umsatz an der Kinokasse gemacht wurde.(Die Kinoförderer Tickets werden gegen einen Mitgliederbeitrag abgegeben und wurden demnach Verkauft.)
+    -   Suisa-Vorabzug: \
+    $U_{msatz}\cdot  \frac {s_{uisaVorabzugProzent}}{100}$
+    -   Netto3: \
+    $U_{msatz}-S_{uisa-Vorabzug}$
+    -   Verleiherabgaben: \
+    $N_{etto3} \cdot V_{erleiherabgabenProzent} > M_{indestGarantie} => N_{etto3} \cdot V_{erleiherabgabenProzent}$ \
+    $N_{etto3} \cdot V_{erleiherabgabenProzent} < M_{indestGarantie} => M_{indestGarantie}$
+    -   Mehrwertsteuer: \
+    $V_{erleiherabgaben}\cdot \frac{M_{WST}}{100}$
+    -   Gewinn / Verlust: \
+    $U_{msatzKinokasse} - S_{uisa-Vorabzug} - V_{erleiherabgaben} - M_{WST}$ 
+    
+- Verleiherrechnung vorhanden
+    -   Umsatz: \
+    Der Umsatz muss je nach Verleiher anders berechnet werden. Bei gewissen Verleihern müssen die Kinoförderer als Umsatz ausgewiesen werden obwohl kein Umsatz an der Kinokasse gemacht wurde.(Die Kinoförderer Tickets werden gegen einen Mitgliederbeitrag abgegeben und wurden demnach Verkauft.)
+    -   Suisa-Vorabzug: \
+    $U_{msatz}\cdot  \frac {s_{uisaVorabzugProzent}}{100}$
+    -   Netto3: \
+    $U_{msatz}-s_{uisa-Vorabzug}$
+    -   Verleiherrechnung: Verleiherrechnungsbetrag inklusive Mehrwertsteuer
+    -   Mehrwertsteuer: \
+    $\frac {V_{erleiherrechnung}}{1+\frac{M_{WST}}{100}}\cdot\frac{M_{WST}}{100}$
+    -   Gewinn / Verlust: \
+    $U_{msatzKinokasse} - S_{uisa-Vorabzug} - V_{erleiherrechnung}$ 
+
 
 ```{r echo=FALSE}
 df_temp <- df_keine_Rechnnung|>
@@ -161,15 +194,12 @@ df_temp <- df_Abrechnung|>
 ```
 
 #### Abgaben
-Für diesen Film wurden mit dem Verleiher **`r c_verleiherabgaben`%** des Ticket-Umsatz ausgehandelt die durch den Verleiher verrechnet werden. Die minimalen Abgaben (Garantierter Umsatz) an den Verleiher ist **`r c_Verleiher_garantie`.- [CHF].**.
-Der Abgabeprozentsatz und die mindest Garantie muss für jeden Film und Spielwoche mit dem jeweiligen Verleiher verhandelt.
 
+Für diesen Film wurden mit dem Verleiher **`r c_verleiherabgaben`%** des Ticket-Umsatz ausgehandelt die durch den Verleiher verrechnet werden. Die minimalen Abgaben (Garantierter Umsatz) an den Verleiher ist **`r c_Verleiher_garantie`.- [CHF].**. Der Abgabeprozentsatz und die mindest Garantie muss für jeden Film und Spielwoche mit dem jeweiligen Verleiher verhandelt.
 
 ```{r}
 Filmvorführungen <- df_temp$`Gewinn/Verlust Tickets [CHF]`
 ```
-
-
 
 ```{r}
 df_temp <- df_Abrechnung|>
@@ -183,18 +213,20 @@ df_temp|>
 \
 
 ## Event
+
 ### Einnahmen
 
 Beiträge von Mitveranstalter, Sponsoring for diesen Event.
+
 ```{r}
 Eventeinnahmen <- l_abrechnung[[ii]]$Eventeinnahmen|>
   select(Datum, Bezeichnung, Betrag)|>
   rename(`Betrag [CHF]` = Betrag)
 ```
 
-
 ```{r}
 Eventeinnahmen|>
+  mutate(Datum = paste0(day(Datum),".", month(Datum),".", year(Datum)))|>
   knitr::kable(digits = 2)
 ```
 
@@ -208,9 +240,9 @@ Eventeinnahmen|>
 
 ```
 
-
 ### Ausgaben
-Alle Ausgaben die für diesen Event, z.B. Ausgaben für Spezialverkaufsartikel, Deko, Flyer, ...  \
+
+Alle Ausgaben die für diesen Event, z.B. Ausgaben für Spezialverkaufsartikel, Deko, Flyer, ...\
 
 ```{r}
 Eventausgaben <- l_abrechnung[[ii]]$Eventausgaben|>
@@ -218,9 +250,9 @@ Eventausgaben <- l_abrechnung[[ii]]$Eventausgaben|>
   rename(`Betrag [CHF]` = Betrag)
 
 Eventausgaben|>
+  mutate(Datum = paste0(day(Datum),".", month(Datum),".", year(Datum)))|>
   knitr::kable(digits = 2)
 ```
-
 
 ```{r}
 Eventausgaben <- Eventausgaben|>
@@ -232,6 +264,7 @@ Eventausgaben|>
 ```
 
 ### Differenz
+
 ```{r}
 df_temp <- tibble(Bezeichnung = c("Einnahmen","Ausgaben"),
        `Betrag [CHF]` = c(Eventeinnahmen|>pull()|>round5Rappen(),
@@ -242,7 +275,6 @@ df_temp <- tibble(Bezeichnung = c("Einnahmen","Ausgaben"),
 df_temp|>
   knitr::kable()
 ```
-
 
 ```{r}
 Event <- df_temp|>
@@ -255,7 +287,9 @@ Event|>
 \
 
 ## Kiosk
+
 ### Einnahmen
+
 #### Gewinn pro Artikel
 
 ```{r echo=FALSE}
@@ -287,11 +321,9 @@ df_temp1|>
   knitr::kable()
 ```
 
-
 #### Umsatz Spezialverkaufsartikel
 
 Verkaufsartikel ohne Lieferant.
-
 
 ```{r echo=FALSE}
 df_temp3 <- df_spez_preis_na
@@ -306,8 +338,6 @@ if(df_temp3|>nrow()){
 }
 ```
 
-
-
 ```{r echo=FALSE}
 df_temp2 <- df_temp|>
   filter(is.na(Lieferant))|>
@@ -318,7 +348,6 @@ df_temp2|>
   knitr::kable()
 ```
 
-
 ```{r}
 df_temp2 <- df_temp|>
   filter(is.na(Lieferant))|>
@@ -328,7 +357,8 @@ df_temp2|>
   knitr::kable()
 ```
 
-### Ausgaben 
+### Ausgaben
+
 Die Ausgaben für Spezialartikel müssen mit den Eventausgaben verrechnet werden!\
 
 ```{r echo=FALSE}
@@ -340,7 +370,6 @@ if(df_temp2$`Summe [CHF]` > 0) {
 }
 
 ```
-
 
 ```{r echo=FALSE}
 if(df_temp3|>nrow()){
@@ -362,17 +391,17 @@ if(df_temp3|>nrow()){
 
 ```
 
-
 ### Differenz
+
 Achtung!\
-Die Kioskkasse wird auch für dir Barauszahlung von stornierten Tickets genutzt. 
+Die Kioskkasse wird auch für dir Barauszahlung von stornierten Tickets genutzt.
+
 ```{r echo=FALSE}
 Manko <- df_manko_uerberschuss|>
   filter(Datum == c_Datum)|>
   select(-Datum)|>
   rename(`Summe [CHF]` = `Überschuss / Manko`)
 ```
-
 
 ```{r echo=FALSE}
 df_temp <- bind_cols(tibble(Bezeichnung = c("Gewinn pro Artikel", "Umsatz", "Manko / Überschuss")), 
@@ -383,7 +412,6 @@ df_temp <- bind_cols(tibble(Bezeichnung = c("Gewinn pro Artikel", "Umsatz", "Man
 df_temp|>
   knitr::kable()
 ```
-
 
 ```{r echo=FALSE}
 Kiosk <- df_temp|>
@@ -396,6 +424,7 @@ Kiosk|>
 \
 
 ## Gewinn / Verlust
+
 ```{r}
 df_temp <- tibble(
   Bezeichnung = c("Flimvorführung", "Event", "Kiosk"),
