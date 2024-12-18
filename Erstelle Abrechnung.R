@@ -501,10 +501,10 @@ if(c_raw[c_index+1] != c_script_version){
 list.files(pattern = "temp", recursive = TRUE)|>
   file.remove()
 
-remove(c_Datum, c_suisa, c_verleiherabgaben, c_run_single, c_Verleiher_garantie )
-remove(df_temp, df_Render, df_mapping, Brutto,
-       c_temp, c_temp1
-)
+# remove(c_Datum, c_suisa, c_verleiherabgaben, c_run_single, c_Verleiher_garantie )
+# remove(df_temp, df_Render, df_mapping, Brutto,
+#        c_temp, c_temp1
+# )
 
 #############################################################################################################################################
 # User Interaktion
