@@ -117,8 +117,8 @@ for (ii in 1:length(c_Date)) {
                                           (Verleiherrechnungsbetrag - sum(`SUISA-Vorabzug [CHF]`) - sum(`MWST [CHF]`) - sum(`Verleiherabzug [CHF]`)) * Verteilprodukt  # Sonstige kosten 
         ),
         `Gewinn/Verlust Tickets [CHF]` = if_else(is.na(Verleiherrechnungsbetrag),
-                                                 (sum(Umsatz) -                   sum(`SUISA-Vorabzug [CHF]`) - sum(`Verleiherabzug [CHF]`) - sum(`MWST [CHF]`)) * Verteilprodukt,
-                                                 (sum(Verleiherrechnungsbetrag) - sum(`SUISA-Vorabzug [CHF]`) - sum(`Verleiherabzug [CHF]`)) * Verteilprodukt)
+                                                 (sum(Umsatz) - sum(`SUISA-Vorabzug [CHF]`) - sum(`Verleiherabzug [CHF]`) - sum(`MWST [CHF]`)) * Verteilprodukt,
+                                                 (sum(Umsatz) - sum(`SUISA-Vorabzug [CHF]`) - sum(Verleiherrechnungsbetrag)) * Verteilprodukt)
         
       )
   }else{ # Prozentualerabzug mit dem Verleiher vereinbart! 
@@ -154,8 +154,8 @@ for (ii in 1:length(c_Date)) {
                                           (Verleiherrechnungsbetrag - sum(`SUISA-Vorabzug [CHF]`) - sum(`MWST [CHF]`) - sum(`Verleiherabzug [CHF]`)) * Verteilprodukt  # Sonstige kosten 
         ),
         `Gewinn/Verlust Tickets [CHF]` = if_else(is.na(Verleiherrechnungsbetrag),
-                                                 (sum(Umsatz) -                   sum(`SUISA-Vorabzug [CHF]`) - sum(`Verleiherabzug [CHF]`) - sum(`MWST [CHF]`)) * Verteilprodukt,
-                                                 (sum(Verleiherrechnungsbetrag) - sum(`SUISA-Vorabzug [CHF]`) - sum(`Verleiherabzug [CHF]`)) * Verteilprodukt)
+                                                 (sum(Umsatz) - sum(`SUISA-Vorabzug [CHF]`) - sum(`Verleiherabzug [CHF]`) - sum(`MWST [CHF]`)) * Verteilprodukt,
+                                                 (sum(Umsatz) - sum(`SUISA-Vorabzug [CHF]`) - sum(Verleiherrechnungsbetrag)) * Verteilprodukt)
       )
   }
 
