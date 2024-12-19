@@ -16,7 +16,7 @@ act_date <- paste0(day(act_date),".", month(act_date),".", year(act_date))
 Bericht wurde am `r act_date` erstellt.
 
 ```{r variablen, include=FALSE}
-ii <- 18
+ii <- 5
 ```
 
 ```{r echo=FALSE}
@@ -247,8 +247,15 @@ if(is.na(df_temp$`Verleiherrechnungsbetrag [CHF]`)){ # keine Verleiherrechnung v
   }
 }
 
-df_temp1 <- df_temp1|>
+# Wird über ein Link-Datum abgerechnet dann muss verteilt werden!
+if(!is.na(df_temp$`Link Datum`)){
+  df_temp1 <- df_temp1|>
   mutate(`Verteilt [CHF]` = `Betrag [CHF]` * Verteilprodukt)
+}else{
+  df_temp1 <- df_temp1|>
+  mutate(Verteilprodukt = NULL)
+}
+
 ```
 
 
