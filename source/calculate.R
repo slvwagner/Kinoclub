@@ -9,17 +9,21 @@ source("source/read and convert.R")
 df_Eintritt <- bind_rows(
   df_Eintritt|>
     filter(!`Kinoförderer gratis?`)|>
-    mutate(`Umsatz für Netto3` = if_else(Platzkategorie %in% df_P_kat_verechnen$Kinoförderer,
-                                         Anzahl * df_P_kat_verechnen$Verkaufspreis,
-                                         Umsatz
-                                         )
+    mutate(
+      `Umsatz für Netto3 [CHF]` = if_else(Platzkategorie %in% df_P_kat_verechnen$Kinoförderer,
+                                    Anzahl * df_P_kat_verechnen$Verkaufspreis,
+                                    Umsatz
+                                    ),
+      `Verkaufspreis Abgerechnet [CHF]` = `Umsatz für Netto3 [CHF]` / Anzahl
     ),
   df_Eintritt|>
     filter(`Kinoförderer gratis?`)|>
-    mutate(`Umsatz für Netto3` = Umsatz)
+    mutate(`Umsatz für Netto3 [CHF]` = Umsatz)
 )|>
   arrange(desc(Datum))
 
+df_Eintritt|>
+  filter(Datum == as.Date("2024-10-12"))
 
 #########################################################################################################
 # Abrechnungsperiode erstellen
@@ -30,11 +34,11 @@ ii<-19
 for (ii in 1:length(c_Date)) {
   l_abrechnung[[ii]] <- list(Abrechnung = df_Abrechnung|>
                                filter(Datum %in% c(c_Date[ii], df_Abrechnung$`Link Datum`[ii]))|>
-                               select(Datum, `Link Datum`, Anfang, Ende, Filmtitel, `Suisa Nummer`, `Verleiherrechnungsbetrag [CHF]`, 
+                               select(Datum, `Link Datum`, Anfang, Ende, Filmtitel, `Suisa Nummer`, Verleiher,`Verleiherrechnungsbetrag [CHF]`, 
                                       `SUISA-Vorabzug [%]`, `Link Datum`, `Minimal Abzug [CHF]`, `Abzug [%]`, `Abzug fix [CHF]`, `Kinoförderer gratis?`),
                              Tickets = df_Eintritt|>
                                filter(Datum %in% c(c_Date[ii], df_Abrechnung$`Link Datum`[ii]))|>
-                               select(Datum, Filmtitel, `Suisa Nummer`, Platzkategorie, Verkaufspreis, Anzahl, Umsatz, `Umsatz für Netto3`)
+                               select(Datum, Filmtitel, `Suisa Nummer`, Platzkategorie, Verkaufspreis, Anzahl, Umsatz, `Verkaufspreis Abgerechnet [CHF]`,`Umsatz für Netto3 [CHF]`)
                              )
   
   ########################################################################
@@ -66,7 +70,7 @@ for (ii in 1:length(c_Date)) {
       l_abrechnung[[ii]]$Tickets|>
         group_by(Datum)|>
         reframe(Umsatz = sum(Umsatz),
-                `Umsatz für Netto3 [CHF]` = sum(`Umsatz für Netto3`))|>
+                `Umsatz für Netto3 [CHF]` = sum(`Umsatz für Netto3 [CHF]`))|>
         select(-Datum)
     )
 }
@@ -244,6 +248,8 @@ l_abrechnung[["2024-10-11"]]$Abrechnung|>
   as.data.frame()|>
   print()
 
+l_abrechnung[["2024-10-11"]]
+l_abrechnung[["2024-10-12"]]
 
 ##############################################################################
 # Abrechnung Filmvorführung erstellen (für Berichte verwendet)
@@ -280,7 +286,6 @@ df_Abrechnung_tickes <- l_abrechnung|>
   bind_rows()|>
   rename(`Verkaufspreis [CHF]` = Verkaufspreis,
          `Umsatz [CHF]` = Umsatz,
-         `Umsatz für Netto3 [CHF]` = `Umsatz für Netto3`
          )|>
   left_join(df_show|>
               select(`Suisa Nummer`, Datum, Anfang, Ende),

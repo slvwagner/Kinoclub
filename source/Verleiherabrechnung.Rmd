@@ -83,12 +83,17 @@ c_suisa_prozent <- df_temp|>
 df_temp <- df_Abrechnung_tickes|>
   filter(Datum %in%c(c_Datum, c_linkDatum))
 
+```
+
+
+```{r}
 df_temp <- df_temp|>
   slice(1:(nrow(df_temp)/2))|>
-  select(Datum, Platzkategorie, `Verkaufspreis [CHF]`, Anzahl, `Umsatz für Netto3 [CHF]`)|>
+  select(Datum, Platzkategorie, `Verkaufspreis [CHF]`, Anzahl,`Verkaufspreis Abgerechnet [CHF]`,`Umsatz für Netto3 [CHF]`)|>
   rename(`Umsatz [CHF]` = `Umsatz für Netto3 [CHF]`)|>
   mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum))
          )
+
 ```
 
 
@@ -98,9 +103,13 @@ df_temp1 <- df_temp|>
   reframe(Anzahl = sum(Anzahl),
           `Umsatz [CHF]` = sum(`Umsatz [CHF]`))
 
+```
+
+
+```{r}
 df_temp1 <- df_temp|>
   distinct(Platzkategorie, .keep_all = T)|>
-  select(Platzkategorie, `Verkaufspreis [CHF]`)|>
+  select(Platzkategorie, `Verkaufspreis Abgerechnet [CHF]`)|>
   left_join(df_temp1,
             by = join_by(Platzkategorie))|>
   arrange(desc(`Umsatz [CHF]`))
