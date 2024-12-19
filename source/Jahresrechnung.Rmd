@@ -43,6 +43,31 @@ df_temp|>
 
 
 ### Abgaben Ticketverkauf
+
+```{r}
+df_temp <- df_Abrechnung|>
+  filter(is.na(`Verleiherrechnungsbetrag [CHF]`))|>
+  select(Datum, Filmtitel, `Suisa Nummer`, Verleiher,`Verleiherabzug [CHF]`)|>
+  arrange(desc(Datum))
+
+if(nrow(df_temp)>0){
+  c_text_output <- "#### Keine Verleiherabrechnung vorhanden\nFür die diese Film(e) gibt es keinen Verleiherabrechnung. Die Abgaben and den Verleiher können sich deshalb noch ändern:"
+}
+```
+
+`r c_text_output`
+
+```{r}
+if(nrow(df_temp)>0){
+  df_temp|>
+  mutate(Datum = paste0(lubridate::day(Datum),
+                        ".", lubridate::month(Datum),
+                        ".", lubridate::year(Datum)))|>
+    knitr::kable()
+}
+```
+
+
 #### Suisaabgaben
 
 ```{r}
@@ -56,18 +81,19 @@ df_temp <- df_Abrechnung|>
   select(Datum, Datum_display, Filmtitel, `SUISA-Vorabzug [CHF]`)
 ```
 
-```{r}
-DT::datatable(df_temp, 
-          options = list(
-            columnDefs = list(
-              # list(targets = 3,visible = F),
-              list(targets = 1, visible = FALSE),  # Hide the 'Datum' column
-              list(targets = 2, orderData = 0)    # Use the 'Datum' column for sorting 'Datum_display'
-            )
-          ),
-          colnames = c(Datum = "Datum_display")
-)
-```
+
+<!-- ```{r} -->
+<!-- DT::datatable(df_temp,  -->
+<!--           options = list( -->
+<!--             columnDefs = list( -->
+<!--               # list(targets = 3,visible = F), -->
+<!--               list(targets = 1, visible = FALSE),  # Hide the 'Datum' column -->
+<!--               list(targets = 2, orderData = 0)    # Use the 'Datum' column for sorting 'Datum_display' -->
+<!--             ) -->
+<!--           ), -->
+<!--           colnames = c(Datum = "Datum_display") -->
+<!-- ) -->
+<!-- ``` -->
 
 
 ```{r}
@@ -76,56 +102,33 @@ df_temp|>
   knitr::kable()
 ```
 
-#### Verleiherabgaben
+#### Verleiherabgaben / Rechnungen
 
 ```{r}
-df_temp <- df_Abrechnung|>
+df_temp <- bind_rows(
+  df_Abrechnung|>
+    filter(is.na(`Verleiherrechnungsbetrag [CHF]`))|>
+    rename(`Betrag [CHF]` = `Verleiherabzug [CHF]`)|>
+    mutate(Rechnung = "keine",
+           `Betrag [CHF]` = `Betrag [CHF]` + `MWST [CHF]`
+           ),
+  df_Abrechnung|>
+    filter(!is.na(`Verleiherrechnungsbetrag [CHF]`))|>
+
+    rename(`Betrag [CHF]` = `Verleiherrechnungsbetrag [CHF]`)|>
+    mutate(Rechnung = "vorhanden"),
+  )|>
   arrange(desc(Datum))|>
- mutate(Datum_display = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)),
-        Anfang = paste0(lubridate::hour(Anfang), ":", 
-                         lubridate::minute(Anfang) |> as.character() |> formatC(width = 2, flag = "0")|>str_replace(SPC%R%"0", "00")
-                        )
-        )|>
-  select(Datum,Datum_display,Filmtitel, `Verleiherabzug [CHF]`)
+  mutate(Datum_display = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)))
+
+df_temp <- df_temp|>
+  select(Datum, Datum_display, Filmtitel, `Suisa Nummer`, Verleiher, Rechnung,`Betrag [CHF]`)
+  
 ```
 
 
 ```{r}
-DT::datatable(df_temp, 
-          options = list(
-            columnDefs = list(
-              # list(targets = 3,visible = F),
-              list(targets = 1, visible = FALSE),  # Hide the 'Datum' column
-              list(targets = 2, orderData = 0)    # Use the 'Datum' column for sorting 'Datum_display'
-            )
-          ),
-          colnames = c(Datum = "Datum_display")
-)
-```
-
-```{r}
-df_temp|>
-  reframe(`Summe [CHF]` = sum(`Verleiherabzug [CHF]`)|>round5Rappen())|>
-  knitr::kable()
-```
-
-
-
-#### MWST auf Verleiherleistungen
-```{r}
-df_temp <- df_Abrechnung|>
-  arrange(desc(Datum))|>
- mutate(Datum_display = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)),
-        Anfang = paste0(lubridate::hour(Anfang), ":", 
-                         lubridate::minute(Anfang) |> as.character() |> formatC(width = 2, flag = "0")|>str_replace(SPC%R%"0", "00")
-                        )
-        )|>
-  select(Datum, Datum_display, Filmtitel, `MWST [CHF]`)
-```
-
-
-```{r}
-DT::datatable(df_temp, 
+DT::datatable(df_temp,
           options = list(
             columnDefs = list(
               # list(targets = 3,visible = F),
@@ -139,10 +142,13 @@ DT::datatable(df_temp,
 
 
 ```{r}
-df_temp|>
-  reframe(`Summe [CHF]` = sum(`MWST [CHF]`))|>
+df_temp1 <- df_temp|>
+  reframe(`Summe [CHF]` = sum(`Betrag [CHF]`)|>round5Rappen())
+
+df_temp1|>
   knitr::kable()
 ```
+
 
 
 ### Differenz
@@ -151,8 +157,7 @@ df_temp|>
 df_temp <- df_Abrechnung|>
   reframe(`Umsatz` = sum(`Umsatz [CHF]`, na.rm = T),
           `SUISA-Vorabzug`= -sum(`SUISA-Vorabzug [CHF]`, na.rm = T),
-          `Verleiherabzug` = -sum(`Verleiherabzug [CHF]`, na.rm = T),
-          `MWST` = -sum(`MWST [CHF]`, na.rm = T)
+          `Verleiherabzug` = -df_temp1|>pull()
           )|>
   as.matrix()|>
   t()
