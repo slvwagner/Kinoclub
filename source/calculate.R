@@ -121,7 +121,6 @@ for (ii in 1:length(c_Date)) {
     l_abrechnung[[ii]]$Abrechnung <- 
       l_abrechnung[[ii]]$Abrechnung|>
       mutate(
-
         `Verleiherabzug [CHF]` = if_else(is.na(`Verleiherrechnungsbetrag [CHF]`),
                                          sum(`Netto3 [CHF]`) * (`Abzug [%]`[1] / 100) * Verteilprodukt, # keine Verleiherrechnung vorhanden
                                          `Verleiherrechnungsbetrag [CHF]` * Verteilprodukt              # Verleiherrechnung ist vorhanden
@@ -136,8 +135,6 @@ for (ii in 1:length(c_Date)) {
         )
       )
   }
-
-  
   ############
   # Gewinn/Verlust Tickets
   ############
