@@ -49,7 +49,7 @@ df_temp <- df_verleiherabgaben|>
 `r df_temp$PLZ[1]` `r df_temp$Ort[1]` \
 \
 \
-Reinach den `r act_date` 
+Reinach , `r act_date` 
 \
 \
 
