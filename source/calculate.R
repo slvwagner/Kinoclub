@@ -84,13 +84,6 @@ df_keine_Rechnnung
 # Einnahmen und Abgaben von mehreren Events verhältnismässig nach Umsatzzahlen 
 # auf die gelinkten Filme aufteilen (Link im Excel file: .../Kinoklub/Input/Verleiherabgaben.xlsx ) 
 #########################################################################################################
-l_abrechnung[["2024-10-12"]]
-l_abrechnung[["2024-10-12"]]$Abrechnung|>
-  as.data.frame()|>
-  print()
-
-c_Date[17:18]
-ii <- 18
 
 for (ii in 1:length(c_Date)) {
   ############
@@ -100,13 +93,10 @@ for (ii in 1:length(c_Date)) {
     l_abrechnung[[ii]]$Abrechnung|>
     mutate(
       Verteilprodukt =  Umsatz / sum(Umsatz),
-      `SUISA-Vorabzug [CHF]` = if_else(`Kinoförderer gratis?`, # Der Suisa-Vorabzug muss anders berechnet werden wenn die Kinoförderer verrechnet werden 
-                                       sum(Umsatz) * (`SUISA-Vorabzug [%]` /100) * Verteilprodukt,
-                                       sum(`Umsatz für Netto3 [CHF]`) * (`SUISA-Vorabzug [%]` / 100) *  Verteilprodukt),
+      `SUISA-Vorabzug [CHF]` = sum(Umsatz) * (`SUISA-Vorabzug [%]` /100) * Verteilprodukt,
       `Netto3 [CHF]` = if_else(`Kinoförderer gratis?`, # Der Suisa-Vorabzug muss anders berechnet werden wenn die Kinoförderer verrechnet werden müssen
-                       (sum(Umsatz) - sum(`SUISA-Vorabzug [CHF]`)) * Verteilprodukt,
-                       (sum(`Umsatz für Netto3 [CHF]`) - sum(`SUISA-Vorabzug [CHF]`)) * Verteilprodukt
-      )
+                       (sum(Umsatz) - sum(sum(Umsatz) * (`SUISA-Vorabzug [%]` /100) * Verteilprodukt)) * Verteilprodukt,
+                       (sum(`Umsatz für Netto3 [CHF]`) - sum(sum(`Umsatz für Netto3 [CHF]`) * (`SUISA-Vorabzug [%]` / 100) *  Verteilprodukt))) * Verteilprodukt
     )
   l_abrechnung[[ii]]$Abrechnung  
   ############
@@ -146,10 +136,7 @@ for (ii in 1:length(c_Date)) {
         )
       )
   }
-  
-  l_abrechnung[["2024-10-12"]]$Abrechnung|>
-    as.data.frame()|>
-    print()
+
   
   ############
   # Gewinn/Verlust Tickets
@@ -162,9 +149,6 @@ for (ii in 1:length(c_Date)) {
                                                     ) 
            )
 
-  l_abrechnung[["2024-10-12"]]$Abrechnung|>
-    as.data.frame()|>
-    print()
   
   
   ########################################################################
@@ -255,16 +239,14 @@ for (ii in 1:length(c_Date)) {
 }
 
 
-l_abrechnung[["2024-10-12"]]$Abrechnung|>
-  as.data.frame()|>
-  print()
+# l_abrechnung[["2024-10-12"]]$Abrechnung|>
+#   as.data.frame()|>
+#   print()
+# 
+# l_abrechnung[["2024-10-11"]]$Abrechnung|>
+#   as.data.frame()|>
+#   print()
 
-l_abrechnung[["2024-10-11"]]$Abrechnung|>
-  as.data.frame()|>
-  print()
-
-l_abrechnung[["2024-10-11"]]
-l_abrechnung[["2024-10-12"]]
 
 ##############################################################################
 # Abrechnung Filmvorführung erstellen (für Berichte verwendet)
