@@ -56,13 +56,15 @@ Reinach den `r act_date`
 
 ## Verleiherabrechnung
 ```{r}
-df_show|>
+df_temp1 <- df_show|>
   filter(Datum %in% c(c_Datum, c_linkDatum))|>
   select(`Suisa Nummer`, Filmtitel, Datum, Anfang, Ende, Saal)|>
   mutate(Anfang = paste0(lubridate::hour(Anfang),":", lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(rebus::SPC,"0")),
          Ende = paste0(lubridate::hour(Ende),":", lubridate::minute(Ende)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(rebus::SPC,"0")),
          Datum = paste0(day(Datum),".",month(Datum),".",year(Datum))
-         )|>
+         )
+
+df_temp1|>
   knitr::kable()
 ```
 
@@ -87,17 +89,27 @@ df_temp <- df_temp|>
   rename(`Umsatz [CHF]` = `Umsatz für Netto3 [CHF]`)|>
   mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum))
          )
-
-df_temp <- df_temp|>
-  group_by(Platzkategorie)|>
-  reframe(`Verkaufspreis [CHF]` = sum(`Verkaufspreis [CHF]`),
-          Anzahl = sum(Anzahl),
-          `Umsatz [CHF]` = sum(`Umsatz [CHF]`))
 ```
 
 
 ```{r}
-df_temp|>
+df_temp1 <- df_temp|>
+  group_by(Platzkategorie)|>
+  reframe(Anzahl = sum(Anzahl),
+          `Umsatz [CHF]` = sum(`Umsatz [CHF]`))
+
+df_temp1 <- df_temp|>
+  distinct(Platzkategorie, .keep_all = T)|>
+  select(Platzkategorie, `Verkaufspreis [CHF]`)|>
+  left_join(df_temp1,
+            by = join_by(Platzkategorie))|>
+  arrange(desc(`Umsatz [CHF]`))
+
+```
+
+
+```{r}
+df_temp1|>
   knitr::kable()
 ```
 
