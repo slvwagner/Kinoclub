@@ -16,7 +16,7 @@ act_date <- paste0(day(act_date),".", month(act_date),".", year(act_date))
 Bericht wurde am `r act_date` erstellt.
 
 ```{r variablen, include=FALSE}
-ii <- 9
+ii <- 18
 ```
 
 ```{r echo=FALSE}
@@ -147,9 +147,12 @@ if(nrow(df_temp) > 0) {
 
 ```{r echo=FALSE}
 df_temp <- df_Abrechnung|>
-  filter(Datum == c_Datum & `Suisa Nummer` == c_suisa)|>
+  filter(Datum %in% (c_Datum) & `Suisa Nummer` == c_suisa)|>
   mutate(`Total Abgaben [CHF]` = sum(`SUISA-Vorabzug [CHF]`,`Verleiherabzug [CHF]`,na.rm = T))
+```
 
+
+```{r echo=FALSE}
 Filmvorführungen <- df_temp$`Gewinn/Verlust Tickets [CHF]`
 ```
 
@@ -173,6 +176,14 @@ if (is.na(df_temp$`Abzug fix [CHF]`)) {
 }
 ```
 
+
+```{r}
+c_Umsatz <- l_abrechnung[[ii]]$Tickets|>
+  reframe(Umsatz = sum(Umsatz))|>
+  pull()
+
+```
+
 `r  abgaben_text`
 
 
@@ -183,17 +194,17 @@ if(is.na(df_temp$`Verleiherrechnungsbetrag [CHF]`)){ # keine Verleiherrechnung v
       df_temp1 <- tibble(Bezeichnung = c("Umsatz","Suisa-Vorabzug","Verleiherabzug", "MWST"),
                      Verteilprodukt = df_temp$Verteilprodukt,                        
                      `Betrag [CHF]` = c(
-                       (df_temp$`Umsatz für Netto3 [CHF]`) ,
+                       c_Umsatz,
                        -(df_temp$`SUISA-Vorabzug [CHF]`) ,
                        -(df_temp$`Verleiherabzug [CHF]`) ,
                        -(df_temp$`MWST [CHF]`)
                        )
                      )
   }else{
-      df_temp1 <- tibble(Bezeichnung = c("Umsatz (Kinofördere abgerechnet)","Suisa-Vorabzug","Verleiherabzug", "MWST"),
+      df_temp1 <- tibble(Bezeichnung = c("Umsatz","Suisa-Vorabzug (Kinofördere abgerechnet)","Verleiherabzug (Kinofördere abgerechnet)", "MWST"),
                      Verteilprodukt = df_temp$Verteilprodukt, 
                      `Betrag [CHF]` = c(
-                       (df_temp$`Umsatz [CHF]` ),
+                       c_Umsatz,
                        -(df_temp$`SUISA-Vorabzug [CHF]`) ,
                        -(df_temp$`Verleiherabzug [CHF]` ),
                        -(df_temp$`MWST [CHF]` )
@@ -205,16 +216,16 @@ if(is.na(df_temp$`Verleiherrechnungsbetrag [CHF]`)){ # keine Verleiherrechnung v
     df_temp1 <- tibble(Bezeichnung = c("Umsatz","Suisa-Vorabzug","Verleiherrechnung (inkl. MWST)"),
                        Verteilprodukt = df_temp$Verteilprodukt, 
                        `Betrag [CHF]` = c(
-                         (df_temp$`Umsatz [CHF]`),
+                         c_Umsatz,
                          -(df_temp$`SUISA-Vorabzug [CHF]`) ,
                          -(df_temp$`Verleiherrechnungsbetrag [CHF]`)
                          )
                        )
   }else{
-        df_temp1 <- tibble(Bezeichnung = c("Umsatz (Kinofördere abgerechnet)","Suisa-Vorabzug","Verleiherrechnung (inkl. MWST)"),
+        df_temp1 <- tibble(Bezeichnung = c("Umsatz","Suisa-Vorabzug (Kinofördere abgerechnet)","Verleiherrechnung (inkl. MWST)"),
                        Verteilprodukt = df_temp$Verteilprodukt, 
                        `Betrag [CHF]` = c(
-                         (df_temp$`Umsatz für Netto3 [CHF]`),
+                         c_Umsatz,
                          -(df_temp$`SUISA-Vorabzug [CHF]`) ,
                          -(df_temp$`Verleiherrechnungsbetrag [CHF]` )
                          )
@@ -436,7 +447,7 @@ Manko <- df_manko_uerberschuss|>
 ```
 
 ```{r echo=FALSE}
-df_temp <- bind_cols(tibble(Bezeichnung = c("Gewinn pro Artikel", "Umsatz", "Manko / Überschuss")), 
+df_temp <- bind_cols(tibble(Bezeichnung = c("Gewinn pro Artikel", "Umsatz Spezialverkaufsartikel", "Manko / Überschuss")), 
                      bind_rows(df_temp1, df_temp2,Manko)
                      )|>
   rename(`Betrag [CHF]` = `Summe [CHF]`)

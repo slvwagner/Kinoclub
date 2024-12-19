@@ -108,7 +108,7 @@ for (ii in 1:length(c_Date)) {
                        (sum(`Umsatz für Netto3 [CHF]`) - sum(`SUISA-Vorabzug [CHF]`)) * Verteilprodukt
       )
     )
-  
+  l_abrechnung[[ii]]$Abrechnung  
   ############
   # Je nach dem ob ein fixer betrag oder Prozentualeabgaben mit dem Verleiher vereinbart wurden muss anders gerechnet werden. 
   ############
@@ -124,10 +124,7 @@ for (ii in 1:length(c_Date)) {
         `MWST [CHF]` = if_else(is.na(`Verleiherrechnungsbetrag [CHF]`),
                                sum(`Verleiherabzug [CHF]`) * (c_MWST / 100) * Verteilprodukt,
                                (`Verleiherrechnungsbetrag [CHF]`[1] - (`Verleiherrechnungsbetrag [CHF]`[1] / (1+(c_MWST/100)))) * Verteilprodukt
-        ),
-        `Gewinn/Verlust Tickets [CHF]` = if_else(is.na(`Verleiherrechnungsbetrag [CHF]`),
-                                                 (sum(Umsatz) - sum(`SUISA-Vorabzug [CHF]`) - sum(`Verleiherabzug [CHF]`)) * Verteilprodukt,
-                                                 (sum(Umsatz) - sum(`SUISA-Vorabzug [CHF]`) - sum(`Verleiherrechnungsbetrag [CHF]`)) * Verteilprodukt)
+        )
       )
   }else{ 
     # Prozentualerabzug mit dem Verleiher vereinbart! 
@@ -139,20 +136,37 @@ for (ii in 1:length(c_Date)) {
                                          sum(`Netto3 [CHF]`) * (`Abzug [%]`[1] / 100) * Verteilprodukt, # keine Verleiherrechnung vorhanden
                                          `Verleiherrechnungsbetrag [CHF]` * Verteilprodukt              # Verleiherrechnung ist vorhanden
                                          ), 
-        `Verleiherabzug [CHF]` = if_else((`Verleiherabzug [CHF]`) > (`Minimal Abzug [CHF]`[1] * Verteilprodukt),
+        `Verleiherabzug [CHF]` = if_else(`Verleiherabzug [CHF]` > (`Minimal Abzug [CHF]`[1] * Verteilprodukt),
                                          sum(`Verleiherabzug [CHF]`) * Verteilprodukt,
                                          `Minimal Abzug [CHF]`[1] * Verteilprodukt
         ),
         `MWST [CHF]` = if_else(is.na(`Verleiherrechnungsbetrag [CHF]`),
                                sum(`Verleiherabzug [CHF]`) * (c_MWST / 100) * Verteilprodukt,
                                (`Verleiherrechnungsbetrag [CHF]`[1] - (`Verleiherrechnungsbetrag [CHF]`[1] / (1+(c_MWST/100)))) * Verteilprodukt
-        ),
-        `Gewinn/Verlust Tickets [CHF]` = if_else(is.na(`Verleiherrechnungsbetrag [CHF]`),
-                                                 (sum(Umsatz) - sum(`SUISA-Vorabzug [CHF]`) - sum(`Verleiherabzug [CHF]`) - sum(`MWST [CHF]`)) * Verteilprodukt,
-                                                 (sum(Umsatz) - sum(`SUISA-Vorabzug [CHF]`) - sum(`Verleiherrechnungsbetrag [CHF]`)) * Verteilprodukt)
+        )
       )
   }
+  
+  l_abrechnung[["2024-10-12"]]$Abrechnung|>
+    as.data.frame()|>
+    print()
+  
+  ############
+  # Gewinn/Verlust Tickets
+  ############
+  l_abrechnung[[ii]]$Abrechnung <- 
+    l_abrechnung[[ii]]$Abrechnung|>
+    mutate(`Gewinn/Verlust Tickets [CHF]` = if_else(is.na(`Verleiherrechnungsbetrag [CHF]`),
+                                                    Umsatz - ((`SUISA-Vorabzug [CHF]` + `Verleiherabzug [CHF]` + `MWST [CHF]`) * Verteilprodukt) ,
+                                                    Umsatz - ((`SUISA-Vorabzug [CHF]` + `Verleiherrechnungsbetrag [CHF]`) * Verteilprodukt)
+                                                    ) 
+           )
 
+  l_abrechnung[["2024-10-12"]]$Abrechnung|>
+    as.data.frame()|>
+    print()
+  
+  
   ########################################################################
   # Extract Verteilprodukt
   ########################################################################
@@ -219,15 +233,15 @@ for (ii in 1:length(c_Date)) {
   # Verteilen für gemeinsame Abrechnung
   ########################################################################
   l_abrechnung[[ii]]$Abrechnung <- l_abrechnung[[ii]]$Abrechnung|>
-    mutate(`SUISA-Vorabzug [CHF]` = `SUISA-Vorabzug [CHF]` *  Verteilprodukt,
-           `Verleiherabzug [CHF]` = `Verleiherabzug [CHF]` *  Verteilprodukt,
-           `MWST [CHF]` = `MWST [CHF]` * Verteilprodukt,
-           `Gewinn/Verlust Tickets [CHF]` = `Gewinn/Verlust Tickets [CHF]` *  Verteilprodukt ,
-           `Gewinn/Verlust Kiosk [CHF]` = sum(l_abrechnung[[ii]]$Kiosk$Gewinn) , # Kiosk wird nicht verteilt
+    mutate(`SUISA-Vorabzug [CHF]` = sum(`SUISA-Vorabzug [CHF]`) *  Verteilprodukt,
+           `Verleiherabzug [CHF]` = sum(`Verleiherabzug [CHF]`) *  Verteilprodukt,
+           `MWST [CHF]` = sum(`MWST [CHF]`) * Verteilprodukt,
+           `Gewinn/Verlust Tickets [CHF]` = sum(`Gewinn/Verlust Tickets [CHF]`) *  Verteilprodukt ,
+           `Gewinn/Verlust Kiosk [CHF]` = l_abrechnung[[ii]]$Kiosk$Gewinn , # Kiosk wird nicht verteilt
            `Überschuss / Manko Kiosk [CHF]` = l_abrechnung[[ii]]$`Manko oder Überschuss [CHF]`$`Überschuss / Manko`, # Manko, Überschuss wird nicht verteilt
            `Eventeinnahmen [CHF]` = sum(l_abrechnung[[ii]]$Eventeinnahmen$Betrag), # Eventeinnahmen wurden bereits mit Verteilprodukt berechnet
            `Eventausgaben [CHF]` = sum(l_abrechnung[[ii]]$Eventausgaben$Betrag), # Eventausgaben wurden bereits mit Verteilprodukt berechnet
-           `Gewinn/Verlust Filmvorführungen [CHF]` = `Gewinn/Verlust Tickets [CHF]` + `Gewinn/Verlust Kiosk [CHF]`+ `Überschuss / Manko Kiosk [CHF]` + `Eventeinnahmen [CHF]` - `Eventausgaben [CHF]`
+           `Gewinn/Verlust Filmvorführungen [CHF]` = (`Gewinn/Verlust Tickets [CHF]` + `Gewinn/Verlust Kiosk [CHF]`+ `Überschuss / Manko Kiosk [CHF]` + `Eventeinnahmen [CHF]` - `Eventausgaben [CHF]`)
            )
   
   l_abrechnung[[ii]]$Abrechnung|>
@@ -239,6 +253,7 @@ for (ii in 1:length(c_Date)) {
   l_abrechnung[[ii]]$Abrechnung <- l_abrechnung[[ii]]$Abrechnung|>
     filter(Datum == c_Date[ii])
 }
+
 
 l_abrechnung[["2024-10-12"]]$Abrechnung|>
   as.data.frame()|>
