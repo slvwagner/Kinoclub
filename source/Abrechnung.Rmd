@@ -41,10 +41,7 @@ c_suisa <- df_show|>
   select(`Suisa Nummer`)|>
   pull()
 
-c_verleiherabgaben <- df_verleiherabgaben|>
-  filter(Datum == c_Datum & Suisa == c_suisa)|>
-  select(`Abzug [%]`)|>
-  pull()
+
 ```
 
 ## Übersicht
@@ -126,40 +123,7 @@ df_temp|>
 
 ### Filmabgaben
 
-Für jeden gezeigten Film sind verschiedenen Abgaben und Gebühren zu entrichten. Es müssen verschieden Scenarien unterschieden werden.
-
-#### Berechnung der Abgaben 
-Normalfall: \
-Je nach Besucherzahlen ändern sich die Abgaben
-
-- Verleiherrechnung noch nicht vorhanden
-    -   Umsatz: \
-    Der Umsatz muss je nach Verleiher anders berechnet werden. Bei gewissen Verleihern müssen die Kinoförderer als Umsatz ausgewiesen werden obwohl kein Umsatz an der Kinokasse gemacht wurde.(Die Kinoförderer Tickets werden gegen einen Mitgliederbeitrag abgegeben und wurden demnach Verkauft.)
-    -   Suisa-Vorabzug: \
-    $U_{msatz}\cdot  \frac {s_{uisaVorabzugProzent}}{100}$
-    -   Netto3: \
-    $U_{msatz}-S_{uisa-Vorabzug}$
-    -   Verleiherabgaben: \
-    $N_{etto3} \cdot V_{erleiherabgabenProzent} > M_{indestGarantie} => N_{etto3} \cdot V_{erleiherabgabenProzent}$ \
-    $N_{etto3} \cdot V_{erleiherabgabenProzent} < M_{indestGarantie} => M_{indestGarantie}$
-    -   Mehrwertsteuer: \
-    $V_{erleiherabgaben}\cdot \frac{M_{WST}}{100}$
-    -   Gewinn / Verlust: \
-    $U_{msatzKinokasse} - S_{uisa-Vorabzug} - V_{erleiherabgaben} - M_{WST}$ 
-    
-- Verleiherrechnung vorhanden
-    -   Umsatz: \
-    Der Umsatz muss je nach Verleiher anders berechnet werden. Bei gewissen Verleihern müssen die Kinoförderer als Umsatz ausgewiesen werden obwohl kein Umsatz an der Kinokasse gemacht wurde.(Die Kinoförderer Tickets werden gegen einen Mitgliederbeitrag abgegeben und wurden demnach Verkauft.)
-    -   Suisa-Vorabzug: \
-    $U_{msatz}\cdot  \frac {s_{uisaVorabzugProzent}}{100}$
-    -   Netto3: \
-    $U_{msatz}-s_{uisa-Vorabzug}$
-    -   Verleiherrechnung: Verleiherrechnungsbetrag inklusive Mehrwertsteuer
-    -   Mehrwertsteuer: \
-    $\frac {V_{erleiherrechnung}}{1+\frac{M_{WST}}{100}}\cdot\frac{M_{WST}}{100}$
-    -   Gewinn / Verlust: \
-    $U_{msatzKinokasse} - S_{uisa-Vorabzug} - V_{erleiherrechnung}$ 
-
+Für jeden gezeigten Film sind verschiedenen Abgaben und Gebühren zu entrichten. Es müssen verschieden Scenarien unterschieden werden. 
 
 ```{r echo=FALSE}
 df_temp <- df_keine_Rechnnung|>
@@ -180,31 +144,100 @@ if(nrow(df_temp) > 0) {
 }
 ```
 
-```{r}
-c_Verleiher_garantie <- df_verleiherabgaben|>
-  filter(Datum == c_Datum )|>
-  select(`Minimal Abzug`)|>
-  pull()
-```
 
 ```{r echo=FALSE}
 df_temp <- df_Abrechnung|>
   filter(Datum == c_Datum & `Suisa Nummer` == c_suisa)|>
   mutate(`Total Abgaben [CHF]` = sum(`SUISA-Vorabzug [CHF]`,`Verleiherabzug [CHF]`,na.rm = T))
+
+Filmvorführungen <- df_temp$`Gewinn/Verlust Tickets [CHF]`
 ```
 
 #### Abgaben
 
-Für diesen Film wurden mit dem Verleiher **`r c_verleiherabgaben`%** des Ticket-Umsatz ausgehandelt die durch den Verleiher verrechnet werden. Die minimalen Abgaben (Garantierter Umsatz) an den Verleiher ist **`r c_Verleiher_garantie`.- [CHF].**. Der Abgabeprozentsatz und die mindest Garantie muss für jeden Film und Spielwoche mit dem jeweiligen Verleiher verhandelt.
+```{r}
+# Define your text only if the condition is TRUE
+if (is.na(df_temp$`Abzug fix [CHF]`)) {
+  abgaben_text <- paste0(
+    "Der Suisa-Vorabzug ist **",df_temp$`SUISA-Vorabzug [%]`,"%** des Umsatz.", 
+    "\\ Für diesen Film wurden mit dem Verleiher **", df_temp$`Abzug [%]`, "%** des Ticket-Umsatz ausgehandelt, ",
+    "die durch den Verleiher verrechnet werden. ",
+    "Die minimalen Abgabegarantie an den Verleiher ist **", df_temp$`Minimal Abzug [CHF]`, ".-**. ",
+    "Der Abgabeprozentsatz und die mindest Garantie muss für jeden Film und Spielwoche mit dem jeweiligen Verleiher verhandelt werden.", 
+    collapse = ""
+  )
+} else {
+  abgaben_text <- paste0(
+    "Für diesen Film wurde ein Fixer-Betrag von [CHF] ", df_temp$`Abzug fix [CHF]`, ".- (inklusive Mehrwertsteuer) mit dem Verleiher abgemacht.", 
+    collapse = ""
+    )
+}
+```
+
+`r  abgaben_text`
+
+
 
 ```{r}
-Filmvorführungen <- df_temp$`Gewinn/Verlust Tickets [CHF]`
+if(is.na(df_temp$`Verleiherrechnungsbetrag [CHF]`)){ # keine Verleiherrechnung vorhanden
+  if(df_temp$`Kinoförderer gratis?`){
+      df_temp1 <- tibble(Bezeichnung = c("Umsatz","Suisa-Vorabzug","Verleiherabzug", "MWST"),
+                     Verteilprodukt = df_temp$Verteilprodukt,                        
+                     `Betrag [CHF]` = c(
+                       (df_temp$`Umsatz für Netto3 [CHF]`) ,
+                       -(df_temp$`SUISA-Vorabzug [CHF]`) ,
+                       -(df_temp$`Verleiherabzug [CHF]`) ,
+                       -(df_temp$`MWST [CHF]`)
+                       )
+                     )
+  }else{
+      df_temp1 <- tibble(Bezeichnung = c("Umsatz (Kinofördere abgerechnet)","Suisa-Vorabzug","Verleiherabzug", "MWST"),
+                     Verteilprodukt = df_temp$Verteilprodukt, 
+                     `Betrag [CHF]` = c(
+                       (df_temp$`Umsatz [CHF]` ),
+                       -(df_temp$`SUISA-Vorabzug [CHF]`) ,
+                       -(df_temp$`Verleiherabzug [CHF]` ),
+                       -(df_temp$`MWST [CHF]` )
+                       )
+                     )
+  }
+}else{ # Verleiherrechnung vorhanden
+  if(df_temp$`Kinoförderer gratis?`){
+    df_temp1 <- tibble(Bezeichnung = c("Umsatz","Suisa-Vorabzug","Verleiherrechnung (inkl. MWST)"),
+                       Verteilprodukt = df_temp$Verteilprodukt, 
+                       `Betrag [CHF]` = c(
+                         (df_temp$`Umsatz [CHF]`),
+                         -(df_temp$`SUISA-Vorabzug [CHF]`) ,
+                         -(df_temp$`Verleiherrechnungsbetrag [CHF]`)
+                         )
+                       )
+  }else{
+        df_temp1 <- tibble(Bezeichnung = c("Umsatz (Kinofördere abgerechnet)","Suisa-Vorabzug","Verleiherrechnung (inkl. MWST)"),
+                       Verteilprodukt = df_temp$Verteilprodukt, 
+                       `Betrag [CHF]` = c(
+                         (df_temp$`Umsatz für Netto3 [CHF]`),
+                         -(df_temp$`SUISA-Vorabzug [CHF]`) ,
+                         -(df_temp$`Verleiherrechnungsbetrag [CHF]` )
+                         )
+                       )
+  }
+}
+
+df_temp1 <- df_temp1|>
+  mutate(`Verteilt [CHF]` = `Betrag [CHF]` * Verteilprodukt)
+```
+
+
+```{r}
+df_temp1|>
+  knitr::kable(digits = 2)
+
+df_temp1|>
+  reframe(`Summe [CHF]` = sum(`Verteilt [CHF]`))|>
+    knitr::kable(digits = 2)
 ```
 
 ```{r}
-df_temp <- df_Abrechnung|>
-  filter(Datum == c_Datum & `Suisa Nummer` == c_suisa)
-
 df_temp|>
   select(`Gewinn/Verlust Tickets [CHF]`)|>
   knitr::kable()

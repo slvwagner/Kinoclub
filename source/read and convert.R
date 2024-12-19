@@ -448,17 +448,19 @@ df_Abrechnung <- df_Eintritt|>
       filter(Kategorie == Einnahmen_und_Ausgaben[["dropdown"]]$`drop down`[5])|> # suchen nach den Verleiher Einträgen
       select(-Kategorie,-Datum, -Bezeichnung)|>
       select(1:2)|>
-      rename(Verleiherrechnungsbetrag = Betrag,
+      rename(`Verleiherrechnungsbetrag [CHF]` = Betrag,
              Datum = Spieldatum),
     by = join_by(Datum)
-  )
+  )|>
+  rename(`SUISA-Vorabzug [%]` = `SUISA-Vorabzug`,
+         `Minimal Abzug [CHF]` =  `Minimal Abzug`)
 df_Abrechnung
 
 ########################################################################
 # error handling
 # Verleiherrechnungbetrag ist kleiner als minimaler Abzug.
 df_temp <- df_Abrechnung|>
-  mutate(`Minimal Abzug unterschritten` = `Minimal Abzug`> Verleiherrechnungsbetrag,
+  mutate(`Minimal Abzug unterschritten` = `Minimal Abzug [CHF]`> `Verleiherrechnungsbetrag [CHF]`,
          `Minimal Abzug unterschritten` = if_else(is.na(`Minimal Abzug unterschritten`), F, `Minimal Abzug unterschritten`)
   )|>
   select(Datum, Filmtitel, `Minimal Abzug unterschritten`)|>

@@ -69,13 +69,13 @@ df_show|>
 ### Eintritte und Umsatz
 ```{r}
 df_temp <- df_Abrechnung|>
-  filter(Datum %in%c(c_Datum, c_linkDatum))
+  filter(Datum %in%c(c_Datum))
 ```
 
 
 ```{r}
 c_suisa_prozent <- df_temp|>
-  distinct(`SUISA-Vorabzug`)|>
+  distinct(`SUISA-Vorabzug [%]`)|>
   pull()
 
 df_temp <- df_Abrechnung_tickes|>
@@ -88,6 +88,11 @@ df_temp <- df_temp|>
   mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum))
          )
 
+df_temp <- df_temp|>
+  group_by(Platzkategorie)|>
+  reframe(`Verkaufspreis [CHF]` = sum(`Verkaufspreis [CHF]`),
+          Anzahl = sum(Anzahl),
+          `Umsatz [CHF]` = sum(`Umsatz [CHF]`))
 ```
 
 
