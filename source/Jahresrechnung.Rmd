@@ -110,45 +110,6 @@ df_temp|>
 ```
 
 
-<!-- #### Nebenkosten -->
-<!-- Die Nebenkosten enthalten Porto und Verpackung sowie Filmplakate.  -->
-<!-- ```{r echo=FALSE} -->
-<!-- if(nrow(df_keine_Rechnnung)>0) { -->
-<!--   writeLines("Achtung es sind noch nicht alle Filmabrechnungen vorhanden. Die Sonstigen Ausgaben können sich demnach noch ändern.") -->
-<!-- } -->
-<!-- ``` -->
-
-<!-- ```{r} -->
-<!-- df_temp <- df_Abrechnung|> -->
-<!--   arrange(desc(Datum))|> -->
-<!--  mutate(Datum_display = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)), -->
-<!--         Anfang = paste0(lubridate::hour(Anfang), ":",  -->
-<!--                          lubridate::minute(Anfang) |> as.character() |> formatC(width = 2, flag = "0")|>str_replace(SPC%R%"0", "00") -->
-<!--                         ) -->
-<!--         )|> -->
-<!--   select(Datum, Datum_display,Filmtitel,`Sonstige Kosten [CHF]`) -->
-<!-- ``` -->
-
-<!-- ```{r} -->
-<!-- DT::datatable(df_temp,  -->
-<!--           options = list( -->
-<!--             columnDefs = list( -->
-<!--               # list(targets = 3,visible = F), -->
-<!--               list(targets = 1, visible = FALSE),  # Hide the 'Datum' column -->
-<!--               list(targets = 2, orderData = 0)    # Use the 'Datum' column for sorting 'Datum_display' -->
-<!--             ) -->
-<!--           ), -->
-<!--           colnames = c(Datum = "Datum_display") -->
-<!-- ) -->
-<!-- ``` -->
-
-
-<!-- ```{r} -->
-<!-- df_temp|> -->
-<!--   reframe(`Summe [CHF]` = sum(`Sonstige Kosten [CHF]`,na.rm = T) -->
-<!--           )|> -->
-<!--   knitr::kable() -->
-<!-- ``` -->
 
 #### MWST auf Verleiherleistungen
 ```{r}
