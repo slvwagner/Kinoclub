@@ -86,7 +86,8 @@ n_days_per_year
 n <- n$`Anzahl Vorführungen`
 
 shows_per_year <- floor((n/n_days_till_now)*n_days_per_year)
-shows_per_year
+
+if(n > shows_per_year) shows_per_year <- n
 ```
 
 ### Wochentaganalyse
@@ -134,7 +135,7 @@ df_temp|>
 
 ```{r include=FALSE}
 
-if(mean_median$`Durchschnittlicher Gewinn pro Vorführung [CHF]` > mean_median$`Median Gewinn pro Vorführung [CHF]`){ 
+if(mean_median$`Durchschnittlicher Gewinn pro Vorführung [CHF]` < mean_median$`Median Gewinn pro Vorführung [CHF]`){ 
   Gewinn_pro_Vorführung <- mean_median$`Median Gewinn pro Vorführung [CHF]`
 } else {
   Gewinn_pro_Vorführung <- mean_median$`Durchschnittlicher Gewinn pro Vorführung [CHF]`
@@ -152,7 +153,7 @@ Es wird von einer Sommerpause von `r sommerpause` Tage ausgegangen. In dieser Ze
 Es kann deshalb mit folgenden **Spieltagen** gerechnet werden: 365 Tage - `r sommerpause` Tage = `r n_days_per_year` Tage.  \
 Das ergibt dann rund `r shows_per_year` Filmvorführungen pro Jahr. \ 
 \
-Es kann also von einem Gewinn von `r Gewinn_pro_Vorführung` [CHF] x `r shows_per_year` = **`r r_signif(gewinn)` [CHF]** ausgegangen werden.
+Es kann also von einem Gewinn von `r Gewinn_pro_Vorführung` [CHF] x `r shows_per_year` = **`r gewinn` [CHF]** ausgegangen werden.
 
 
 ```{r }
@@ -271,7 +272,6 @@ df_temp|>
 ```{r fig.width=10}
 df_temp <- df_Abrechnung|>
   select(Datum, Anfang, Filmtitel, `Umsatz [CHF]`, `Gewinn/Verlust Tickets [CHF]`)|>
-  # rename(`Umsatz [CHF]` = Brutto)|>
   arrange(Datum)
 df_temp <- df_temp|>
   arrange(Datum)|>

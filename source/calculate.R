@@ -346,7 +346,8 @@ list(`Werbung` = df_Besucherzahlen,
        )|>
   write.xlsx(file="output/Data/Auswertung.xlsx", asTable = TRUE, overwrite = TRUE)
 
-
+l_abrechnung$`2024-10-12`
+l_abrechnung$`2024-03-20`
 
 ########################################################################
 # user interaction
