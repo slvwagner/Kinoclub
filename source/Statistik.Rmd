@@ -137,7 +137,7 @@ df_temp|>
 if(mean_median$`Durchschnittlicher Gewinn pro Vorführung [CHF]` > mean_median$`Median Gewinn pro Vorführung [CHF]`){ 
   Gewinn_pro_Vorführung <- mean_median$`Median Gewinn pro Vorführung [CHF]`
 } else {
-  Gewinn_pro_Vorführung <- mean_median$`Median Gewinn pro Vorführung [CHF]`
+  Gewinn_pro_Vorführung <- mean_median$`Durchschnittlicher Gewinn pro Vorführung [CHF]`
 }
 gewinn <- Gewinn_pro_Vorführung * shows_per_year
 gewinn <- r_signif(gewinn)
