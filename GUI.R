@@ -753,7 +753,7 @@ server <- function(input, output, session) {
            paste0(calculate_warnings, collapse = "\n"))|>
       ausgabe_text()
     rm(list = ls())
-    load("environment.RData")  # or "selected_objects.RData"
+    load("environment.RData")  
     datum_vektor <- df_show$Datum
     file_exists(file.exists("output/webserver/index.html"))
     End_date_choose(Sys.Date() + ((max(datum_vektor)-Sys.Date())|>as.integer()))
@@ -792,6 +792,7 @@ server <- function(input, output, session) {
       ausgabe_text("Das Enddatum darf nicht vor dem Startdatum liegen.")
     }
     file_exists(file.exists("output/webserver/index.html"))
+    webserver()
   })
   
   ######################################
