@@ -661,18 +661,23 @@ my_template <-
 # Variable, um Warnings zu speichern
 calculate_warnings <- reactiveVal(NULL)
 
-# Daten berechnen und laden, Warnings für user interaction im GUI anzeigen
-tryCatch({
-  # Warnings abfangen
-  calculate_warnings <- capture.output({
-    source("source/calculate.R")
-  }, type = "message")
-}, error = function(e) {
-  stop("Fehler beim Laden von 'source/calculate.R': ", e$message)
-})
-
+if(file.exists("environment.RData")) {
+  load("environment.RData")
+  calculate_warnings <- "Daten wurden geladen:\nBitte nochmals einlesen wenn neue Daten vorhanden!"
+  } else {
+    # Daten berechnen und laden, Warnings für user interaction im GUI anzeigen
+    tryCatch({
+      # Warnings abfangen
+      calculate_warnings <- capture.output({
+        source("source/calculate.R")
+      }, type = "message")
+    }, error = function(e) {
+      stop("Fehler beim Laden von 'source/calculate.R': ", e$message)
+    })
+    load("environment.RData") 
+}
 # Vektor mit Datumseinträgen
-datum_vektor <- (df_show$Datum)
+datum_vektor <- df_show$Datum
 
 # Variable, um Status zu speichern
 ausgabe_text <- paste0(calculate_warnings, 
@@ -734,9 +739,7 @@ server <- function(input, output, session) {
   ######################################
   observeEvent(input$DatenEinlesen, {
     print(clc)
-    paste0("Bericht:\nDaten wurden eingelesen:\n",
-           paste0(calculate_warnings, collapse = "\n"))|>
-      ausgabe_text()
+
     # Laden und Berechnen der Input-Daten, Warnings auffangen
     tryCatch({
       # Warnings abfangen
@@ -746,6 +749,11 @@ server <- function(input, output, session) {
     }, error = function(e) {
       stop("Fehler beim Laden von 'source/calculate.R': ", e$message)
     })
+    paste0("Bericht:\nDaten wurden eingelesen:\n",
+           paste0(calculate_warnings, collapse = "\n"))|>
+      ausgabe_text()
+    rm(list = ls())
+    load("environment.RData")  # or "selected_objects.RData"
     datum_vektor <- df_show$Datum
     file_exists(file.exists("output/webserver/index.html"))
     End_date_choose(Sys.Date() + ((max(datum_vektor)-Sys.Date())|>as.integer()))

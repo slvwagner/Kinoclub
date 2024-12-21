@@ -354,4 +354,6 @@ l_abrechnung$`2024-03-20`
 ########################################################################
 writeLines("Berechnungen erfolgt")
 
-ii <- 18
+save.image(file = "environment.RData")
+
+
