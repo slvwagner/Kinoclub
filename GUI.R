@@ -663,7 +663,7 @@ calculate_warnings <- reactiveVal(NULL)
 
 if(file.exists("environment.RData")) {
   load("environment.RData")
-  calculate_warnings <- "Daten wurden geladen:\nBitte nochmals einlesen wenn neue Daten vorhanden!"
+  calculate_warnings <- "Daten aus der letzen Session wurden geladen:\nBitte nochmals einlesen fals neue Daten vorhanden!"
   } else {
     # Daten berechnen und laden, Warnings für user interaction im GUI anzeigen
     tryCatch({
