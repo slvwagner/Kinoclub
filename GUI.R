@@ -838,7 +838,7 @@ server <- function(input, output, session) {
     
     paste0("Bericht:\nFilmumfrage auswertung ausgeführt",
            "\nFinde die Berechneten daten im Verzeichnis:",
-           "\n", getwd(), "output/data/Filmvorschläge.xlsx"
+           "\n", getwd(), "/output/data/Filmvorschläge.xlsx"
            )|>
       ausgabe_text()
     
@@ -982,7 +982,7 @@ server <- function(input, output, session) {
   })
   
   ######################################
-  # Download Handler
+  # Download Handler Werbung
   ######################################
   output$downloadExcel <- downloadHandler(
     filename = function() {
@@ -991,7 +991,27 @@ server <- function(input, output, session) {
     content = function(file) {
       write.xlsx(df_Besucherzahlen, file = file, asTable = TRUE, overwrite = TRUE)
     }
+
   )
+  
+  ######################################
+  # Download Handler Wordpress
+  ######################################
+  output$downloadWordPress <- downloadHandler(
+    filename = function() {
+      "Filmvorschläge.xlsx"
+    },
+    content = function(file) {
+      source_file <- "output/data/Filmvorschläge.xlsx"
+      # Check if the file exists before attempting to copy
+      if (file.exists(source_file)) {
+        file.copy(from = source_file, to = file, overwrite = TRUE)
+      } else {
+        stop("The file does not exist.")
+      }
+    }
+  )
+  
   
   ######################################
   # Update table with all the dates in the selected range
@@ -1037,10 +1057,6 @@ server <- function(input, output, session) {
   ######################################
   output$dynamicContent_side_panel <- renderUI({
     shiny::tagList(
-      
-      downloadButton("downloadExcel", "Download Werbung"),
-      shiny::tags$h5("**********************"),
-      
       #############################
       # Button Daten Einlesen
       #############################
@@ -1103,9 +1119,16 @@ server <- function(input, output, session) {
       shiny::tags$h5("**********************"),
       
       #############################
+      # Button zum Download der Werbung
+      #############################
+      downloadButton("downloadExcel", "Download Werbung"),
+      shiny::tags$h5("**********************"),
+      
+      #############################
       # Button zum Ausführen von Code Filmumfrage Wordpress auswerten
       #############################
       actionButton("wordpress", "Filmumfrage Wordpress auswerten"),
+      downloadButton("downloadWordPress", "Download Filmvorschläge"),
       
       shiny::tags$h5("**********************"),
       
@@ -1163,10 +1186,9 @@ server <- function(input, output, session) {
   })
 }
 
-# Run the app with a user-defined port
+# Run the app
 runApp(
-  list(ui = ui, server = server),
+  shinyApp(ui = ui, server = server),
   port = 8080,            # Replace 8080 with your desired port
-  launch.browser = TRUE   # Open in system browser automatically
+  launch.browser = TRUE   # Automatically open in the system's default browser
 )
-
