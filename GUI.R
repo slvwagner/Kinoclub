@@ -663,7 +663,7 @@ calculate_warnings <- reactiveVal(NULL)
 
 if(file.exists("environment.RData")) {
   load("environment.RData")
-  calculate_warnings <- "Daten aus der letzen Session wurden geladen:\nBitte Dateien im Verzeichnis `.../Kinoklub/Input/` nochmals einlesen!"
+  calculate_warnings <- "Daten aus der letzen Session wurden geladen!\nFalls neue Datensätze vorhanden sind, bitte Dateien nochmals einlesen!"
   } else {
     # Daten berechnen und laden, Warnings für user interaction im GUI anzeigen
     tryCatch({
