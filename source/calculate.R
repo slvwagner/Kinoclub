@@ -92,7 +92,7 @@ for (ii in 1:length(c_Date)) {
   l_abrechnung[[ii]]$Abrechnung <- 
     l_abrechnung[[ii]]$Abrechnung|>
     mutate(
-      Verteilprodukt =  Umsatz / sum(Umsatz),
+      Verteilprodukt =  Umsatz / sum(Umsatz), # Umsatzverteilprodukt
       `SUISA-Vorabzug [CHF]` = sum(Umsatz) * (`SUISA-Vorabzug [%]` /100) * Verteilprodukt,
       `Netto3 [CHF]` = if_else(`Kinoförderer gratis?`, # Der Suisa-Vorabzug muss anders berechnet werden wenn die Kinoförderer verrechnet werden müssen
                        (sum(Umsatz) - sum(sum(Umsatz) * (`SUISA-Vorabzug [%]` /100) * Verteilprodukt)) * Verteilprodukt,
