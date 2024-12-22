@@ -1164,7 +1164,7 @@ server <- function(input, output, session) {
       # Add tooltips using shinyBS
       bsTooltip(
         id = "DatenEinlesen",
-        title = "Es werden alle files in ordner .../Kinoklub/input eingelesen.",
+        title = "Es werden alle Dateien im Ordner .../Kinoklub/input eingelesen.",
         placement = "right",
         trigger = "hover"
       ),
