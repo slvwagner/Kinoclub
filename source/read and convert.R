@@ -495,13 +495,6 @@ if(nrow(df_temp) > 1) {
   stop("In der Datei .../input/Verleiherabgaben.xlsx gibt es mehrere Filme am selben Datum")}
 
 
-#########################################################################################################
-# Kinotickes
-#########################################################################################################
-df_Kinopreise <- df_Eintritt|>
-  distinct(Platzkategorie, .keep_all = T)|>
-  select(Platzkategorie, Verkaufspreis)
-df_Kinopreise
 
 ########################################################################
 # user interaction
