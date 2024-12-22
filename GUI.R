@@ -984,7 +984,6 @@ server <- function(input, output, session) {
   ######################################
   # Download Handler
   ######################################
-  # Download Handler
   output$downloadExcel <- downloadHandler(
     filename = function() {
       paste("Werbung.xlsx", sep = "")
@@ -1164,5 +1163,10 @@ server <- function(input, output, session) {
   })
 }
 
-# Shiny-App starten
-shinyApp(ui = ui, server = server)
+# Run the app with a user-defined port
+runApp(
+  list(ui = ui, server = server),
+  port = 8080,            # Replace 8080 with your desired port
+  launch.browser = TRUE   # Open in system browser automatically
+)
+
