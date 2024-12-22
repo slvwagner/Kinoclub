@@ -346,14 +346,36 @@ list(`Werbung` = df_Besucherzahlen,
        )|>
   write.xlsx(file="output/Data/Auswertung.xlsx", asTable = TRUE, overwrite = TRUE)
 
-l_abrechnung$`2024-10-12`
-l_abrechnung$`2024-03-20`
+########################################################################
+# remove not used variables
+########################################################################
+remove(c_file,
+       c_fileDate,
+       c_files,
+       c_lenght,
+       c_raw,
+       c_select,
+       c_sheets,
+       c_test,
+       file_datum,
+       c_path,
+       c_names,
+       c_Verleiherrechnungsbetrag,
+       p,
+       ii,
+       df_temp,
+       l_keineRechnung)
+
+########################################################################
+# write data to file 
+########################################################################
+save.image(file = "environment.RData")
 
 ########################################################################
 # user interaction
 ########################################################################
 writeLines("Berechnungen erfolgt")
 
-save.image(file = "environment.RData")
+
 
 

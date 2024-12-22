@@ -45,6 +45,7 @@ Einnahmen_und_Ausgaben[["Ausgaben"]] <- Einnahmen_und_Ausgaben[["Ausgaben"]]|>
 Einnahmen_und_Ausgaben$Ausgaben|>
   filter(Spieldatum == as.Date("2024-10-11"))
 
+# error handling
 # Datachecking 
 df_temp <- Einnahmen_und_Ausgaben[["Ausgaben"]]|>
   filter(Kategorie %in% c("Event","Verleiher"))|>
@@ -234,6 +235,8 @@ df_Flimvorfuerungen
 
 c_Date <- df_Flimvorfuerungen$Datum
 c_suisa_nr <- df_Flimvorfuerungen$`Suisa Nummer`
+
+remove(df_Flimvorfuerungen)
 
 ########################################################################
 # Eventausgaben
