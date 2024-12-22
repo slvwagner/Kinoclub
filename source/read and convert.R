@@ -61,120 +61,120 @@ if(nrow(df_temp)>0) {
 ########################################################################
 # Funktion zur Eintrittabrechnung für Advanced Tickets files
 ########################################################################
-convert_data_Film_txt <- function(c_fileName) {
-  l_data <- list()
-  for(kk in 1:length(c_fileName)){
-    # read in data
-    c_raw <- suppressWarnings(readLines(c_fileName[kk]))
-    c_raw
-    l_temp <- list()
-    
-    # Extract suisa
-    p <- or(START%R%DGT%R%DGT%R%DGT%R%DGT%R%DOT%R%DGT%R%DGT%R%DGT,
-            START%R%WRD%R%WRD%R%WRD%R%DGT%R%DOT%R%one_or_more(DGT)) #suisa
-    index <- c_raw|>
-      str_detect(p)
-    
-    c_temp <- c_raw[index]|>
-      str_split("\t")|>
-      unlist()
-    
-    ii <- 1
-    
-    l_temp[[ii]] <- c_temp[1]
-    names(l_temp)[ii] <- "Suisa"
-    ii <- ii+1
-    
-    # Extract Filmtitel
-    l_temp[[ii]] <- c_temp[2]
-    names(l_temp)[ii] <- "Filmtitel"
-    ii <- ii+1
-    
-    # Extract Datum
-    p <- "\t"%R%DGT%R%DGT%R%DOT%R%DGT%R%DGT%R%DOT%R%DGT%R%DGT%R%DGT%R%DGT #Datum
-    index <- c_raw|>
-      str_detect(p)
-    index
-    
-    c_temp <- c_raw[index]|>
-      str_split("\t")|>
-      unlist()
-    c_temp
-    
-    l_temp[[ii]] <- c_temp[2]
-    names(l_temp)[ii] <- "Datum"
-    ii <- ii+1
-    
-    # Extract suisa-Vorabzug
-    p <- DGT%R%DOT%R%one_or_more(DGT)%R%"%"%R%SPC%R%"SUISA" #Datum
-    index <- c_raw|>
-      str_detect(p)
-    index
-    
-    c_temp <- c_raw[index]|>
-      str_split("%"%R%SPC)|>
-      unlist()
-    c_temp
-    
-    l_temp[[ii]] <- c_temp[1]|>as.numeric()
-    names(l_temp)[ii] <- "SUISA-Vorabzug"
-    ii <- ii+1
-    
-    # Extract Tabelle
-    p <- "Platzkategorie" #Tabellenanfang
-    p1 <- "Brutto" # Tabellenende
-    
-    index <- c_raw|>
-      str_detect(p)
-    index1 <- c_raw|>
-      str_detect(p1)
-    
-    for (jj in 1:length(c_raw)) {
-      if(index[jj]== TRUE) {
-        index <- jj 
-        break
-      }
-    }
-    for (jj in 1:length(c_raw)) {
-      if(index1[jj]== TRUE) {
-        index1 <- jj-2 
-        break
-      }
-    }
-    df_data <- c_raw[(index+1):index1]|>
-      str_split("\t")|>
-      bind_cols()|>
-      as.matrix()|>
-      t()|>
-      as.data.frame()|>
-      suppressMessages()
-    
-    names(df_data) <- c_raw[index]|>
-      str_split("\t")|>
-      unlist()
-    
-    df_data <- df_data|>
-      mutate(Preis = as.numeric(Preis),
-             Tax = as.numeric(Tax),
-             Anzahl = as.numeric(Anzahl),
-             Umsatz= Preis*Anzahl
-      )|>
-      tibble()
-    
-    l_temp[[ii]] <- df_data|>
-      tibble()
-    names(l_temp)[ii] <- "Abrechnung"
-    
-    l_data[[kk]] <- l_temp[[ii]] |>
-      mutate(`Suisa Nummer` = l_temp[[1]],
-             Filmtitel = l_temp[[2]],
-             Datum_ = l_temp[[3]],
-             `SUISA-Vorabzug` = l_temp[[4]]
-      )
-  }
-  return(l_data)
-}
 
+convert_data_Film_txt <- function(fileName) {
+  fileName|>
+    lapply(function(fileName){
+      
+      # read in data
+      c_raw <- suppressWarnings(readLines(fileName))
+      c_raw
+      l_temp <- list()
+
+      # Extract suisa
+      p <- or(START%R%DGT%R%DGT%R%DGT%R%DGT%R%DOT%R%DGT%R%DGT%R%DGT,
+              START%R%WRD%R%WRD%R%WRD%R%DGT%R%DOT%R%one_or_more(DGT)) #suisa
+      index <- c_raw|>
+        str_detect(p)
+
+      c_temp <- c_raw[index]|>
+        str_split("\t")|>
+        unlist()
+
+      ii <- 1
+
+      l_temp[[ii]] <- c_temp[1]
+      names(l_temp)[ii] <- "Suisa"
+      ii <- ii+1
+
+      # Extract Filmtitel
+      l_temp[[ii]] <- c_temp[2]
+      names(l_temp)[ii] <- "Filmtitel"
+      ii <- ii+1
+
+      # Extract Datum
+      p <- "\t"%R%DGT%R%DGT%R%DOT%R%DGT%R%DGT%R%DOT%R%DGT%R%DGT%R%DGT%R%DGT #Datum
+      index <- c_raw|>
+        str_detect(p)
+      index
+
+      c_temp <- c_raw[index]|>
+        str_split("\t")|>
+        unlist()
+      c_temp
+
+      l_temp[[ii]] <- c_temp[2]
+      names(l_temp)[ii] <- "Datum"
+      ii <- ii+1
+
+      # Extract suisa-Vorabzug
+      p <- DGT%R%DOT%R%one_or_more(DGT)%R%"%"%R%SPC%R%"SUISA" #Datum
+      index <- c_raw|>
+        str_detect(p)
+      index
+
+      c_temp <- c_raw[index]|>
+        str_split("%"%R%SPC)|>
+        unlist()
+      c_temp
+
+      l_temp[[ii]] <- c_temp[1]|>as.numeric()
+      names(l_temp)[ii] <- "SUISA-Vorabzug"
+      ii <- ii+1
+
+      # Extract Tabelle
+      p <- "Platzkategorie" #Tabellenanfang
+      p1 <- "Brutto" # Tabellenende
+
+      index <- c_raw|>
+        str_detect(p)
+      index1 <- c_raw|>
+        str_detect(p1)
+
+      for (jj in 1:length(c_raw)) {
+        if(index[jj]== TRUE) {
+          index <- jj
+          break
+        }
+      }
+      for (jj in 1:length(c_raw)) {
+        if(index1[jj]== TRUE) {
+          index1 <- jj-2
+          break
+        }
+      }
+      df_data <- c_raw[(index+1):index1]|>
+        str_split("\t")|>
+        bind_cols()|>
+        as.matrix()|>
+        t()|>
+        as.data.frame()|>
+        suppressMessages()
+
+      names(df_data) <- c_raw[index]|>
+        str_split("\t")|>
+        unlist()
+
+      df_data <- df_data|>
+        mutate(Preis = as.numeric(Preis),
+               Tax = as.numeric(Tax),
+               Anzahl = as.numeric(Anzahl),
+               Umsatz= Preis*Anzahl
+        )|>
+        tibble()
+
+      l_temp[[ii]] <- df_data|>
+        tibble()
+      names(l_temp)[ii] <- "Abrechnung"
+
+      l_temp[[ii]] |>
+        mutate(`Suisa Nummer` = l_temp[[1]],
+               Filmtitel = l_temp[[2]],
+               Datum_ = l_temp[[3]],
+               `SUISA-Vorabzug` = l_temp[[4]]
+        )
+    })
+}
 ########################################################################
 # Eintritt aus Advanced Tickets
 ########################################################################
@@ -185,7 +185,7 @@ l_Eintritt <- convert_data_Film_txt(c_files)
 names(l_Eintritt) <- c_files|>
   str_extract(one_or_more(DGT)%R%DOT%R%one_or_more(DGT)%R%DOT%R%one_or_more(DGT))
 
-# error handling 
+
 # check file datum vs in file datum found
 df_Eintritt <- l_Eintritt|>
   bind_rows(.id = "Datum")|>
@@ -193,6 +193,8 @@ df_Eintritt <- l_Eintritt|>
          Datum_ = lubridate::dmy(Datum_)
          )
 
+
+# error handling 
 df_temp <- df_Eintritt|>
   filter(!Datum%in%Datum_)|>
   distinct(Datum,.keep_all = T)
