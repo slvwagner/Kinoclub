@@ -367,136 +367,130 @@ Kiosk|>
 ```
 
 
-## Abos / Kinogutscheine
-Kurzfristiges zinsloses Fremd-Kapital.  
 
-### Einnahmen
-#### Abos
+## Kurzfristiges zinsloses Fremdkapital
+### 6er Abos
+
 ```{r}
-df_Abo_Verkauf|>
-  mutate(Datum = paste0(day(Datum),".", month(Datum), ".", year(Datum)))|>
-  knitr::kable()
+df_temp <- atelierkino_abo|>
+  filter(expiration > as.Date(paste0(Abrechungsjahr,"-12-31")))|>
+  mutate(id = paste0("https://www.advance-ticket.ch/badge/", id))|>
+  rename(url = id)|>
+  mutate(creation = paste0(day(creation),".", month(creation), ".", year(creation)),
+       first_use = paste0(day(first_use),".", month(first_use), ".", year(first_use)),
+       last_use = paste0(day(last_use),".", month(last_use), ".", year(last_use)),
+       expiration = paste0(day(expiration),".", month(expiration), ".", year(expiration))
+       )|>
+    mutate(url = paste0('<a href="', url, '" target="_blank">', url, '</a>'))|>
+  select(-first_use, -last_use)
 ```
 
+```{r}
+# Create the datatable with a hidden Datum column and sort by it
+DT::datatable(df_temp,
+              escape = FALSE)
+
+```
 
 ```{r}
-df_temp <- df_Abo_Verkauf|>
-  reframe(`Summe Anzahl` = sum(Anzahl),
-          `Summe Betrag [CHF]` = sum(Betrag)
+df_6erAbos <- df_temp|>
+  mutate(`Noch nicht eingelöste Tickets [Anzahl]`= 6 - count_use)|>
+  reframe(`Noch nicht eingelöster Betrag [CHF]`= sum(`Noch nicht eingelöste Tickets [Anzahl]`)*13
          )
 
-df_temp|>
+df_6erAbos|>
   knitr::kable()
 ```
 
-#### Kinogutscheine
+
+### Kinogutscheine
+
 ```{r}
-df_Kinogutschein_Verkauf|>
-  mutate(Datum = paste0(day(Datum),".", month(Datum), ".", year(Datum)))|>
-  knitr::kable()
+df_temp <- atelierkino_gutschein|>
+  filter(expiration > as.Date(paste0(Abrechungsjahr,"-12-31")))|>
+  mutate(id = paste0("https://www.advance-ticket.ch/badge/", id))|>
+  rename(url = id)|>
+  mutate(creation = paste0(day(creation),".", month(creation), ".", year(creation)),
+       first_use = paste0(day(first_use),".", month(first_use), ".", year(first_use)),
+       last_use = paste0(day(last_use),".", month(last_use), ".", year(last_use)),
+       expiration = paste0(day(expiration),".", month(expiration), ".", year(expiration))
+       )|>
+  mutate(url = paste0('<a href="', url, '" target="_blank">', url, '</a>'))|>
+  rename(`Betrag [CHF]` = amount)|>
+  select(-first_use, -last_use, -count_use)
 ```
 
 ```{r}
-df_temp1 <- df_Kinogutschein_Verkauf|>
-  reframe(`Summe Anzahl` = sum(Anzahl),
-          `Summe Betrag [CHF]` = sum(Betrag)
+DT::datatable(df_temp,
+              escape = FALSE)
+```
+
+```{r}
+df_gutschein <- df_temp|>
+  reframe(`Noch nicht eingelöster Betrag [CHF]`= sum(`Betrag [CHF]`)
          )
 
-df_temp1|>
-  knitr::kable()
-```
-
-#### Summe
-```{r}
-df_temp <- bind_rows(df_temp, df_temp1)|>
-  mutate(Bezeichnung = c("Abos", "Kinogutscheine"))
-
-df_temp|>
-  select(Bezeichnung, `Summe Anzahl`, `Summe Betrag [CHF]` )|>
-  knitr::kable()
-
-```
-
-```{r}
-AboGutscheinEinahmen <- df_temp|>
-  reframe(`Summe [CHF]` = sum(`Summe Betrag [CHF]`, na.rm = T))
-
-AboGutscheinEinahmen|>
-  knitr::kable()
-```
-
-### Eingelöst
-#### Abos
-```{r}
-df_temp1 <- df_Eintritt |>
-  mutate(Datum = paste0(day(Datum),".", month(Datum), ".", year(Datum)))|>
-  filter(str_detect(Platzkategorie, "Abo")) |>
-    group_by(Datum, Platzkategorie, Verkaufspreis)|>
-  reframe(Anzahl = sum(Anzahl),
-          `Umsatz [CHF]` = sum(Umsatz))
-
-df_temp1|>
+df_gutschein|>
   knitr::kable()
 ```
 
 
-```{r}
-df_temp1 <- df_temp1|>
-  reframe(`Summe [CHF]` = sum(`Umsatz [CHF]`, na.rm = T))
-
-df_temp1|>
-  knitr::kable()
-```
-
-#### Kinogutscheine 
-```{r}
-df_temp2 <- df_Kinogutschein_Eingeloest|>
-  mutate(Datum = paste0(day(Datum),".", month(Datum), ".", year(Datum)),
-         Einzelpreis = abs(Betrag)/Anzahl,
-         Betrag = abs(Betrag))|>
-  select(Datum, Verkaufsartikel, Einzelpreis, Anzahl, Betrag)|>
-  rename(`Betrag [CHF]` = Betrag)
-
-df_temp2|>
-  knitr::kable()
-```
+### Kinoförderer
 
 ```{r}
-df_temp2 <- df_temp2|>
-  reframe(`Summe [CHF]` = sum( abs(`Betrag [CHF]`), na.rm = F))
-
-df_temp2|>
-  knitr::kable()
-```
-
-#### Summe
-```{r}
-df_temp3 <- tibble(`Summe [CHF]` = df_temp1$`Summe [CHF]` + df_temp2$`Summe [CHF]`)
-
-df_temp3|>
-  knitr::kable()
+df_temp <- atelierkino_foerderer|>
+  filter(expiration > as.Date(paste0(Abrechungsjahr,"-12-31")),
+         count_use < 2
+         )|>
+  mutate(id = paste0("https://www.advance-ticket.ch/badge/", id))|>
+  rename(url = id)|>
+  mutate(creation = paste0(day(creation),".", month(creation), ".", year(creation)),
+       first_use = paste0(day(first_use),".", month(first_use), ".", year(first_use)),
+       last_use = paste0(day(last_use),".", month(last_use), ".", year(last_use)),
+       expiration = paste0(day(expiration),".", month(expiration), ".", year(expiration))
+       )|>
+    mutate(url = paste0('<a href="', url, '" target="_blank">', url, '</a>'))|>
+  select(-first_use, -last_use)
 ```
 
 
-### Kurzfristiges zinsloses Fremdkapital
 ```{r}
-df_temp <- bind_cols(tibble(Bezeichnung = c("Verkaufte Abos", "Verkaufte Kinogutscheine","Eingelöste Abos", "Eingelöste Kinogutscheine")),
-          bind_rows(df_Abo_Verkauf|>
-                      reframe(`Summe [CHF]` = sum(Betrag,na.rm = T)),
-                    df_Kinogutschein_Verkauf|>
-                      reframe(`Summe [CHF]` = sum(Betrag,na.rm = T)),
-                    -df_temp1, 
-                    -df_temp2)
-          )|>
-  rename(`Betrag [CHF]` = `Summe [CHF]`)
+DT::datatable(df_temp,
+              escape = FALSE)
+```
 
+
+```{r}
+df_foerderer <- df_temp|>
+  mutate(`Noch nicht eingelöste Tickets [Anzahl]`= 2 - count_use)|>
+  reframe(`Noch nicht eingelöster Betrag [CHF]`= sum(`Noch nicht eingelöste Tickets [Anzahl]`)*13
+         )
+
+df_foerderer|>
+  knitr::kable()
+```
+
+
+
+### Summe
+```{r}
+df_temp <- bind_cols(
+  tibble(Bezeichnung = c("6er Abos", "Kinogutscheine", "Kinoförderer")),
+  bind_rows(df_6erAbos, df_gutschein, df_foerderer)
+  )
+```
+
+
+```{r}
 df_temp|>
   knitr::kable()
+
 ```
+
 
 ```{r}
 `Kurzfristiges zinsloses Fremdkapital` <- df_temp|>
-  reframe(`Summe [CHF]` = sum(`Betrag [CHF]`, na.rm = T))
+  reframe(`Summe [CHF]` = sum(`Noch nicht eingelöster Betrag [CHF]`, na.rm = T))
 `Kurzfristiges zinsloses Fremdkapital`|>
   knitr::kable()
 ```
