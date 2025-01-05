@@ -373,6 +373,14 @@ Kurzfristiges zinsloses Fremd-Kapital.
 ### Einnahmen
 #### Abos
 ```{r}
+all_abos|>
+  filter(between(creation, 
+                 as.Date(paste0(Abrechungsjahr,"-01-01")), 
+                 as.Date(paste0(Abrechungsjahr,"-12-31"))
+                 ),
+         Abo == "gutschein"
+         )
+
 df_Abo_Verkauf|>
   mutate(Datum = paste0(day(Datum),".", month(Datum), ".", year(Datum)))|>
   knitr::kable()

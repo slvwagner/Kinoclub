@@ -16,13 +16,14 @@ if (any(installed_packages == FALSE)) {
   install.packages(packages[!installed_packages])
 }
 # Packages loading
+packages <- c("rmarkdown", "rebus", "openxlsx", "tidyverse", "lubridate", "DT", "magick", "webshot")
 invisible(lapply(packages, library, character.only = TRUE))
 
 source("source/functions.R")
 
 
 #############################################################################################################################################
-# Benutzereinstellungen
+# Benutzereinstellungen importieren aus "Erstelle Abrechnung.R"
 #############################################################################################################################################
 # import script version from "Erstelle Abrechnung.R"
 c_raw <- readLines("Erstelle Abrechnung.R")
@@ -39,7 +40,14 @@ sommerpause[, 2] |>
   str_trim() |>
   str_split(SPC, simplify = T) -> sommerpause
 sommerpause <- sommerpause[, 1] |> as.integer() # Tage
-sommerpause
+
+# import Abrechnungsjahr <- from "Erstelle Abrechnung.R"
+c_raw[str_detect(c_raw, "Abrechnungsjahr <-")] |>
+  str_split("-", simplify = T) -> Abrechungsjahr
+Abrechungsjahr <- Abrechungsjahr[, 2] |>
+  str_trim() |>
+  as.integer()
+Abrechungsjahr
 
 # import c_MWSR from "Erstelle Abrechnung.R"
 c_raw[str_detect(c_raw, "c_MWST")] |>
@@ -47,24 +55,13 @@ c_raw[str_detect(c_raw, "c_MWST")] |>
 c_MWST <- str_extract(c_MWST, one_or_more(DGT) %R% DOT %R% optional(DGT)) |>
   as.numeric()
 
-# Sollen Inhaltsverzeichnisse erstellt werden
-toc <- reactiveVal(TRUE)
-
 # Platzkategorien die für gewisse Verleiherabgerechnet werden müssen
 df_P_kat_verechnen <- tibble(
   Kinoförderer = c("Kinoförderer", "Kinofördererkarte"),
   Verkaufspreis = c(13, 13)
 )
 
-# Ausgabeformate
-# 1 = only html
-# 2 = only docx
-# 3 = only pdf (Achtung für pdf install Latex for Windows (Miktex) for Mac (MacTex))
-# 4 = html and docx
-# 5 = html and pdf (Achtung für pdf install Latex for Windows (Miktex) for Mac (MacTex))
-# 6 = docx and pdf (Achtung für pdf install Latex for Windows (Miktex) for Mac (MacTex))
-# 7 = html, docx and pdf (Achtung für pdf install Latex for Windows (Miktex) for Mac (MacTex))
-c_render_option <- reactiveVal("1")
+
 
 #############################################################################################################################################
 # Functions
@@ -109,7 +106,7 @@ StatistikErstellen <- function() {
   c_raw
 
   # Inhaltsverzeichnis
-  if (toc()) { # neues file schreiben mit toc
+  if (TRUE) { # neues file schreiben mit toc
     c_raw |>
       r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis") |>
       writeLines(paste0("source/temp.Rmd"))
@@ -142,7 +139,7 @@ JahresrechnungErstellen <- function() {
   c_raw
 
   # Inhaltsverzeichnis
-  if (toc()) { # neues file schreiben mit toc
+  if (TRUE) { # neues file schreiben mit toc
     c_raw |>
       r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis") |>
       writeLines(paste0("source/temp.Rmd"))
@@ -720,8 +717,11 @@ my_template <-
     title = element_text(color = "#f4cccc", size = 22)
   )
 
+#############################################################################################################################################
+# Shiny reactive variables
+#############################################################################################################################################
 # Variable, um Warnings zu speichern
-calculate_warnings <- reactiveVal(NULL)
+calculate_warnings <- shiny::reactiveVal(NULL)
 
 if (file.exists("environment.RData")) {
   load("environment.RData")
@@ -744,6 +744,22 @@ if (file.exists("environment.RData")) {
   )
   load("environment.RData")
 }
+
+# Sollen Inhaltsverzeichnisse erstellt werden
+toc <- shiny::reactiveVal(TRUE)
+
+# Ausgabeformate
+# 1 = only html
+# 2 = only docx
+# 3 = only pdf (Achtung für pdf install Latex for Windows (Miktex) for Mac (MacTex))
+# 4 = html and docx
+# 5 = html and pdf (Achtung für pdf install Latex for Windows (Miktex) for Mac (MacTex))
+# 6 = docx and pdf (Achtung für pdf install Latex for Windows (Miktex) for Mac (MacTex))
+# 7 = html, docx and pdf (Achtung für pdf install Latex for Windows (Miktex) for Mac (MacTex))
+c_render_option <- shiny::reactiveVal("1")
+
+
+
 # Vektor mit Datumseinträgen
 datum_vektor <- df_show$Datum
 
@@ -751,19 +767,19 @@ datum_vektor <- df_show$Datum
 ausgabe_text <- paste0(calculate_warnings,
   collapse = "\n"
 ) |>
-  reactiveVal()
+  shiny::reactiveVal()
 
 # Filmtabelle anzeigen
-df_Render <- reactiveVal(NULL)
+df_Render <- shiny::reactiveVal(NULL)
 
 # Datum Auswahl für Abrechnung Filmvorführung (Finde letztes Datum)
-End_date_choose <- reactiveVal(Sys.Date() + ((max(datum_vektor) - Sys.Date()) |> as.integer()))
+End_date_choose <- shiny::reactiveVal(Sys.Date() + ((max(datum_vektor) - Sys.Date()) |> as.integer()))
 
 # Does the index.html file exist, is the webserver ready
-file_exists <- reactiveVal(file.exists("output/webserver/index.html"))
+file_exists <- shiny::reactiveVal(file.exists("output/webserver/index.html"))
 
 # Serve the custom_styles directory
-addResourcePath("custom_styles", "source")
+shiny::addResourcePath("custom_styles", "source")
 
 # Map the URL path "custom" to the local directory "output/webserver"
 shiny::addResourcePath("reports", "output/webserver")
@@ -772,25 +788,25 @@ shiny::addResourcePath("reports", "output/webserver")
 #############################################################################################################################################
 # UI-Definition
 #############################################################################################################################################
-ui <- fluidPage(
+ui <- shiny::fluidPage(
   shiny::tags$head(
     shiny::tags$link(rel = "stylesheet", type = "text/css", href = "custom_styles/Kinoklub_dark_gui.css")
   ),
   paste("Kinoklub GUI", c_script_version) |>
-    titlePanel(),
-  sidebarLayout(
+    shiny::titlePanel(),
+  shiny::sidebarLayout(
     #############################
     # Render the side panel
     #############################
-    sidebarPanel(
-      uiOutput("dynamicContent_side_panel")
+    shiny::sidebarPanel(
+      shiny::uiOutput("dynamicContent_side_panel")
     ),
 
     #############################
     # Render the main panel
     #############################
-    mainPanel(
-      uiOutput("dynamicContent_main_panel")
+    shiny::mainPanel(
+      shiny::uiOutput("dynamicContent_main_panel")
     )
   )
 )
@@ -803,7 +819,7 @@ server <- function(input, output, session) {
   ######################################
   # Überwachung Button Dateneinlesen
   ######################################
-  observeEvent(input$DatenEinlesen, {
+  shiny::observeEvent(input$DatenEinlesen, {
     print(clc)
 
     # Laden und Berechnen der Input-Daten, Warnings auffangen
@@ -812,6 +828,7 @@ server <- function(input, output, session) {
         # Warnings abfangen
         calculate_warnings <- capture.output(
           {
+            print(clc)
             source("source/calculate.R")
           },
           type = "message"
@@ -836,7 +853,7 @@ server <- function(input, output, session) {
   ######################################
   # Überwachung Button Abrechnunge erstellen über Datum-Range
   ######################################
-  observeEvent(input$Abrechnung, {
+  shiny::observeEvent(input$Abrechnung, {
     start_datum <- input$dateRange |> min()
     end_datum <- input$dateRange |> max()
 
@@ -862,7 +879,7 @@ server <- function(input, output, session) {
           AbrechnungErstellen(df_mapping__, df_Abrechnung)
         },
         error = function(e) {
-          ausgabe_text(paste("Fehler beim Bericht erstellen:", e$message))
+          ausgabe_text(paste("Filmabrechnungen erstellen, Fehler beim Bericht erstellen:", e$message))
         }
       )
     } else {
@@ -875,7 +892,7 @@ server <- function(input, output, session) {
   ######################################
   # Überwachung Button Statistik
   ######################################
-  observeEvent(input$Statistik, {
+  shiny::observeEvent(input$Statistik, {
     print(clc)
     # User feedback
     ausgabe_text(paste0(
@@ -887,7 +904,7 @@ server <- function(input, output, session) {
         StatistikErstellen()
       },
       error = function(e) {
-        ausgabe_text(paste("Fehler beim Bericht erstellen:", e$message))
+        ausgabe_text(paste("Statistik, Fehler beim Bericht erstellen:", e$message))
       }
     )
     file_exists(file.exists("output/webserver/index.html"))
@@ -896,7 +913,7 @@ server <- function(input, output, session) {
   ######################################
   # Überwachung Button Jahresrechnung
   ######################################
-  observeEvent(input$Jahresrechnung, {
+  shiny::observeEvent(input$Jahresrechnung, {
     print(clc)
     # User feedback
     paste0(
@@ -909,7 +926,7 @@ server <- function(input, output, session) {
         JahresrechnungErstellen()
       },
       error = function(e) {
-        ausgabe_text(paste("Fehler beim Bericht erstellen:", e$message))
+        ausgabe_text(paste("Jahresrechnung, Fehler beim Bericht erstellen:", e$message))
       }
     )
     file_exists(file.exists("output/webserver/index.html"))
@@ -918,7 +935,7 @@ server <- function(input, output, session) {
   ######################################
   # Überwachung Button Wordpress
   ######################################
-  observeEvent(input$wordpress, {
+  shiny::observeEvent(input$wordpress, {
     print(clc)
 
     paste0(
@@ -934,7 +951,7 @@ server <- function(input, output, session) {
         source("source/read_and_convert_wordPress.R")
       },
       error = function(e) {
-        ausgabe_text(paste("Fehler beim Bericht erstellen:", e$message))
+        ausgabe_text(paste("Filmvorschläge, Fehler beim Bericht erstellen:", e$message))
       }
     )
     file_exists(file.exists("output/webserver/index.html"))
@@ -943,7 +960,7 @@ server <- function(input, output, session) {
   ######################################
   # Überwachung Button webserver
   ######################################
-  observeEvent(input$webserver, {
+  shiny::observeEvent(input$webserver, {
     print(clc)
     paste0(
       "Bericht:",
@@ -956,7 +973,7 @@ server <- function(input, output, session) {
         webserver()
       },
       error = function(e) {
-        ausgabe_text(paste("Fehler beim Bericht erstellen:", e$message))
+        ausgabe_text(paste("Webserver, Fehler beim Bericht erstellen:", e$message))
       }
     )
     file_exists(file.exists("output/webserver/index.html"))
@@ -965,7 +982,7 @@ server <- function(input, output, session) {
   ######################################
   # Überwachung Button Erstelle Abrechnung (source("Erstelle Abrechnung.R"))
   ######################################
-  observeEvent(input$ErstelleAbrechnung, {
+  shiny::observeEvent(input$ErstelleAbrechnung, {
     print(clc)
     # User interaction
     paste0(
@@ -1025,27 +1042,27 @@ server <- function(input, output, session) {
         webserver()
       },
       error = function(e) {
-        ausgabe_text(paste("Fehler beim Bericht erstellen:", e$message))
+        ausgabe_text(paste("Erstelle Abrechnung, Fehler beim Bericht erstellen:", e$message))
       }
     )
     End_date_choose(Sys.Date() + ((max(datum_vektor) - Sys.Date()) |> as.integer()))
     file_exists(file.exists("output/webserver/index.html"))
   })
 
-  ######################################
-  # Überwachung Inhaltsverzeichniss
-  ######################################
-  observeEvent(input$Inhaltsverzeichnis, {
-    print(clc)
-    toc(input$Inhaltsverzeichnis)
-    print(toc())
-    file_exists(file.exists("output/webserver/index.html"))
-  })
+  # ######################################
+  # # Überwachung Inhaltsverzeichniss
+  # ######################################
+  # shiny::observeEvent(input$Inhaltsverzeichnis, {
+  #   print(clc)
+  #   toc(input$Inhaltsverzeichnis)
+  #   print(TRUE)
+  #   file_exists(file.exists("output/webserver/index.html"))
+  # })
 
   ######################################
   # Überwachung Ausgabeformat
   ######################################
-  observeEvent(input$render_option, {
+  shiny::observeEvent(input$render_option, {
     print(clc)
 
     df_Render(
@@ -1121,11 +1138,10 @@ server <- function(input, output, session) {
     }
   )
 
-
   ######################################
   # Update table with all the dates in the selected range
   ######################################
-  output$dateTable <- renderTable({
+  output$dateTable <- shiny::renderTable({
     start_datum <- input$dateRange |> min()
     end_datum <- input$dateRange |> max()
 
@@ -1141,7 +1157,7 @@ server <- function(input, output, session) {
   ######################################
   # Dynamically update the main panel content
   ######################################
-  output$dynamicContent_main_panel <- renderUI({
+  output$dynamicContent_main_panel <- shiny::renderUI({
     # Example: Change content based on the action button clicks
     shiny::tagList(
       if (file_exists()) {
@@ -1157,23 +1173,23 @@ server <- function(input, output, session) {
         )
       },
       shiny::tags$h4("Filme in der gewählten Periode"),
-      tableOutput("dateTable"),
+      shiny::tableOutput("dateTable"),
       shiny::tags$h4("System Rückmeldungen"),
-      verbatimTextOutput("ausgabe")
+      shiny::verbatimTextOutput("ausgabe")
     )
   })
 
   ######################################
   # Dynamically update the side panel content
   ######################################
-  output$dynamicContent_side_panel <- renderUI({
+  output$dynamicContent_side_panel <- shiny::renderUI({
     shiny::tagList(
       #############################
       # Button Daten Einlesen
       #############################
       actionButton("DatenEinlesen", "Daten nochmals Einlesen"),
       # Add tooltips using shinyBS
-      bsTooltip(
+      shinyBS::bsTooltip(
         id = "DatenEinlesen",
         title = "Es werden alle Dateien im Ordner .../Kinoklub/input eingelesen.",
         placement = "right",
@@ -1184,7 +1200,7 @@ server <- function(input, output, session) {
       #############################
       # Datumsbereich auswählen für die Abrechnung Filmvorführungen
       #############################
-      dateRangeInput(
+      shiny::dateRangeInput(
         inputId = "dateRange",
         label = "Wählen Sie einen Datumsbereich aus:",
         start = End_date_choose(), # Default start date (one week ago)
@@ -1198,9 +1214,9 @@ server <- function(input, output, session) {
       #############################
       # Button zum Ausführen von Code Filmabrechnunge(n) erstellen
       #############################
-      actionButton("Abrechnung", "Filmabrechnunge(n) erstellen"),
+      shiny::actionButton("Abrechnung", "Filmabrechnunge(n) erstellen"),
       # Add tooltips using shinyBS
-      bsTooltip(
+      shinyBS::bsTooltip(
         id = "Abrechnung",
         title = "Es werden die Filmabrechnungen im gewählten Datumsbereich erstellt.",
         placement = "right",
@@ -1211,39 +1227,39 @@ server <- function(input, output, session) {
       #############################
       # Button zum Ausführen von Code Statistik erstellen
       #############################
-      actionButton("Statistik", "Statistik erstellen"),
+      shiny::actionButton("Statistik", "Statistik erstellen"),
 
       #############################
       # Button zum Ausführen von Code Jahresrechnung erstellen
       #############################
-      actionButton("Jahresrechnung", "Jahresrechnung erstellen"),
+      shiny::actionButton("Jahresrechnung", "Jahresrechnung erstellen"),
       shiny::tags$h5("**********************"),
 
       #############################
       # Button zum Ausführen von Code Update Site-Map
       #############################
-      actionButton("webserver", "Update Site-Map"),
+      shiny::actionButton("webserver", "Update Site-Map"),
       shiny::tags$h5("**********************"),
 
       #############################
       # Button zum Download der Werbung
       #############################
-      downloadButton("downloadExcel", "Download Werbung"),
+      shiny::downloadButton("downloadExcel", "Download Werbung"),
       shiny::tags$h5("**********************"),
 
       #############################
       # Button zum Ausführen von Code Filmumfrage Wordpress auswerten
       #############################
-      actionButton("wordpress", "Filmumfrage Wordpress auswerten"),
-      downloadButton("downloadWordPress", "Download Filmvorschläge"),
+      shiny::actionButton("wordpress", "Filmumfrage Wordpress auswerten"),
+      shiny::downloadButton("downloadWordPress", "Download Filmvorschläge"),
       shiny::tags$h5("**********************"),
 
       #############################
       # Button zum Ausführen von Code Alles erstellen mit Webserver
       #############################
-      actionButton("ErstelleAbrechnung", "Alles erstellen mit Webserver"),
+      shiny::actionButton("ErstelleAbrechnung", "Alles erstellen mit Webserver"),
       # Add tooltips using shinyBS
-      bsTooltip(
+      shinyBS::bsTooltip(
         id = "ErstelleAbrechnung",
         title = "Achtung die Ausführung braucht Zeit!",
         placement = "right",
@@ -1254,7 +1270,7 @@ server <- function(input, output, session) {
       #############################
       # Inhaltsverzeichnis
       #############################
-      selectInput(
+      shiny::selectInput(
         inputId = "Inhaltsverzeichnis",
         label = "Inhaltsverzeichnis erstellen?",
         choices = list(
@@ -1267,7 +1283,7 @@ server <- function(input, output, session) {
       #############################
       # Ausgabeformat
       #############################
-      selectInput(
+      shiny::selectInput(
         inputId = "render_option",
         label = "Ausgabeformat wählen:",
         choices = list(
@@ -1282,7 +1298,7 @@ server <- function(input, output, session) {
         selected = "1" # Default value
       ),
       # Add tooltips using shinyBS
-      bsTooltip(
+      shinyBS::bsTooltip(
         id = "render_option",
         title = "PDF options require LaTeX installation (e.g., MikTeX for Windows, MacTeX for Mac).",
         placement = "right",
@@ -1293,7 +1309,7 @@ server <- function(input, output, session) {
 }
 
 # Run the app
-runApp(
+shiny::runApp(
   shinyApp(ui = ui, server = server),
   port = 8080, # Replace 8080 with your desired port
   launch.browser = TRUE # Automatically open in the system's default browser

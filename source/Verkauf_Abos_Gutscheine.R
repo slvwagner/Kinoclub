@@ -44,7 +44,7 @@ all_abos|>
   filter(Abo == "abo")
 
 all_abos|>
-  filter(Abo == "abo", expiration > as.Date(paste0(Abrechnungsjahr,"-12-31"))
+  filter(Abo == "abo", expiration > as.Date(paste0(Abrechungsjahr,"-12-31"))
          )
 
 
@@ -52,11 +52,11 @@ all_abos|>
   filter(Abo == "foerderer")
 
 all_abos|>
-  filter(Abo == "foerderer", expiration < as.Date(paste0(Abrechnungsjahr,"-12-31"))
+  filter(Abo == "foerderer", expiration < as.Date(paste0(Abrechungsjahr,"-12-31"))
   )
 
 all_abos|>
-  filter(Abo == "foerderer", expiration > as.Date(paste0(Abrechnungsjahr,"-12-31"))
+  filter(Abo == "foerderer", expiration > as.Date(paste0(Abrechungsjahr,"-12-31"))
   )
 
 
