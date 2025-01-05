@@ -59,7 +59,43 @@ all_abos|>
   filter(Abo == "foerderer", expiration > as.Date(paste0(Abrechungsjahr,"-12-31"))
   )
 
+library(readr)
+atelierkino_abo <- read_delim("Input/advance tickets/atelierkino_abo.txt", 
+                              delim = "\t", escape_double = FALSE, 
+                              col_types = cols(creation = col_date(format = "%Y-%m-%d"), 
+                                               first_use = col_date(format = "%Y-%m-%d"), 
+                                               last_use = col_date(format = "%Y-%m-%d"), 
+                                               expiration = col_date(format = "%Y-%m-%d"), 
+                                               count_use = col_integer()), trim_ws = TRUE)
 
+atelierkino_abo|>
+  filter(expiration > as.Date(paste0(Abrechungsjahr,"-12-31")))
+
+atelierkino_foerderer <- read_delim("Input/advance tickets/atelierkino_foerderer.txt", 
+                                    delim = "\t", escape_double = FALSE, 
+                                    col_types = cols(creation = col_date(format = "%Y-%m-%d"), 
+                                                     first_use = col_date(format = "%Y-%m-%d"), 
+                                                     last_use = col_date(format = "%Y-%m-%d"), 
+                                                     expiration = col_date(format = "%Y-%m-%d"), 
+                                                     count_use = col_integer()), trim_ws = TRUE)
+
+atelierkino_foerderer
+
+atelierkino_foerderer|>
+  filter(expiration > as.Date(paste0(Abrechungsjahr,"-12-31")))
+
+
+atelierkino_gutschein <- read_delim("Input/advance tickets/atelierkino_gutschein.txt", 
+                                    delim = "\t", escape_double = FALSE, 
+                                    col_types = cols(creation = col_date(format = "%Y-%m-%d"), 
+                                                     first_use = col_date(format = "%Y-%m-%d"), 
+                                                     last_use = col_date(format = "%Y-%m-%d"), 
+                                                     expiration = col_date(format = "%Y-%m-%d"), 
+                                                     amount = col_double(), count_use = col_integer()), 
+                                    trim_ws = TRUE)
+atelierkino_gutschein
+atelierkino_gutschein|>
+  filter(expiration > as.Date(paste0(Abrechungsjahr,"-12-31")))
 
 ######################################################################## 
 # files to read in 
