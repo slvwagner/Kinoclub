@@ -11,55 +11,6 @@ source("source/functions.R")
 # Read in all abos
 ######################################################################## 
 library(readr)
-all_abos <- read_delim("Input/advance tickets/all_abos.txt",
-                       delim = "\t", escape_double = FALSE,
-                       col_types = cols(Abo = col_factor(),
-                                        id = col_double(),
-                                        creation = col_date(format = "%Y-%m-%d"),
-                                        first_use = col_date(format = "%Y-%m-%d"),
-                                        last_use = col_date(format = "%Y-%m-%d"),
-                                        expiration = col_date(format = "%Y-%m-%d"),
-                                        amount = col_double(),
-                                        count_use = col_integer()),
-                       trim_ws = TRUE)
-
-all_abos$Abo|>
-  levels()
-
-all_abos|>
-  filter(Abo == "foerderer", creation == "2024-09-09")
-
-all_abos|>
-  filter(Abo == "foerderer", creation != "2024-09-09")
-
-all_abos|>
-  filter(Abo == "foerderer", count_use == 2)
-all_abos|>
-  filter(Abo == "foerderer", count_use == 1)
-all_abos|>
-  filter(Abo == "foerderer", count_use == 0)
-
-
-all_abos|>
-  filter(Abo == "abo")
-
-all_abos|>
-  filter(Abo == "abo", expiration > as.Date(paste0(Abrechungsjahr,"-12-31"))
-         )
-
-
-all_abos|>
-  filter(Abo == "foerderer")
-
-all_abos|>
-  filter(Abo == "foerderer", expiration < as.Date(paste0(Abrechungsjahr,"-12-31"))
-  )
-
-all_abos|>
-  filter(Abo == "foerderer", expiration > as.Date(paste0(Abrechungsjahr,"-12-31"))
-  )
-
-library(readr)
 atelierkino_abo <- read_delim("Input/advance tickets/atelierkino_abo.txt", 
                               delim = "\t", escape_double = FALSE, 
                               col_types = cols(creation = col_date(format = "%Y-%m-%d"), 
@@ -68,8 +19,6 @@ atelierkino_abo <- read_delim("Input/advance tickets/atelierkino_abo.txt",
                                                expiration = col_date(format = "%Y-%m-%d"), 
                                                count_use = col_integer()), trim_ws = TRUE)
 
-atelierkino_abo|>
-  filter(expiration > as.Date(paste0(Abrechungsjahr,"-12-31")))
 
 atelierkino_foerderer <- read_delim("Input/advance tickets/atelierkino_foerderer.txt", 
                                     delim = "\t", escape_double = FALSE, 
@@ -78,11 +27,6 @@ atelierkino_foerderer <- read_delim("Input/advance tickets/atelierkino_foerderer
                                                      last_use = col_date(format = "%Y-%m-%d"), 
                                                      expiration = col_date(format = "%Y-%m-%d"), 
                                                      count_use = col_integer()), trim_ws = TRUE)
-
-atelierkino_foerderer
-
-atelierkino_foerderer|>
-  filter(expiration > as.Date(paste0(Abrechungsjahr,"-12-31")))
 
 
 atelierkino_gutschein <- read_delim("Input/advance tickets/atelierkino_gutschein.txt", 
@@ -93,9 +37,6 @@ atelierkino_gutschein <- read_delim("Input/advance tickets/atelierkino_gutschein
                                                      expiration = col_date(format = "%Y-%m-%d"), 
                                                      amount = col_double(), count_use = col_integer()), 
                                     trim_ws = TRUE)
-atelierkino_gutschein
-atelierkino_gutschein|>
-  filter(expiration > as.Date(paste0(Abrechungsjahr,"-12-31")))
 
 ######################################################################## 
 # files to read in 

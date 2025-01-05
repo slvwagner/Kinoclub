@@ -42,7 +42,7 @@ sommerpause[, 2] |>
 sommerpause <- sommerpause[, 1] |> as.integer() # Tage
 
 # import Abrechnungsjahr <- from "Erstelle Abrechnung.R"
-c_raw[str_detect(c_raw, "Abrechnungsjahr <-")] |>
+c_raw[str_detect(c_raw, "Abrechungsjahr <-")] |>
   str_split("-", simplify = T) -> Abrechungsjahr
 Abrechungsjahr <- Abrechungsjahr[, 2] |>
   str_trim() |>
