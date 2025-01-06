@@ -1044,15 +1044,15 @@ server <- function(input, output, session) {
     file_exists(file.exists("output/webserver/index.html"))
   })
 
-  # ######################################
-  # # Überwachung Inhaltsverzeichniss
-  # ######################################
-  # shiny::observeEvent(input$Inhaltsverzeichnis, {
-  #   print(clc)
-  #   toc(input$Inhaltsverzeichnis)
-  #   print(TRUE)
-  #   file_exists(file.exists("output/webserver/index.html"))
-  # })
+  ######################################
+  # Überwachung Inhaltsverzeichniss
+  ######################################
+  shiny::observeEvent(input$Inhaltsverzeichnis, {
+    print(clc)
+    toc(input$Inhaltsverzeichnis)
+    print(toc())
+    file_exists(file.exists("output/webserver/index.html"))
+  })
 
   ######################################
   # Überwachung Ausgabeformat
