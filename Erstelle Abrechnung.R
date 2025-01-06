@@ -1,6 +1,6 @@
 #############################################################################################################################################
 # Bitte beachte das README.md und die Dokumentation im Verzeichniss ".../doc"
-# Diesen Script erstellt alle Berichte für den Kinoclub.
+# Diesen Script erstellt alle Berichte für den Kinoklub.
 # 
 # Autor: Florian Wagner
 # florian.wagner@wagnius.ch
@@ -172,7 +172,9 @@ if(dir.exists(c_path)){
 #############################################################################################################################################
 # Versionskontrolle
 #############################################################################################################################################
-if(!((list.files() == "version control.ini")|>sum() == 1)) { # ist kein versions kontrolle vorhanden?
+
+
+if(!file.exists("version control.ini")) { # ist kein versions kontrolle vorhanden?
   #versions kontrolle schreiben
   write(c_script_version, "version control.ini")
   
@@ -191,6 +193,9 @@ if(!((list.files() == "version control.ini")|>sum() == 1)) { # ist kein versions
   c_files <- list.files(c_path, pattern = "html", full.names = T)
   c_files
   file.remove(c_files)|>suppressWarnings()
+  
+  
+  
 }else{
   x <- read_file("version control.ini")|>
     str_remove("\r")|>
@@ -214,6 +219,9 @@ if(!((list.files() == "version control.ini")|>sum() == 1)) { # ist kein versions
     file.remove(c_files)|>suppressWarnings()
     #versions kontrolle schreiben
     write(c_script_version, "version control.ini")
+    
+    # Löschen aller Daten die mit einer anderen Version erstellt wurden
+    file.remove("environment.RData")
   }
 }
 
