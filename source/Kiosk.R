@@ -94,10 +94,10 @@ for (ii in 1:length(l_Kiosk)) {
     
     l_Kiosk[[ii]] <- bind_cols(Verkaufsartikel = l_Kiosk[[ii]][,1], x)
   }else if(c_lenght[ii] == 0){ # Keine Kioskverkäufe
-    l_Kiosk[[ii]] <- tibble(Verkaufsartikel = NA,
-                            Einzelpreis = NA,
-                            Anzahl = NA,
-                            Betrag = NA
+    l_Kiosk[[ii]] <- tibble(Verkaufsartikel = "Keine Kioskverkäufe",
+                            Einzelpreis = 0,
+                            Anzahl = 0,
+                            Betrag = 0
     )
   } else {
     stop(paste0("\nDie Datei: input/advance tickets/Kiosk ",names(l_Kiosk)[ii],".txt", 
@@ -112,7 +112,7 @@ df_Kiosk <- l_Kiosk|>
   mutate(Datum = dmy(Datum),
          Einzelpreis = if_else(is.na(Einzelpreis), Betrag / Anzahl, Einzelpreis),
          Betrag = if_else(Anzahl == 0, 0, Betrag))
-df_Kiosk
+
 
 #############################################################################################
 # Error handling

@@ -257,7 +257,8 @@ KioskEinnahmen <- df_Kiosk|>
   group_by(Verkaufsartikel, Verkaufspreis)|>
   reframe(Anzahl = sum(Anzahl),
           `Betrag [CHF]` = sum(Kassiert, na.rm = T))|>
-  arrange(desc(`Betrag [CHF]`))
+  arrange(desc(`Betrag [CHF]`))|>
+  filter(Verkaufsartikel != "Keine Kioskverkäufe")
 
 KioskEinnahmen|>
   knitr::kable()

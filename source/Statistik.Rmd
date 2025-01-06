@@ -685,7 +685,8 @@ df_temp <- df_Kiosk|>
           `Umsatz [CHF]` = sum(Kassiert),
           `Gewinn [CHF]` = sum(Gewinn)|>round(2)
           )|>
-  arrange(desc(Anzahl))
+  arrange(desc(Anzahl))|>
+  filter(Verkaufsartikel != "Keine Kioskverkäufe")
 
 ```
 
@@ -703,6 +704,7 @@ df_temp <- df_Kiosk|>
           `Umsatz [CHF]` = sum(Kassiert),
           `Gewinn [CHF]` = sum(Gewinn)
           )|>
+  filter(Verkaufsartikel != "Keine Kioskverkäufe")|>
   arrange((Anzahl))
 ```
 
