@@ -44,17 +44,16 @@ p2 <- or1(paste0("Spez"%R%SPC, 1:4))
 # Detect Überschuss Manko 
 p3 <- optional("-") %R% one_or_more(DGT) %R% optional(DOT)%R% one_or_more(DGT)
 
-
-
-ii <- 3
-
 l_extracted <- list()
+ii <- 19L
 for (ii in 1:length(l_raw)) {
   l_extracted[[ii]] <- list(Verkaufsartikel = tibble(Verkaufartikel_string = c(l_raw[[ii]][str_detect(l_raw[[ii]], p1)], ## Arikel erfasst in Kassasystem
                                                                                l_raw[[ii]][str_detect(l_raw[[ii]], p2)] ## Spez Arikel
-  )),
-  tibble(`Überschuss / Manko` = l_raw[[ii]][str_detect(l_raw[[ii]], "Manko")]|>str_extract(p3)|>as.numeric())
-  )
+                                                                               )
+                                                     ),
+                            tibble(`Überschuss / Manko` = l_raw[[ii]][str_detect(l_raw[[ii]], "Manko")]|>str_extract(p3)|>as.numeric())|>
+                              mutate(`Überschuss / Manko` = if_else(is.na(`Überschuss / Manko`),0, `Überschuss / Manko`))
+                            )
 }
 names(l_extracted) <- c_fileDate
 l_extracted
@@ -94,7 +93,13 @@ for (ii in 1:length(l_Kiosk)) {
     colnames(x) <- c("Einzelpreis", "Anzahl", "Betrag")
     
     l_Kiosk[[ii]] <- bind_cols(Verkaufsartikel = l_Kiosk[[ii]][,1], x)
-  }else {
+  }else if(c_lenght[ii] == 0){ # Keine Kioskverkäufe
+    l_Kiosk[[ii]] <- tibble(Verkaufsartikel = NA,
+                            Einzelpreis = NA,
+                            Anzahl = NA,
+                            Betrag = NA
+    )
+  } else {
     stop(paste0("\nDie Datei: input/advance tickets/Kiosk ",names(l_Kiosk)[ii],".txt", 
                 "\nhat hat ein anderes Format und ist noch nicht implementiert.\nBitte wenden dich an die Entwicklung"))
   }
