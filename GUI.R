@@ -816,7 +816,11 @@ server <- function(input, output, session) {
   ######################################
   shiny::observeEvent(input$DatenEinlesen, {
     print(clc)
-
+    paste0(
+      "Bericht:\nDaten wurden eingelesen:\n",
+      paste0(calculate_warnings, collapse = "\n")
+    ) |>
+      ausgabe_text()
     # Laden und Berechnen der Input-Daten, Warnings auffangen
     tryCatch(
       {
@@ -833,11 +837,7 @@ server <- function(input, output, session) {
         stop("Fehler beim Laden von 'source/calculate.R': ", e$message)
       }
     )
-    paste0(
-      "Bericht:\nDaten wurden eingelesen:\n",
-      paste0(calculate_warnings, collapse = "\n")
-    ) |>
-      ausgabe_text()
+
     rm(list = ls())
     load("environment.RData")
     datum_vektor <- df_show$Datum
