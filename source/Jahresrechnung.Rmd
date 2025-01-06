@@ -160,7 +160,7 @@ df_temp1|>
 df_temp <- df_Abrechnung|>
   reframe(`Umsatz` = sum(`Umsatz [CHF]`, na.rm = T),
           `SUISA-Vorabzug`= -sum(`SUISA-Vorabzug [CHF]`, na.rm = T),
-          Verleiherabzug = -df_temp2|>pull(),
+          `Verleiherabzug (noch keinen Rechnung erhalten)` = -df_temp2|>pull(),
           Verleiherrechnung = -df_temp1|>pull()
           )|>
   as.matrix()|>
@@ -329,10 +329,22 @@ df_temp <- df_manko_uerberschuss|>
   select(Datum, Filmtitel, `Überschuss / Manko`) |>
   rename(`Überschuss / Manko [CHF]` = `Überschuss / Manko`) |>
   arrange((Datum))|>
-  mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))
+  mutate(Datum_display = paste0(day(Datum),".",month(Datum),".",year(Datum)))
 
-df_temp|>
-  knitr::kable()
+df_temp <- df_temp|>
+  select(Datum, Datum_display, Filmtitel, `Überschuss / Manko [CHF]`)
+```
+
+```{r}
+DT::datatable(df_temp,
+          options = list(
+            columnDefs = list(
+              list(targets = 1, visible = FALSE),  # Hide the 'Datum' column
+              list(targets = 2, orderData = 0)    # Use the 'Datum' column for sorting 'Datum_display'
+            )
+          ),
+          colnames = c(Datum = "Datum_display")
+)
 ```
 
 
