@@ -403,7 +403,7 @@ df_temp <- df_Eintritt|>
 df_temp
 
 if(nrow(df_temp)>0) stop(paste0("\nFür den Film ",df_temp$Filmtitel, " am ", paste0(day(df_temp$Datum),".", month(df_temp$Datum),".", year(df_temp$Datum)),
-                                "\nwurde werder kein Minimal Abzug definiert.",
+                                "\nwurde werder ein Minimalabzug noch ein Fixabzug definiert.",
                                 "\nBitte korrigieren im File:",
                                 "\n.../Kinoklub/input/Verleiherabgaben.xlsx korrigieren.")
 )
