@@ -154,10 +154,6 @@ df_temp1|>
 ```
 
 
-
-
-
-
 #### Differenz
 
 ```{r}
@@ -174,7 +170,6 @@ colnames(df_temp) <- "Betrag [CHF]"
 df_temp|>
   knitr::kable()
 ```
-
 
 
 ```{r}
