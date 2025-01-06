@@ -32,6 +32,8 @@ c_script_version <- c_raw[c_raw |> str_detect("c_script_version <-")] |>
   unlist()
 c_script_version <- c_script_version[2]
 
+Abrechungsjahr <- c_script_version[1]
+
 # import sommerpause from "Erstelle Abrechnung.R"
 c_raw[str_detect(c_raw, "sommerpause")] |>
   str_split("=", simplify = T) -> sommerpause
@@ -41,13 +43,6 @@ sommerpause[, 2] |>
   str_split(SPC, simplify = T) -> sommerpause
 sommerpause <- sommerpause[, 1] |> as.integer() # Tage
 
-# import Abrechnungsjahr <- from "Erstelle Abrechnung.R"
-c_raw[str_detect(c_raw, "Abrechungsjahr <-")] |>
-  str_split("-", simplify = T) -> Abrechungsjahr
-Abrechungsjahr <- Abrechungsjahr[, 2] |>
-  str_trim() |>
-  as.integer()
-Abrechungsjahr
 
 # import c_MWSR from "Erstelle Abrechnung.R"
 c_raw[str_detect(c_raw, "c_MWST")] |>
