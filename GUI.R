@@ -832,18 +832,17 @@ server <- function(input, output, session) {
           },
           type = "message"
         )
-        paste0(
-          "Bericht:\nDaten wurden eingelesen:\n",
-          paste0(calculate_warnings, collapse = "\n")
-        ) |>
+        calculate_warnings |>
+          paste0(collapse = "\n") |>
           ausgabe_text()
       },
       error = function(e) {
-        stop("Fehler beim Laden von 'source/calculate.R': ", e$message)
+        e$message |>
+          paste0(collapse = "\n") |>
+          ausgabe_text()
       }
     )
 
-    rm(list = ls())
     load("environment.RData")
     datum_vektor <- df_show$Datum
     file_exists(file.exists("output/webserver/index.html"))
