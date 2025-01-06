@@ -370,19 +370,20 @@ Kiosk|>
 
 ## Kurzfristiges zinsloses Fremdkapital
 ### 6er Abos
-
 ```{r}
 df_temp <- atelierkino_abo|>
   filter(expiration > as.Date(paste0(Abrechungsjahr,"-12-31")))|>
   mutate(id = paste0("https://www.advance-ticket.ch/badge/", id))|>
   rename(url = id)|>
-  mutate(creation = paste0(day(creation),".", month(creation), ".", year(creation)),
-       first_use = paste0(day(first_use),".", month(first_use), ".", year(first_use)),
-       last_use = paste0(day(last_use),".", month(last_use), ".", year(last_use)),
-       expiration = paste0(day(expiration),".", month(expiration), ".", year(expiration))
-       )|>
-    mutate(url = paste0('<a href="', url, '" target="_blank">', url, '</a>'))|>
-  select(-first_use, -last_use)
+  mutate(
+    creation = paste0(day(creation),".", month(creation), ".", year(creation)),
+    first_use = paste0(day(first_use),".", month(first_use), ".", year(first_use)),
+    last_use = paste0(day(last_use),".", month(last_use), ".", year(last_use)),
+    expiration = paste0(day(expiration),".", month(expiration), ".", year(expiration))
+    )|>
+  mutate(url = paste0('<a href="', url, '" target="_blank">', url, '</a>'),
+         `Noch nicht eingelöster Betrag [CHF]` = (6 - count_use)*13)|>
+  mutate(`Anzahl Tickets` = 6-count_use)
 ```
 
 ```{r}
@@ -394,8 +395,7 @@ DT::datatable(df_temp,
 
 ```{r}
 df_6erAbos <- df_temp|>
-  mutate(`Noch nicht eingelöste Tickets [Anzahl]`= 6 - count_use)|>
-  reframe(`Noch nicht eingelöster Betrag [CHF]`= sum(`Noch nicht eingelöste Tickets [Anzahl]`)*13
+  reframe(`Noch nicht eingelöster Betrag [CHF]`= sum(`Noch nicht eingelöster Betrag [CHF]`)
          )
 
 df_6erAbos|>
@@ -474,9 +474,10 @@ df_foerderer|>
 
 ### Summe
 ```{r}
-df_temp <- bind_cols(
-  tibble(Bezeichnung = c("6er Abos", "Kinogutscheine", "Kinoförderer")),
-  bind_rows(df_6erAbos, df_gutschein, df_foerderer)
+df_temp <- 
+  bind_cols(
+    tibble(Bezeichnung = c("6er Abos", "Kinogutscheine", "Kinoförderer")),
+    bind_rows(df_6erAbos, df_gutschein, df_foerderer)
   )
 ```
 
