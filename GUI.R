@@ -832,6 +832,11 @@ server <- function(input, output, session) {
           },
           type = "message"
         )
+        paste0(
+          "Bericht:\nDaten wurden eingelesen:\n",
+          paste0(calculate_warnings, collapse = "\n")
+        ) |>
+          ausgabe_text()
       },
       error = function(e) {
         stop("Fehler beim Laden von 'source/calculate.R': ", e$message)
@@ -873,6 +878,7 @@ server <- function(input, output, session) {
             filter(between(Datum, start_datum, end_datum))
 
           AbrechnungErstellen(df_mapping__, df_Abrechnung)
+
           webserver()
         },
         error = function(e) {
@@ -883,7 +889,6 @@ server <- function(input, output, session) {
       ausgabe_text("Das Enddatum darf nicht vor dem Startdatum liegen.")
     }
     file_exists(file.exists("output/webserver/index.html"))
-    webserver()
   })
 
   ######################################
