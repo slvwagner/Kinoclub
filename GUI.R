@@ -871,7 +871,9 @@ server <- function(input, output, session) {
 
           df_mapping__ <- mapping(c_Date) |>
             filter(between(Datum, start_datum, end_datum))
+
           AbrechnungErstellen(df_mapping__, df_Abrechnung)
+          webserver()
         },
         error = function(e) {
           ausgabe_text(paste("Filmabrechnungen erstellen, Fehler beim Bericht erstellen:", e$message))
@@ -897,6 +899,7 @@ server <- function(input, output, session) {
     tryCatch(
       {
         StatistikErstellen()
+        webserver()
       },
       error = function(e) {
         ausgabe_text(paste("Statistik, Fehler beim Bericht erstellen:", e$message))
@@ -919,6 +922,7 @@ server <- function(input, output, session) {
     tryCatch(
       {
         JahresrechnungErstellen()
+        webserver()
       },
       error = function(e) {
         ausgabe_text(paste("Jahresrechnung, Fehler beim Bericht erstellen:", e$message))
