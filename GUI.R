@@ -333,11 +333,14 @@ webserver <- function() {
   c_url <- paste0("file:///", URLencode(paste0(getwd(), "/output/", m_Film$FileName)),
     sep = ""
   )
-  c_url
 
-  c_path <- paste0(getwd(), "/output/pict")
-  c_path
-  dir.create(c_path) |> suppressWarnings()
+  # find all picts
+  c_PictFiles <- list.files(path = "output/pict")|>str_remove(".png")
+  
+  # select pict with no assosiated file and delete
+  c_select <- !(c_PictFiles %in% m_Film$FileName)
+  paste0("output/pict/",c_PictFiles[c_select], ".png") |> 
+    file.remove()
 
   # Vorschaubilder erzeugen wenn noch nicht vorhanden
   ii <- 1
