@@ -13,8 +13,6 @@ c_script_version <- c_raw[c_raw |> str_detect("c_script_version <-")] |>
   unlist()
 c_script_version <- c_script_version[2]
 
-
-
 ######################################################################################
 c_raw <- readLines("doc/README.Rmd")
 
