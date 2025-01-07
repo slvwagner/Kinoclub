@@ -47,8 +47,6 @@ find_connected_source_ <- function(c_path, c_file){
                             c_file
                             ),
              checked = F)
-    df_index
-    
     return(df_index)
   }else{
     return(NULL)
