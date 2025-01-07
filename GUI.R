@@ -208,7 +208,7 @@ webserver <- function() {
   df_reports
   
   if(nrow(df_reports) == 0){
-    stop("\nNo Reports can be found")
+    stop("\nNo Reports can be found in .../output/")
   }
 
   # Abrechnungen suchen
@@ -581,7 +581,7 @@ webserver <- function() {
   # remove files
   file.remove("Site-Map.html")
 }
-webserver()
+# webserver()
 #######################################################
 # Erstellen der Abrechnung pro Filmvorführung
 #######################################################
@@ -870,13 +870,9 @@ server <- function(input, output, session) {
       tryCatch(
         {
           print(clc)
-          print("Erstelle Abrechnung")
-
           df_mapping__ <- mapping(c_Date) |>
             filter(between(Datum, start_datum, end_datum))
-
           AbrechnungErstellen(df_mapping__, df_Abrechnung)
-
           webserver()
         },
         error = function(e) {
