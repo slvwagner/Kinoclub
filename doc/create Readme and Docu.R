@@ -6,6 +6,16 @@
 library(tidyverse)
 
 ######################################################################################
+# Import c_script_version 
+c_raw <- readLines("Erstelle Abrechnung.R")
+c_script_version <- c_raw[c_raw |> str_detect("c_script_version <-")] |>
+  str_split(pattern = "\"") |>
+  unlist()
+c_script_version <- c_script_version[2]
+
+
+
+######################################################################################
 c_raw <- readLines("doc/README.Rmd")
 
 # Scrip Version einfügen 

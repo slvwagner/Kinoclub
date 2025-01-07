@@ -54,14 +54,14 @@ Eine Änderung muss deshalb in der Datei **"doc/README.Rmd"** vorgenommen werden
 7.  Install the needed packages in the R Terminal
 
 ```         
-    install.packages("rmarkdown")
-    install.packages("tidyverse")
-    install.packages("rebus")
-    install.packages("openxlsx")
-    install.packages("flextable")
-    install.packages("magick")
-    install.packages("webshot")
-    install.packages("xml2")
+# Define libraries to be installed
+packages <- c("rmarkdown", "rebus", "openxlsx", "tidyverse", "lubridate", "DT", "shiny", "shinyBS", "magick", "webshot")
+# Install packages not yet installed
+installed_packages <- packages %in% rownames(installed.packages())
+if (any(installed_packages == FALSE)) {
+  install.packages(packages[!installed_packages])
+  invisible(lapply(packages, library, character.only = TRUE))
+}
 ```
 
 7.  Run this command once in R-Terminal, error MSG can be ignored

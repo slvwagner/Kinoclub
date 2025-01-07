@@ -40,14 +40,14 @@ Eine Änderung muss deshalb in der Datei **"doc/README.Rmd"** vorgenommen werden
 7.  Install the needed packages in the R Terminal
 
 ```         
-    install.packages("rmarkdown")
-    install.packages("tidyverse")
-    install.packages("rebus")
-    install.packages("openxlsx")
-    install.packages("flextable")
-    install.packages("magick")
-    install.packages("webshot")
-    install.packages("xml2")
+# Define libraries to be installed
+packages <- c("rmarkdown", "rebus", "openxlsx", "tidyverse", "lubridate", "DT", "shiny", "shinyBS", "magick", "webshot")
+# Install packages not yet installed
+installed_packages <- packages %in% rownames(installed.packages())
+if (any(installed_packages == FALSE)) {
+  install.packages(packages[!installed_packages])
+  invisible(lapply(packages, library, character.only = TRUE))
+}
 ```
 
 7.  Run this command once in R-Terminal, error MSG can be ignored
@@ -301,7 +301,57 @@ Es wird eine Filmabrechnung pro Event (Datum) erstellt.
 -   Gewinn / Verlust\
     Summe aus Einnahmen und Ausgaben
 
+#### Berechnung der prozentuallen Abgaben 
 
+- Verleiherrechnung noch nicht vorhanden
+    -   Umsatz: \
+    Der Umsatz muss je nach Verleiher anders berechnet werden. Bei gewissen Verleihern müssen die Kinoförderer als Umsatz ausgewiesen werden obwohl kein Umsatz an der Kinokasse gemacht wurde.(Die Kinoförderer Tickets werden gegen einen Mitgliederbeitrag abgegeben und wurden demnach Verkauft.)
+    -   Suisa-Vorabzug: \
+    $U_{msatz}\cdot  \frac {s_{uisaVorabzugProzent}}{100}$
+    -   Netto3: \
+    $U_{msatz}-S_{uisa-Vorabzug}$
+    -   Verleiherabgaben: \
+    $N_{etto3} \cdot V_{erleiherabgabenProzent} > M_{indestGarantie} => N_{etto3} \cdot V_{erleiherabgabenProzent}$ \
+    $N_{etto3} \cdot V_{erleiherabgabenProzent} < M_{indestGarantie} => M_{indestGarantie}$
+    -   Mehrwertsteuer: \
+    $V_{erleiherabgaben}\cdot \frac{M_{WST}}{100}$
+    -   Gewinn / Verlust: \
+    $U_{msatzKinokasse} - (S_{uisa-Vorabzug} + V_{erleiherabgaben} + M_{WST})$ 
+    
+- Verleiherrechnung vorhanden
+    -   Umsatz: \
+    Der Umsatz muss je nach Verleiher anders berechnet werden. Bei gewissen Verleihern müssen die Kinoförderer als Umsatz ausgewiesen werden obwohl kein Umsatz an der Kinokasse gemacht wurde.(Die Kinoförderer Tickets werden gegen einen Mitgliederbeitrag abgegeben und wurden demnach Verkauft.)
+    -   Suisa-Vorabzug: \
+    $U_{msatz}\cdot  \frac {s_{uisaVorabzugProzent}}{100}$
+    -   Verleiherrechnung: \
+    Verleiherrechnungsbetrag inklusive Mehrwertsteuer \
+    $\frac {V_{erleiherrechnung}}{1+\frac{M_{WST}}{100}}\cdot\frac{M_{WST}}{100}$
+    -   Gewinn / Verlust: \
+    $U_{msatzKinokasse} - (S_{uisa-Vorabzug} + V_{erleiherrechnung})$ 
+
+#### Berechnung der Fixen Abgaben
+
+- Verleiherrechnung noch nicht vorhanden
+    -   Umsatz: \
+    Der Umsatz muss je nach Verleiher anders berechnet werden. Bei gewissen Verleihern müssen die Kinoförderer als Umsatz ausgewiesen werden obwohl kein Umsatz an der Kinokasse gemacht wurde.(Die Kinoförderer Tickets werden gegen einen Mitgliederbeitrag abgegeben und wurden demnach Verkauft.)
+    -   Suisa-Vorabzug: \
+    $U_{msatz}\cdot  \frac {s_{uisaVorabzugProzent}}{100}$
+    -   Verleiherabgaben \
+    -   Mehrwertsteuer: \
+    $V_{erleiherabgaben}\cdot \frac{M_{WST}}{100}$
+    -   Gewinn / Verlust: \
+    $U_{msatzKinokasse} - (S_{uisa-Vorabzug} + V_{erleiherabgaben} + M_{WST})$ 
+    
+- Verleiherrechnung vorhanden
+    -   Umsatz: \
+    Der Umsatz muss je nach Verleiher anders berechnet werden. Bei gewissen Verleihern müssen die Kinoförderer als Umsatz ausgewiesen werden obwohl kein Umsatz an der Kinokasse gemacht wurde.(Die Kinoförderer Tickets werden gegen einen Mitgliederbeitrag abgegeben und wurden demnach Verkauft.)
+    -   Suisa-Vorabzug: \
+    $U_{msatz}\cdot  \frac {s_{uisaVorabzugProzent}}{100}$
+    -   Verleiherrechnung: \
+    Verleiherrechnungsbetrag inklusive Mehrwertsteuer \
+    $\frac {V_{erleiherrechnung}}{1+\frac{M_{WST}}{100}}\cdot\frac{M_{WST}}{100}$
+    -   Gewinn / Verlust: \
+    $U_{msatzKinokasse} - (S_{uisa-Vorabzug} + V_{erleiherrechnung})$ 
 
 ### Jahresabrechnungen
 
