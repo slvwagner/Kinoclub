@@ -202,7 +202,7 @@ webserver <- function() {
   #######################################################
   # Find reports
   #######################################################
-  c_path <- "output/"
+  c_path <- paste0(getwd(),"output/")
 
   df_reports <- tibble(FileName = list.files(c_path, "html"))
   df_reports
@@ -344,7 +344,8 @@ webserver <- function() {
   }
   
   # Verzeichnis für Vorschaubilder erstellen
-  c_path <-paste0("output/pict/")
+  c_path <-paste0(getwd(),"/output/pict/")
+  c_path
   
   # Vorschaubilder erzeugen wenn noch nicht vorhanden
   ii <- 1
@@ -372,7 +373,10 @@ webserver <- function() {
       writeLines(".", sep = "")
     }
   }
-
+  
+  file.copy(list.files("output/",".png", full.names = T), paste0("output/pict/",list.files("output/",".png")))|>
+    suppressWarnings()
+  
   # Einlesen template der Verleiherabrechnung
   c_raw <- readLines("source/Site_Map.Rmd")
   c_raw
@@ -444,7 +448,7 @@ webserver <- function() {
   # Data for Webserver
   #######################################################
   # copy data from .../output to .../output/webserver
-  c_path <- "output/webserver"
+  c_path <- paste0(getwd(),"output/webserver")
 
   if (!dir.exists(c_path)) {
     dir.create(c_path)
@@ -570,7 +574,7 @@ webserver <- function() {
   }
 
   # copy data from .../output to .../output/webserver
-  c_path <- "output/webserver"
+  c_path <- paste0(getwd(),"output/webserver")
 
   # copy html
   paste0("output/", list.files("output/", pattern = "html", include.dirs = FALSE, recursive = FALSE)) |>
@@ -585,6 +589,9 @@ webserver <- function() {
 
   # remove files
   file.remove("Site-Map.html")
+  
+  file.remove(list.files("output/",".png", full.names = T))|>
+    suppressWarnings()
 }
 
 #webserver()
