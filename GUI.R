@@ -322,6 +322,8 @@ webserver <- function() {
   #######################################################
   # create site map
   #######################################################
+
+
   # Was für Berichte typen sind vorhanden
   c_typ_Berichte <- m_Film$FileName |>
     str_extract(START %R% one_or_more(WRD)) |>
@@ -333,29 +335,33 @@ webserver <- function() {
   c_url <- paste0("file:///", URLencode(paste0(getwd(), "/output/", m_Film$FileName)),
     sep = ""
   )
-
-  # find all picts
-  c_PictFiles <- list.files(path = "output/pict")|>str_remove(".png")
   
-  # select pict with no assosiated file and delete
-  c_select <- !(c_PictFiles %in% m_Film$FileName)
-  paste0("output/pict/",c_PictFiles[c_select], ".png") |> 
-    file.remove()
-
+  # Vorschaubilder löschen wenn keine Berichte dazu vorhanden sind
+  if(dir.exists(paste0(c_path, "/pict"))){
+    c_PictFiles <- list.files(path = paste0(c_path, "/pict"))|>str_remove(".png")
+    c_select <- !(c_PictFiles %in% m_Film$FileName)
+    
+    if(length(c_PictFiles[c_select]) > 0){
+      paste0(c_path, "pict/",c_PictFiles[c_select], ".png") |>
+        file.remove()
+    }
+  }else{
+    dir.create(paste0(c_path, "/pict"))
+  }
+  
   # Vorschaubilder erzeugen wenn noch nicht vorhanden
   ii <- 1
-  if (!(length(list.files("output/", "html")) == length(list.files("output/pict/")))) {
-    library(magick)
+  if (!(length(list.files(c_path, "html")) == length(list.files(paste0(c_path, "/pict"))))) {
     writeLines("Site-Map previews werden erstellt, einen Moment bitte: ")
 
-    c_select <- !((m_Film$FileName |> str_remove(".html")) %in% (list.files("output/pict/") |> str_remove(".html.png"))
+    c_select <- !(m_Film$FileName %in% (list.files("output/pict/") |> str_remove(".png"))
     )
     c_select
 
     ii <- 1
     for (ii in 1:length(m_Film$FileName[c_select])) {
       # Set the path to the input image
-      input_path <- paste0(c_path, "/", m_Film$FileName[c_select][ii], ".png")
+      input_path <- paste0(c_path, "pict/", m_Film$FileName[c_select][ii], ".png")
       input_path
 
       # create a webshot, printed html
@@ -584,7 +590,7 @@ webserver <- function() {
   # remove files
   file.remove("Site-Map.html")
 }
-# webserver()
+#webserver()
 #######################################################
 # Erstellen der Abrechnung pro Filmvorführung
 #######################################################
