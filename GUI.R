@@ -206,100 +206,119 @@ webserver <- function() {
 
   df_reports <- tibble(FileName = list.files(c_path, "html"))
   df_reports
+  
+  if(nrow(df_reports) == 0){
+    stop("\nNo Reports can be found")
+  }
 
+  # Abrechnungen suchen
   df_temp1 <- df_reports |>
-    filter(str_detect(FileName, "Abrechnung")) |>
-    pull() |>
-    lapply(function(x) {
-      doc <- read_html(paste0(c_path, x))
-      # Find elements to edit
-      element <- xml_find_first(doc, "body") |>
-        xml_find_first("div")
-      element
-
-      children <- xml_children(element)[3]
-      # Extract data
-      c_raw <- xml_text(children) |>
-        str_split("\n") |>
-        unlist() |>
-        str_remove("\r")
-      c_raw
-
-      # Create data to return
-      tibble(
-        `Suisa-Nummer` = c_raw[17],
-        Filmtitel = c_raw[14],
-        Datum = c_raw[11],
-        typ = "Abrechnung Filmvorführungen",
-        FileName = x
-      )
-    }) |>
-    bind_rows()
+    filter(str_detect(FileName, "Abrechnung")) 
+  
+  if(nrow(df_temp1) != 0){
+    df_temp1 <- df_temp1|>
+      pull() |>
+      lapply(function(x) {
+        doc <- read_html(paste0(c_path, x))
+        # Find elements to edit
+        element <- xml_find_first(doc, "body") |>
+          xml_find_first("div")
+        element
+  
+        children <- xml_children(element)[3]
+        # Extract data
+        c_raw <- xml_text(children) |>
+          str_split("\n") |>
+          unlist() |>
+          str_remove("\r")
+        c_raw
+  
+        # Create data to return
+        tibble(
+          `Suisa-Nummer` = c_raw[17],
+          Filmtitel = c_raw[14],
+          Datum = c_raw[11],
+          typ = "Abrechnung Filmvorführungen",
+          FileName = x
+        )
+      }) |>
+      bind_rows()
+  }
 
   df_temp1
 
+  # Verleiher suchen
   df_temp2 <- df_reports |>
-    filter(str_detect(FileName, "Verleiher")) |>
-    pull() |>
-    lapply(function(x) {
-      doc <- read_html(paste0(c_path, x))
-      # Find elements to edit
-      element <- xml_find_first(doc, "body") |>
-        xml_find_first("div")
-
-      # Find all children of the node
-      children <- xml_children(element)
-      children <- children[[5]] |>
-        xml_children()
-
-      # Extract data
-      c_raw <- xml_text(children[[2]])[1] |>
-        str_split("\n", simplify = T)
-
-      # Create data to return
-      tibble(
-        `Suisa-Nummer` = c_raw[, 7],
-        Filmtitel = c_raw[, 8],
-        Datum = c_raw[, 9],
-        FileName = x
+    filter(str_detect(FileName, "Verleiher")) 
+  
+  if(nrow(df_temp2) != 0){
+    df_temp2 <- df_temp2|>
+      pull() |>
+      lapply(function(x) {
+        doc <- read_html(paste0(c_path, x))
+        # Find elements to edit
+        element <- xml_find_first(doc, "body") |>
+          xml_find_first("div")
+  
+        # Find all children of the node
+        children <- xml_children(element)
+        children <- children[[5]] |>
+          xml_children()
+  
+        # Extract data
+        c_raw <- xml_text(children[[2]])[1] |>
+          str_split("\n", simplify = T)
+  
+        # Create data to return
+        tibble(
+          `Suisa-Nummer` = c_raw[, 7],
+          Filmtitel = c_raw[, 8],
+          Datum = c_raw[, 9],
+          FileName = x
+        )
+      }) |>
+      bind_rows() |>
+      mutate(
+        `Suisa-Nummer` = str_remove(`Suisa-Nummer`, "\r"),
+        Filmtitel = str_remove(Filmtitel, "\r"),
+        Datum = str_remove(Datum, "\r"),
+        typ = "Verleiherabrechnung",
       )
-    }) |>
-    bind_rows() |>
-    mutate(
-      `Suisa-Nummer` = str_remove(`Suisa-Nummer`, "\r"),
-      Filmtitel = str_remove(Filmtitel, "\r"),
-      Datum = str_remove(Datum, "\r"),
-      typ = "Verleiherabrechnung",
-    )
+  }
   df_temp1
   df_temp2
 
+  # create 
   m_Film <- bind_rows(
     df_temp2,
     df_temp1,
-    tibble(
-      `Suisa-Nummer` = NA,
-      Filmtitel = NA,
-      Datum = NA,
-      typ = "Statistik",
-      FileName = "Statistik.html"
-    ),
-    tibble(
-      `Suisa-Nummer` = NA,
-      Filmtitel = NA,
-      Datum = NA,
-      typ = "Jahresrechnung",
-      FileName = "Jahresrechnung.html"
-    )
+    if(file.exists("output/Statistik.html")){
+      tibble(
+        `Suisa-Nummer` = NA,
+        Filmtitel = NA,
+        Datum = NA,
+        typ = "Statistik",
+        FileName = "Statistik.html"
+      )
+    },
+    if(file.exists("output/Jahresrechnung.html")){
+      tibble(
+        `Suisa-Nummer` = NA,
+        Filmtitel = NA,
+        Datum = NA,
+        typ = "Jahresrechnung",
+        FileName = "Jahresrechnung.html"
+      )
+    },
   )
+  m_Film
+  
   m_Film <- m_Film |>
     mutate(Datum = dmy(Datum)) |>
     arrange(Datum) |>
     mutate(Datum = paste0(day(Datum), ".", month(Datum), ".", year(Datum)))
   m_Film
   
-  
-  print("found reports")
   #######################################################
   # create site map
   #######################################################
@@ -529,17 +548,6 @@ webserver <- function() {
   #######################################################
   # edit html
   #######################################################
-  # Package names
-  packages <- c("xml2")
-  # Install packages not yet installed
-  installed_packages <- packages %in% rownames(installed.packages())
-  if (any(installed_packages == FALSE)) {
-    install.packages(packages[!installed_packages])
-  }
-  # Packages loading
-  invisible(lapply(packages, library, character.only = TRUE))
-
-
   add_SiteMapLink <- function(file_path) {
     # load html file
     doc <- read_html(file_path)
@@ -573,7 +581,7 @@ webserver <- function() {
   # remove files
   file.remove("Site-Map.html")
 }
-
+webserver()
 #######################################################
 # Erstellen der Abrechnung pro Filmvorführung
 #######################################################
