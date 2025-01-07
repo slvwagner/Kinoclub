@@ -307,7 +307,9 @@ webserver <- function() {
     arrange(Datum) |>
     mutate(Datum = paste0(day(Datum), ".", month(Datum), ".", year(Datum)))
   m_Film
-
+  
+  
+  print("found reports")
   #######################################################
   # create site map
   #######################################################
@@ -748,8 +750,6 @@ toc <- shiny::reactiveVal(TRUE)
 # 7 = html, docx and pdf (Achtung für pdf install Latex for Windows (Miktex) for Mac (MacTex))
 c_render_option <- shiny::reactiveVal("1")
 
-
-
 # Vektor mit Datumseinträgen
 datum_vektor <- df_show$Datum
 
@@ -772,6 +772,12 @@ file_exists <- shiny::reactiveVal(file.exists("output/webserver/index.html"))
 shiny::addResourcePath("custom_styles", "source")
 
 # Map the URL path "custom" to the local directory "output/webserver"
+c_path <- "output/webserver"
+
+# Webserver root directory
+if(!dir.exists(c_path)) {
+  dir.create(c_path, recursive = TRUE)
+}
 shiny::addResourcePath("reports", "output/webserver")
 
 
