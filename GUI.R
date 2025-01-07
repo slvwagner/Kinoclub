@@ -25,26 +25,23 @@ source("source/functions.R")
 #############################################################################################################################################
 # Benutzereinstellungen importieren aus "Erstelle Abrechnung.R"
 #############################################################################################################################################
-# import script version from "Erstelle Abrechnung.R"
+# Import c_script_version and Abrechnungsjahr
 c_raw <- readLines("Erstelle Abrechnung.R")
 c_script_version <- c_raw[c_raw |> str_detect("c_script_version <-")] |>
   str_split(pattern = "\"") |>
   unlist()
 c_script_version <- c_script_version[2]
-
 Abrechungsjahr <- c_script_version[1]
 
-# import sommerpause from "Erstelle Abrechnung.R"
+# import sommerpause
 c_raw[str_detect(c_raw, "sommerpause")] |>
   str_split("=", simplify = T) -> sommerpause
-
 sommerpause[, 2] |>
   str_trim() |>
   str_split(SPC, simplify = T) -> sommerpause
 sommerpause <- sommerpause[, 1] |> as.integer() # Tage
 
-
-# import c_MWSR from "Erstelle Abrechnung.R"
+# import c_MWSR
 c_raw[str_detect(c_raw, "c_MWST")] |>
   str_split("=", simplify = T) -> c_MWST
 c_MWST <- str_extract(c_MWST, one_or_more(DGT) %R% DOT %R% optional(DGT)) |>
@@ -55,8 +52,6 @@ df_P_kat_verechnen <- tibble(
   Kinoförderer = c("Kinoförderer", "Kinofördererkarte"),
   Verkaufspreis = c(13, 13)
 )
-
-
 
 #############################################################################################################################################
 # Functions
