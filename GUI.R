@@ -9,14 +9,14 @@
 rm(list = ls())
 
 # Define libraries to be installed
-packages <- c("rmarkdown", "rebus", "openxlsx", "tidyverse", "lubridate", "DT", "shiny", "shinyBS", "magick", "webshot")
+packages <- c("rmarkdown", "rebus", "openxlsx", "tidyverse", "lubridate", "DT", "shiny", "shinyBS", "magick", "webshot","xml2")
 # Install packages not yet installed
 installed_packages <- packages %in% rownames(installed.packages())
 if (any(installed_packages == FALSE)) {
   install.packages(packages[!installed_packages])
 }
 # Packages loading
-packages <- c("rmarkdown", "rebus", "openxlsx", "tidyverse", "lubridate", "DT", "magick", "webshot")
+packages <- c("rmarkdown", "rebus", "openxlsx", "tidyverse", "lubridate", "DT", "magick", "webshot", "xml2")
 invisible(lapply(packages, library, character.only = TRUE))
 
 source("source/functions.R")
@@ -199,16 +199,6 @@ instert_picts <- function(raw_rmd, output_dir, index, fileNames, url) {
 # Create Site-Map and webserver data
 #######################################################
 webserver <- function() {
-  # Package names
-  packages <- c("xml2")
-  # Install packages not yet installed
-  installed_packages <- packages %in% rownames(installed.packages())
-  if (any(installed_packages == FALSE)) {
-    install.packages(packages[!installed_packages])
-  }
-  # Packages loading
-  invisible(lapply(packages, library, character.only = TRUE))
-
   #######################################################
   # Find reports
   #######################################################
