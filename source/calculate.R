@@ -333,9 +333,14 @@ df_Besucherzahlen <- df_Eintritt|>
   reframe(Besucher = sum(Anzahl))
 df_Besucherzahlen
 
+
+
 ########################################################################
 # write to Excel
 ########################################################################
+c_filePath <- "output/data/"
+if(!dir.exists(c_filePath)) dir.create(c_filePath, recursive = T )
+
 list(`Werbung` = df_Besucherzahlen,
      `Tickets` = df_Abrechnung_tickes,
      `Kiosk` = df_Abrechnung_kiosk,
@@ -364,11 +369,13 @@ remove(c_file,
        p,
        ii,
        df_temp,
-       l_keineRechnung)
+       l_keineRechnung,
+       c_filePath)
 
 ########################################################################
 # write data to file 
 ########################################################################
+calculate_warnings <- shiny::reactiveVal("") # This variable will be uses for the shiny GUI
 save.image(file = "environment.RData")
 
 ########################################################################
