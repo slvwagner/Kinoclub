@@ -199,12 +199,18 @@ instert_picts <- function(raw_rmd, output_dir, index, fileNames, url) {
 # Create Site-Map and webserver data
 #######################################################
 webserver <- function() {
+  
+  # Alle Dateien löschen
+  if(dir.exists("output/webserver")){
+    file.remove(list.files("output/webserver", full.names = TRUE))
+  }
+  
   #######################################################
   # Find reports
   #######################################################
-  c_path <- paste0(getwd(),"output/")
-
-  df_reports <- tibble(FileName = list.files(c_path, "html"))
+  c_filePath_ <- paste0("output/")
+  writeLines(c_filePath_)
+  df_reports <- tibble(FileName = list.files(c_filePath_, "html"))
   df_reports
   
   if(nrow(df_reports) == 0){
@@ -219,7 +225,7 @@ webserver <- function() {
     df_temp1 <- df_temp1|>
       pull() |>
       lapply(function(x) {
-        doc <- read_html(paste0(c_path, x))
+        doc <- read_html(paste0(c_filePath_, x))
         # Find elements to edit
         element <- xml_find_first(doc, "body") |>
           xml_find_first("div")
@@ -253,7 +259,7 @@ webserver <- function() {
     df_temp2 <- df_temp2|>
       pull() |>
       lapply(function(x) {
-        doc <- read_html(paste0(c_path, x))
+        doc <- read_html(paste0(c_filePath_, x))
         # Find elements to edit
         element <- xml_find_first(doc, "body") |>
           xml_find_first("div")
@@ -331,21 +337,21 @@ webserver <- function() {
   )
   
   # Vorschaubilder löschen wenn keine Berichte dazu vorhanden sind
-  if(dir.exists(paste0(c_path, "/pict"))){
-    c_PictFiles <- list.files(path = paste0(c_path, "/pict"))|>str_remove(".png")
+  if(dir.exists(paste0(c_filePath_, "pict"))){
+    c_PictFiles <- list.files(path = paste0(c_filePath_, "/pict"))|>str_remove(".png")
     c_select <- !(c_PictFiles %in% m_Film$FileName)
     
-    if(length(list.files(c_path, "html")) < length(list.files("output/pict"))){
-      paste0(c_path, "pict/",c_PictFiles[c_select], ".png") |>
+    if(length(list.files(c_filePath_, "html")) < length(list.files("output/pict"))){
+      paste0(c_filePath_, "pict/",c_PictFiles[c_select], ".png") |>
         file.remove()
     }
   }else{
-    dir.create(paste0(c_path, "/pict"))
+    dir.create(paste0(c_filePath_, "/pict"))
   }
   
   # Verzeichnis für Vorschaubilder erstellen
-  c_path <-paste0(getwd(),"/output/pict/")
-  c_path
+  c_filePath_ <-"output/pict/"
+  c_filePath_
   
   # Vorschaubilder erzeugen wenn noch nicht vorhanden
   ii <- 1
@@ -358,7 +364,7 @@ webserver <- function() {
     ii <- 1
     for (ii in 1:length(m_Film$FileName[c_select])) {
       # Set the path to the input image
-      input_path <- paste0(c_path, m_Film$FileName[c_select][ii], ".png")
+      input_path <- paste0(c_filePath_, m_Film$FileName[c_select][ii], ".png")
       input_path
 
       # create a webshot, printed html
@@ -374,15 +380,15 @@ webserver <- function() {
     }
   }
   
-  file.copy(list.files("output/",".png", full.names = T), paste0("output/pict/",list.files("output/",".png")))|>
+  file.copy(list.files("output",".png", full.names = T), paste0("output/pict/",list.files("output/",".png")))|>
     suppressWarnings()
-  
-  # Einlesen template der Verleiherabrechnung
-  c_raw <- readLines("source/Site_Map.Rmd")
-  c_raw
 
   ii <- 1
   for (ii in 1:length(c_typ_Berichte)) { # Für jeden Bericht typ muss ein Bilde und Link eingefügt werden
+    
+    # Einlesen template der Verleiherabrechnung
+    c_raw <- readLines("source/Site_Map.Rmd")
+    
     # Index where to insert
     c_index <- (1:length(c_raw))[c_raw |> str_detect(c_typ_Berichte[ii])]
     c_index <- c_index[length(c_index)]
@@ -448,18 +454,18 @@ webserver <- function() {
   # Data for Webserver
   #######################################################
   # copy data from .../output to .../output/webserver
-  c_path <- paste0(getwd(),"output/webserver")
+  c_filePath_ <- "output/webserver"
 
-  if (!dir.exists(c_path)) {
-    dir.create(c_path)
+  if (!dir.exists(c_filePath_)) {
+    dir.create(c_filePath_)
   }
-  if (!dir.exists(paste0(c_path, "/pict"))) {
-    dir.create(paste0(c_path, "/pict"))
+  if (!dir.exists("output/pict")) {
+    dir.create("/pict")
   }
 
   # copy png
   paste0(getwd(), "/output/pict/", list.files("output/pict/", pattern = "png", include.dirs = TRUE, recursive = FALSE)) |>
-    file.copy(paste0(c_path, "/pict"))
+    file.copy(paste0(c_filePath_, "/pict"))
 
 
   m_Film$FileName <- m_Film$FileName
@@ -552,7 +558,7 @@ webserver <- function() {
   # Remove file
   file.remove("output/webserver/index.Rmd")
   # Remove directory
-  unlink(paste0(c_path, "/pict"), recursive = TRUE)
+  unlink(paste0(c_filePath_, "/pict"), recursive = TRUE)
 
   #######################################################
   # edit html
@@ -574,11 +580,11 @@ webserver <- function() {
   }
 
   # copy data from .../output to .../output/webserver
-  c_path <- paste0(getwd(),"output/webserver")
+  c_filePath_ <- paste0(getwd(),"output/webserver")
 
   # copy html
   paste0("output/", list.files("output/", pattern = "html", include.dirs = FALSE, recursive = FALSE)) |>
-    file.copy(paste0(c_path, ""), overwrite = TRUE)
+    file.copy(paste0(c_filePath_, ""), overwrite = TRUE)
 
   c_files <- list.files("output/webserver/", pattern = "html" %R% END, include.dirs = FALSE, recursive = FALSE)
   c_files <- paste0("output/webserver/", c_files)
@@ -784,11 +790,9 @@ file_exists <- shiny::reactiveVal(file.exists("output/webserver/index.html"))
 shiny::addResourcePath("custom_styles", "source")
 
 # Map the URL path "custom" to the local directory "output/webserver"
-c_path <- "output/webserver"
-
 # Webserver root directory
-if(!dir.exists(c_path)) {
-  dir.create(c_path, recursive = TRUE)
+if(!dir.exists("output/webserver")) {
+  dir.create("output/webserver", recursive = TRUE)
 }
 shiny::addResourcePath("reports", "output/webserver")
 
@@ -1009,37 +1013,25 @@ server <- function(input, output, session) {
     tryCatch(
       {
         # erstellen von Verzeichnissen
-        #########
         dir.create("output/") |> suppressWarnings()
         dir.create("output/data/") |> suppressWarnings()
 
-        ####################
         # Daten einlesen und konvertieren
-        ####################
         source("source/calculate.R")
 
-        ####################
         # Statistik-Bericht erstellen
-        ####################
         StatistikErstellen()
         paste("Bericht: \nStatistik erstellt") |>
           writeLines()
 
-
-        ####################
         # Jahresrechnung-Bericht erstellen
-        ####################
         print(clc)
         JahresrechnungErstellen()
 
         paste("Bericht: \nJahresrechnung erstellt") |>
           writeLines()
 
-
-        ####################
         # Bericht(e) Abrechnung pro Filmforführung erstellen
-        ####################
-
         df_mapping__ <- mapping(c_Date)
         AbrechnungErstellen(df_mapping__, df_Abrechnung)
 
@@ -1048,9 +1040,7 @@ server <- function(input, output, session) {
         paste("Bericht: \nAlle Abrechnungen für Filmvorführungen wurden erstellt.") |>
           writeLines()
 
-        ####################
         # Create webserver data
-        ####################
         webserver()
       },
       error = function(e) {
