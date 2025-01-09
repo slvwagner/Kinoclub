@@ -209,10 +209,10 @@ webserver <- function() {
   # Packages loading
   invisible(lapply(packages, library, character.only = TRUE))
   
-  # # Alle Dateien löschen
-  # if(dir.exists("output/webserver")){
-  #   file.remove(list.files("output/webserver", full.names = TRUE))
-  # }
+  # Alle Dateien löschen
+  if(dir.exists("output/webserver")){
+    file.remove(list.files("output/webserver", full.names = TRUE))
+  }
 
   #######################################################
   # Find reports
