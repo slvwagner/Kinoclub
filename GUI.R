@@ -30,8 +30,12 @@ c_raw <- readLines("Erstelle Abrechnung.R")
 c_script_version <- c_raw[c_raw |> str_detect("c_script_version <-")] |>
   str_split(pattern = "\"") |>
   unlist()
+Abrechungsjahr <- c_script_version[2]|>
+  str_split(SPC)|>
+  unlist()
+Abrechungsjahr <- Abrechungsjahr[1]|>
+  as.integer()
 c_script_version <- c_script_version[2]
-Abrechungsjahr <- c_script_version[1]
 
 # import sommerpause
 c_raw[str_detect(c_raw, "sommerpause")] |>
@@ -876,23 +880,23 @@ server <- function(input, output, session) {
         
         ##############################################
         # Filmabrechnungen erstellen mit dateRange user input
-        tryCatch(
-          {
-            print(clc)
-            df_mapping__ <- mapping(c_Date) |>
-              filter(between(Datum, start_datum, end_datum))
-            AbrechnungErstellen(df_mapping__, df_Abrechnung)
-            webserver()
-          },
-          error = function(e) {
-            ausgabe_text(paste("Filmabrechnungen erstellen, Fehler beim Bericht erstellen:", e$message))
-          }
-        )
+        tryCatch({
+          print(clc)
+          df_mapping__ <- mapping(c_Date) |>
+            filter(between(Datum, start_datum, end_datum))
+          AbrechnungErstellen(df_mapping__, df_Abrechnung)
+          webserver()
+        }, error = function(e) {
+          ausgabe_text(paste(
+            "Filmabrechnungen erstellen, Fehler beim Bericht erstellen:",
+            e$message
+          ))
+        })
       } else {
         ausgabe_text("Das Enddatum darf nicht vor dem Startdatum liegen.")
       }
     } else{
-      ausgabe_text("Abrechnung kann nicht erstellt werden.\nKeine Daten vorhanden bitte neu einlesen!!!!")
+      ausgabe_text("Abrechnung kann nicht erstellt werden.\nKeine Daten vorhanden, bitte neu einlesen!!!!")
     }
     file_exists(file.exists("output/webserver/index.html"))
   })
@@ -908,15 +912,12 @@ server <- function(input, output, session) {
       paste0("\n", getwd(), "/output")
     ))
     if (file.exists("environment.RData")) {
-      tryCatch(
-        {
-          StatistikErstellen()
-          webserver()
-        },
-        error = function(e) {
-          ausgabe_text(paste("Statistik, Fehler beim Bericht erstellen:", e$message))
-        }
-      )
+      tryCatch({
+        StatistikErstellen()
+        webserver()
+      }, error = function(e) {
+        ausgabe_text(paste("Statistik, Fehler beim Bericht erstellen:", e$message))
+      })
     } else{
       ausgabe_text("Statistik kann nicht erstellte werden.\nKeine Daten vorhanden bitte neu einlesen!!!!")
     }
@@ -935,15 +936,12 @@ server <- function(input, output, session) {
     ) |>
       ausgabe_text()
     if (file.exists("environment.RData")) {
-      tryCatch(
-        {
-          JahresrechnungErstellen()
-          webserver()
-        },
-        error = function(e) {
-          ausgabe_text(paste("Jahresrechnung, Fehler beim Bericht erstellen:", e$message))
-        }
-      )
+      tryCatch({
+        JahresrechnungErstellen()
+        webserver()
+      }, error = function(e) {
+        ausgabe_text(paste("Jahresrechnung, Fehler beim Bericht erstellen:", e$message))
+      })
     }else{
       ausgabe_text("Jahresrechnung kann nicht erstellte werden.\nKeine Daten vorhanden bitte neu einlesen!!!!")
     }
