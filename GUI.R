@@ -734,20 +734,20 @@ if (file.exists("environment.RData")) {
   calculate_warnings <- ("Daten aus der letzen Session wurden geladen!\nFalls neue Datensätze vorhanden sind, bitte Dateien nochmals einlesen!")
 } else {
   # Daten berechnen und laden, Warnings für user interaction im GUI anzeigen
-  calculate_warnings <- capture.output(tryCatch(
-    {
-      # Warnings abfangen
-      capture.output(
-        {
-          source("source/calculate.R")
-        },
-        type = "message"
-      )
-    },
-    error = function(e) {
-      writeLines(paste0("Fehler beim Ausführen von 'source/calculate.R': ", e$message))
-    }
-  ))
+  calculate_warnings <- 
+    capture.output(
+      tryCatch(
+        { # Warnings abfangen
+          capture.output({
+            source("source/calculate.R")
+            },          
+            type = "message"
+            )},
+        error = function(e) {
+          writeLines(paste0("Fehler beim Ausführen von 'source/calculate.R': ", e$message))
+          }
+        )
+    )
   if (file.exists("environment.RData")) load("environment.RData")
 }
 
@@ -830,38 +830,28 @@ server <- function(input, output, session) {
   ######################################
   shiny::observeEvent(input$DatenEinlesen, {
     print(clc)
-    paste0(
-      "Bericht:\nDaten wurden eingelesen:\n"
-    ) |>
-      ausgabe_text()
-    if (file.exists("environment.RData")) {
-      load("environment.RData")
-      calculate_warnings("Daten aus der letzen Session wurden geladen!\nFalls neue Datensätze vorhanden sind, bitte Dateien nochmals einlesen!")
-    } else {
-      # Daten berechnen und laden, Warnings für user interaction im GUI anzeigen
-      tryCatch({
-        # Warnings abfangen
-        capture.output({
-          source("source/calculate.R")
-          }, type = "message")
-        }, error = function(e) {
-          calculate_warnings(paste0("Fehler beim Ausführen von 'source/calculate.R': ", e$message))}
-        )
-
-      if (file.exists("environment.RData")) load("environment.RData")
-    }
-    paste0(
-      "Bericht:\nDaten wurden eingelesen:\n",
-      paste0(calculate_warnings(), collapse = "\n")
-    ) |>
-      ausgabe_text()
-
+    ausgabe_text("Daten wurden eingelesen.\nBerichte können nun erstellte werden.")
+    
+    # Daten berechnen und laden, Warnings für user interaction im GUI anzeigen
+    tryCatch({
+      # Warnings abfangen
+      capture.output({
+        source("source/calculate.R")
+      }, type = "message")
+    }, error = function(e) {
+      calculate_warnings(paste0("Fehler beim Ausführen von 'source/calculate.R': ", e$message))
+    })
+      
     if (file.exists("environment.RData")) {
       load("environment.RData")
       datum_vektor <- df_show$Datum
-      file_exists(file.exists("output/webserver/index.html"))
       End_date_choose(Sys.Date() + ((max(datum_vektor) - Sys.Date()) |> as.integer()))
+      ausgabe_text("Data loaded")
+    } else {
+      calculate_warnings()|>
+        ausgabe_text()
     }
+    file_exists(file.exists("output/webserver/index.html"))
   })
 
   ######################################
@@ -870,36 +860,39 @@ server <- function(input, output, session) {
   shiny::observeEvent(input$Abrechnung, {
     
     ausgabe_text("")
-    
-    start_datum <- input$dateRange |> min()
-    end_datum <- input$dateRange |> max()
-
-    # Überprüfen, ob beide Daten gültig sind
-    if (start_datum <= end_datum) {
-      # Aktion ausführen
-      ausgabe_text(paste0(
-        "Die Filmabrechnungen für den Zeitraum \n",
-        format(start_datum, "%d.%m.%Y"), " bis ",
-        format(end_datum, "%d.%m.%Y"), " wurden erstellt",
-        paste0("\n", getwd(), "/output")
-      ))
-
-      ##############################################
-      # Filmabrechnungen erstellen mit dateRange user input
-      tryCatch(
-        {
-          print(clc)
-          df_mapping__ <- mapping(c_Date) |>
-            filter(between(Datum, start_datum, end_datum))
-          AbrechnungErstellen(df_mapping__, df_Abrechnung)
-          webserver()
-        },
-        error = function(e) {
-          ausgabe_text(paste("Filmabrechnungen erstellen, Fehler beim Bericht erstellen:", e$message))
-        }
-      )
-    } else {
-      ausgabe_text("Das Enddatum darf nicht vor dem Startdatum liegen.")
+    if (file.exists("environment.RData")) {
+      start_datum <- input$dateRange |> min()
+      end_datum <- input$dateRange |> max()
+      
+      # Überprüfen, ob beide Daten gültig sind
+      if (start_datum <= end_datum) {
+        # Aktion ausführen
+        ausgabe_text(paste0(
+          "Die Filmabrechnungen für den Zeitraum \n",
+          format(start_datum, "%d.%m.%Y"), " bis ",
+          format(end_datum, "%d.%m.%Y"), " wurden erstellt",
+          paste0("\n", getwd(), "/output")
+        ))
+        
+        ##############################################
+        # Filmabrechnungen erstellen mit dateRange user input
+        tryCatch(
+          {
+            print(clc)
+            df_mapping__ <- mapping(c_Date) |>
+              filter(between(Datum, start_datum, end_datum))
+            AbrechnungErstellen(df_mapping__, df_Abrechnung)
+            webserver()
+          },
+          error = function(e) {
+            ausgabe_text(paste("Filmabrechnungen erstellen, Fehler beim Bericht erstellen:", e$message))
+          }
+        )
+      } else {
+        ausgabe_text("Das Enddatum darf nicht vor dem Startdatum liegen.")
+      }
+    } else{
+      ausgabe_text("Abrechnung kann nicht erstellt werden.\nKeine Daten vorhanden bitte neu einlesen!!!!")
     }
     file_exists(file.exists("output/webserver/index.html"))
   })
@@ -914,15 +907,19 @@ server <- function(input, output, session) {
       "Bericht: \nStatistik erstellt",
       paste0("\n", getwd(), "/output")
     ))
-    tryCatch(
-      {
-        StatistikErstellen()
-        webserver()
-      },
-      error = function(e) {
-        ausgabe_text(paste("Statistik, Fehler beim Bericht erstellen:", e$message))
-      }
-    )
+    if (file.exists("environment.RData")) {
+      tryCatch(
+        {
+          StatistikErstellen()
+          webserver()
+        },
+        error = function(e) {
+          ausgabe_text(paste("Statistik, Fehler beim Bericht erstellen:", e$message))
+        }
+      )
+    } else{
+      ausgabe_text("Statistik kann nicht erstellte werden.\nKeine Daten vorhanden bitte neu einlesen!!!!")
+    }
     file_exists(file.exists("output/webserver/index.html"))
   })
 
@@ -937,15 +934,19 @@ server <- function(input, output, session) {
       paste0("\n", getwd(), "/output")
     ) |>
       ausgabe_text()
-    tryCatch(
-      {
-        JahresrechnungErstellen()
-        webserver()
-      },
-      error = function(e) {
-        ausgabe_text(paste("Jahresrechnung, Fehler beim Bericht erstellen:", e$message))
-      }
-    )
+    if (file.exists("environment.RData")) {
+      tryCatch(
+        {
+          JahresrechnungErstellen()
+          webserver()
+        },
+        error = function(e) {
+          ausgabe_text(paste("Jahresrechnung, Fehler beim Bericht erstellen:", e$message))
+        }
+      )
+    }else{
+      ausgabe_text("Jahresrechnung kann nicht erstellte werden.\nKeine Daten vorhanden bitte neu einlesen!!!!")
+    }
     file_exists(file.exists("output/webserver/index.html"))
   })
 
@@ -1146,16 +1147,16 @@ server <- function(input, output, session) {
   output$dateTable <- shiny::renderTable({
     
     if (file.exists("environment.RData")){
-          start_datum <- input$dateRange |> min()
-    end_datum <- input$dateRange |> max()
-
-    df_Abrechnung |>
-      filter(between(Datum, start_datum, end_datum)) |>
-      mutate(
-        Datum = format(Datum, "%d.%m.%Y"),
-        Zeit = format(Anfang, "%H%M")
-      ) |>
-      select(Datum, Zeit, Filmtitel, `Suisa Nummer`)
+      start_datum <- input$dateRange |> min()
+      end_datum <- input$dateRange |> max()
+  
+      df_Abrechnung |>
+        filter(between(Datum, start_datum, end_datum)) |>
+        mutate(
+          Datum = format(Datum, "%d.%m.%Y"),
+          Zeit = format(Anfang, "%H%M")
+        ) |>
+        select(Datum, Zeit, Filmtitel, `Suisa Nummer`)
     }
   })
 
