@@ -20,7 +20,7 @@ packages <- c("rmarkdown", "rebus", "openxlsx", "tidyverse", "lubridate", "DT", 
 invisible(lapply(packages, library, character.only = TRUE))
 
 source("source/functions.R")
-
+print(clc)
 
 #############################################################################################################################################
 # Benutzereinstellungen importieren aus "Erstelle Abrechnung.R"
@@ -734,7 +734,7 @@ if (file.exists("environment.RData")) {
   calculate_warnings <- ("Daten aus der letzen Session wurden geladen!\nFalls neue Datensätze vorhanden sind, bitte Dateien nochmals einlesen!")
 } else {
   # Daten berechnen und laden, Warnings für user interaction im GUI anzeigen
-  tryCatch(
+  calculate_warnings <- capture.output(tryCatch(
     {
       # Warnings abfangen
       capture.output(
@@ -745,11 +745,10 @@ if (file.exists("environment.RData")) {
       )
     },
     error = function(e) {
-      stop(paste0("Fehler beim Laden von 'source/calculate.R': ", e$message))
+      writeLines(paste0("Fehler beim Ausführen von 'source/calculate.R': ", e$message))
     }
-  )
-  load("environment.RData")
-  calculate_warnings <- "Daten wurden neu eingelesen"
+  ))
+  if (file.exists("environment.RData")) load("environment.RData")
 }
 
 # Sollen Inhaltsverzeichnisse erstellt werden
@@ -832,42 +831,46 @@ server <- function(input, output, session) {
   shiny::observeEvent(input$DatenEinlesen, {
     print(clc)
     paste0(
-      "Bericht:\nDaten wurden eingelesen:\n",
-      paste0(calculate_warnings, collapse = "\n")
+      "Bericht:\nDaten wurden eingelesen:\n"
     ) |>
       ausgabe_text()
-    # Laden und Berechnen der Input-Daten, Warnings auffangen
-    tryCatch(
-      {
+    if (file.exists("environment.RData")) {
+      load("environment.RData")
+      calculate_warnings("Daten aus der letzen Session wurden geladen!\nFalls neue Datensätze vorhanden sind, bitte Dateien nochmals einlesen!")
+    } else {
+      # Daten berechnen und laden, Warnings für user interaction im GUI anzeigen
+      tryCatch({
         # Warnings abfangen
-        calculate_warnings <- capture.output(
-          {
-            print(clc)
-            source("source/calculate.R")
-          },
-          type = "message"
+        capture.output({
+          source("source/calculate.R")
+          }, type = "message")
+        }, error = function(e) {
+          calculate_warnings(paste0("Fehler beim Ausführen von 'source/calculate.R': ", e$message))}
         )
-        calculate_warnings |>
-          paste0(collapse = "\n") |>
-          ausgabe_text()
-      },
-      error = function(e) {
-        e$message |>
-          paste0(collapse = "\n") |>
-          ausgabe_text()
-      }
-    )
 
-    load("environment.RData")
-    datum_vektor <- df_show$Datum
-    file_exists(file.exists("output/webserver/index.html"))
-    End_date_choose(Sys.Date() + ((max(datum_vektor) - Sys.Date()) |> as.integer()))
+      if (file.exists("environment.RData")) load("environment.RData")
+    }
+    paste0(
+      "Bericht:\nDaten wurden eingelesen:\n",
+      paste0(calculate_warnings(), collapse = "\n")
+    ) |>
+      ausgabe_text()
+
+    if (file.exists("environment.RData")) {
+      load("environment.RData")
+      datum_vektor <- df_show$Datum
+      file_exists(file.exists("output/webserver/index.html"))
+      End_date_choose(Sys.Date() + ((max(datum_vektor) - Sys.Date()) |> as.integer()))
+    }
   })
 
   ######################################
   # Überwachung Button Abrechnunge erstellen über Datum-Range
   ######################################
   shiny::observeEvent(input$Abrechnung, {
+    
+    ausgabe_text("")
+    
     start_datum <- input$dateRange |> min()
     end_datum <- input$dateRange |> max()
 
@@ -1008,41 +1011,40 @@ server <- function(input, output, session) {
     ) |>
       ausgabe_text()
 
-    tryCatch(
-      {
-        # erstellen von Verzeichnissen
-        dir.create("output/") |> suppressWarnings()
-        dir.create("output/data/") |> suppressWarnings()
+    tryCatch({
+      # erstellen von Verzeichnissen
+      dir.create("output/") |> suppressWarnings()
+      dir.create("output/data/") |> suppressWarnings()
 
-        # Daten einlesen und konvertieren
-        source("source/calculate.R")
+      # Daten einlesen und konvertieren
+      source("source/calculate.R")
 
-        # Statistik-Bericht erstellen
-        StatistikErstellen()
-        paste("Bericht: \nStatistik erstellt") |>
-          writeLines()
+      # Statistik-Bericht erstellen
+      StatistikErstellen()
+      paste("Bericht: \nStatistik erstellt") |>
+        writeLines()
 
-        # Jahresrechnung-Bericht erstellen
-        print(clc)
-        JahresrechnungErstellen()
+      # Jahresrechnung-Bericht erstellen
+      print(clc)
+      JahresrechnungErstellen()
 
-        paste("Bericht: \nJahresrechnung erstellt") |>
-          writeLines()
+      paste("Bericht: \nJahresrechnung erstellt") |>
+        writeLines()
 
-        # Bericht(e) Abrechnung pro Filmforführung erstellen
-        df_mapping__ <- mapping(c_Date)
-        AbrechnungErstellen(df_mapping__, df_Abrechnung)
+      # Bericht(e) Abrechnung pro Filmforführung erstellen
+      df_mapping__ <- mapping(c_Date)
+      AbrechnungErstellen(df_mapping__, df_Abrechnung)
 
-        print(clc)
+      print(clc)
 
-        paste("Bericht: \nAlle Abrechnungen für Filmvorführungen wurden erstellt.") |>
-          writeLines()
+      paste("Bericht: \nAlle Abrechnungen für Filmvorführungen wurden erstellt.") |>
+        writeLines()
 
-        # Create webserver data
-        webserver()
-      },
-      error = function(e) {
-        ausgabe_text(paste("Erstelle Abrechnung, Fehler beim Bericht erstellen:", e$message))
+      # Create webserver data
+      webserver()
+    },
+    error = function(e) {
+      ausgabe_text(paste("Erstelle Abrechnung, Fehler beim Bericht erstellen:", e$message))
       }
     )
     End_date_choose(Sys.Date() + ((max(datum_vektor) - Sys.Date()) |> as.integer()))
@@ -1142,7 +1144,9 @@ server <- function(input, output, session) {
   # Update table with all the dates in the selected range
   ######################################
   output$dateTable <- shiny::renderTable({
-    start_datum <- input$dateRange |> min()
+    
+    if (file.exists("environment.RData")){
+          start_datum <- input$dateRange |> min()
     end_datum <- input$dateRange |> max()
 
     df_Abrechnung |>
@@ -1152,6 +1156,7 @@ server <- function(input, output, session) {
         Zeit = format(Anfang, "%H%M")
       ) |>
       select(Datum, Zeit, Filmtitel, `Suisa Nummer`)
+    }
   })
 
   ######################################
