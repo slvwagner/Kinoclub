@@ -740,20 +740,20 @@ if (file.exists("environment.RData")) {
   # Daten berechnen und laden, Warnings für user interaction im GUI anzeigen
   calculate_warnings <- 
     capture.output(
-      tryCatch(
-        { # Warnings abfangen
-          capture.output({
-            source("source/calculate.R")
-            },          
-            type = "message"
-            )},
-        error = function(e) {
-          writeLines(paste0("Fehler beim Ausführen von 'source/calculate.R': ", e$message))
-          }
-        )
+      tryCatch({
+        # Warnings abfangen
+        capture.output({
+          source("source/calculate.R")
+        }, type = "message")
+      }, error = function(e) {
+        writeLines(paste0("Fehler beim Ausführen von 'source/calculate.R': ", e$message))
+      })
     )
   if (file.exists("environment.RData")) load("environment.RData")
 }
+# calculate_warnings  
+calculate_warnings <- calculate_warnings[!str_detect(calculate_warnings, "\r\r-\r/\r")]
+
 
 # Sollen Inhaltsverzeichnisse erstellt werden
 toc <- shiny::reactiveVal(TRUE)
