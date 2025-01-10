@@ -731,13 +731,13 @@ c_WD <- getwd()
 #############################################################################################################################################
 if (file.exists("environment.RData")) {
   load("environment.RData")
-  calculate_warnings <- "Daten aus der letzen Session wurden geladen!\nFalls neue Datensätze vorhanden sind, bitte Dateien nochmals einlesen!"
+  calculate_warnings <- ("Daten aus der letzen Session wurden geladen!\nFalls neue Datensätze vorhanden sind, bitte Dateien nochmals einlesen!")
 } else {
   # Daten berechnen und laden, Warnings für user interaction im GUI anzeigen
   tryCatch(
     {
       # Warnings abfangen
-      calculate_warnings <- capture.output(
+      capture.output(
         {
           source("source/calculate.R")
         },
@@ -745,7 +745,7 @@ if (file.exists("environment.RData")) {
       )
     },
     error = function(e) {
-      stop("Fehler beim Laden von 'source/calculate.R': ", e$message)
+      stop(paste0("Fehler beim Laden von 'source/calculate.R': ", e$message))
     }
   )
   load("environment.RData")
@@ -773,6 +773,8 @@ ausgabe_text <- paste0(calculate_warnings,
   collapse = "\n"
 ) |>
   shiny::reactiveVal()
+
+calculate_warnings <- shiny::reactiveVal(calculate_warnings)
 
 # Filmtabelle anzeigen
 df_Render <- shiny::reactiveVal(NULL)

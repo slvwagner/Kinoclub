@@ -375,7 +375,6 @@ remove(c_file,
 ########################################################################
 # write data to file 
 ########################################################################
-calculate_warnings <- shiny::reactiveVal("") # This variable will be uses for the shiny GUI
 save.image(file = "environment.RData")
 
 ########################################################################
