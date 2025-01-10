@@ -753,7 +753,7 @@ if (file.exists("environment.RData")) {
 }
 # calculate_warnings  
 calculate_warnings <- calculate_warnings[!str_detect(calculate_warnings, "\r\r-\r/\r")]
-
+calculate_warnings <- calculate_warnings[!str_detect(calculate_warnings, "character")]
 
 # Sollen Inhaltsverzeichnisse erstellt werden
 toc <- shiny::reactiveVal(TRUE)
