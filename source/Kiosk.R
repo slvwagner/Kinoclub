@@ -242,7 +242,7 @@ colnames(df_Mapping_Einkaufspreise) <- c_Einkaufslistendatum|>
 rownames(df_Mapping_Einkaufspreise) <- c_Date_Kiosk|>as.character()
 
 df_Mapping_Einkaufspreise <- df_Mapping_Einkaufspreise|>
-  apply(2, function(x)ifelse(x>=0, NA, x))|>
+  apply(2, function(x) ifelse(x >= 0, NA, x))|>
   apply(1, function(x){
     c_select <- max(x, na.rm = T)
     y <- x[c_select == x]
