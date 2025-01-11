@@ -53,6 +53,8 @@ df_temp2 <- df_Abrechnung|>
 
 if(nrow(df_temp2)>0){
   c_text_output <- "Für die diese Film(e) gibt es keinen Verleiherabrechnung. Die Abgaben and den Verleiher können sich deshalb noch ändern:"
+}else{
+  c_text_output <- ""
 }
 ```
 
