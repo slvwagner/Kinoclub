@@ -27,6 +27,8 @@
 # Vorbereiten / Installieren
 #############################################################################################################################################
 rm(list = ls())
+
+source("source/functions.R")
 c_script_version <- "2024 V1.15"
 
 # Define libraries to be installed
@@ -161,7 +163,7 @@ if(dir.exists(c_path)){
 }
 
 #########
-# löschen aller files im output folder
+# löschen aller files im output/data folder
 #########
 if(dir.exists(c_path)){
   c_files <- paste0(c_path,"/data",list.files(c_path))
@@ -229,12 +231,14 @@ if(!file.exists("version control.ini")) { # ist kein versions kontrolle vorhande
 #############################################################################################################################################
 # Filmvorschläge auswerten
 #############################################################################################################################################
-source("source/read_and_convert_wordPress.R")
+data_env <- new.env()
+source("source/read_and_convert_wordPress.R", local = data_env)
 
 #############################################################################################################################################
 # Daten einlesen und konvertieren
 #############################################################################################################################################
-source("source/calculate.R")
+data_env <- new.env()
+source("source/calculate.R", local = data_env)
 
 mapping <- function(c_Date) {
   #############################################################################################################################################
@@ -263,7 +267,7 @@ mapping <- function(c_Date) {
     arrange(index)
 }
 
-df_mapping <- mapping(c_Date)
+df_mapping <- mapping(data_env$c_Date)
 
 #############################################################################################################################################
 # Statistik-Bericht erstellen
@@ -285,7 +289,9 @@ if(toc){# neues file schreiben mit toc
 # Render
 rmarkdown::render(paste0("source/temp.Rmd"),
                   df_Render$Render,
-                  output_dir = paste0(getwd(), "/output"))
+                  output_dir = paste0(getwd(), "/output"),
+                  envir = data_env
+                  )
 
 # Rename the file
 for (jj in 1:length(df_Render$Render)) {
@@ -323,7 +329,8 @@ if(toc){# neues file schreiben mit toc
 # Render
 rmarkdown::render(paste0("source/temp.Rmd"),
                   df_Render$Render,
-                  output_dir = paste0(getwd(), "/output"))
+                  output_dir = paste0(getwd(), "/output"),
+                  envir = data_env)
 
 # Rename the file
 for (jj in 1:length(df_Render$Render)) {
@@ -357,8 +364,8 @@ for(ii in 1:nrow(df_mapping)){
   
   # Ändern des Templates Titel Filmname
   index <- (1:length(c_raw))[c_raw|>str_detect("Abrechnung Filmvorführung")]
-  c_temp1 <- df_Abrechnung|>
-    filter(Datum == df_Abrechnung$Datum[ii])|>
+  c_temp1 <- data_env$df_Abrechnung|>
+    filter(Datum == data_env$df_Abrechnung$Datum[ii])|>
     mutate(Anfang = paste0(lubridate::hour(Anfang),":", lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(SPC,"0")),
            Datum = paste0(day(Datum),".",month(Datum),".",year(Datum))
     )|>
@@ -386,13 +393,14 @@ for(ii in 1:nrow(df_mapping)){
       writeLines(paste0("source/temp.Rmd"))
   }
   
-  
   # Render
   rmarkdown::render(paste0("source/temp.Rmd"),
                     df_Render$Render,
-                    output_dir = paste0(getwd(), "/output"))
+                    output_dir = paste0(getwd(), "/output"),
+                    envir = data_env
+                    )
   
-  df_mapping <- mapping(c_Date)
+  df_mapping <- mapping(data_env$c_Date)
   
   # Rename the file
   for (jj in 1:length(df_Render$Render)) {
@@ -427,8 +435,9 @@ for(ii in 1:nrow(df_mapping)){
     rmarkdown::render(input = "Verleiherabrechnung.Rmd",
                       output_file = paste0("Verleiherabrechnung ", df_mapping$user_Datum[ii], df_Render$fileExt[jj]),
                       output_format = df_Render$Render,
-                      output_dir = paste0(getwd(), "/output"))
-    
+                      output_dir = paste0(getwd(), "/output"),
+                      envir = data_env
+                      )
     
     # user interaction
     print(clc)
@@ -438,12 +447,9 @@ for(ii in 1:nrow(df_mapping)){
     # remove file
     file.remove("Verleiherabrechnung.Rmd")
   }
-    
 }
   
 remove(c_raw, index,ii,jj)
-
-
 print(clc)
 
 paste("Bericht: \nAlle Abrechnungen für Filmvorführungen wurden erstellt.")|>
@@ -509,11 +515,6 @@ if(c_raw[c_index+1] != c_script_version){
 #############################################################################################################################################
 list.files(pattern = "temp", recursive = TRUE)|>
   file.remove()
-
-# remove(c_Datum, c_suisa, c_verleiherabgaben, c_run_single, c_Verleiher_garantie )
-# remove(df_temp, df_Render, df_mapping, Brutto,
-#        c_temp, c_temp1
-# )
 
 #############################################################################################################################################
 # User Interaktion
