@@ -81,41 +81,36 @@ mapping <- function(c_Datum) {
       `Kinoförderer gratis?` = NULL
     ) |>
     arrange(index)
+  return(df_mapping)
 }
 
 ###############################################
 # Statistik-Bericht erstellen
 ###############################################
 StatistikErstellen <- function() {
-  print(clc)
   # Einlesen
   c_raw <- readLines("source/Statistik.Rmd")
-  c_raw
   
   # Inhaltsverzeichnis
-  if (TRUE) { # neues file schreiben mit toc
-    c_raw |>
-      r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis") |>
+  if(toc()|>as.logical()){# neues file schreiben mit toc
+    c_raw|>
+      r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis")|>
       writeLines(paste0("source/temp.Rmd"))
-  } else { # neues file schreiben ohne toc
-    c_raw |>
+  }else {# neues file schreiben ohne toc
+    c_raw|>
       writeLines(paste0("source/temp.Rmd"))
   }
   
   # Render
-  rmarkdown::render(paste0("source/temp.Rmd"),
-                    df_Render()$Render,
+  rmarkdown::render(input = paste0("source/temp.Rmd"),
+                    output_format  = df_Render$Render,
+                    output_file = paste0("Statistik",df_Render$fileExt),
                     output_dir = paste0(getwd(), "/output"),
                     envir = data_env
   )
   
-  # Rename the file
-  for (jj in 1:length(df_Render()$Render)) {
-    file.rename(
-      from = paste0(getwd(), "/output/temp", df_Render()$fileExt[jj]),
-      to = paste0(getwd(), "/output/", "Statistik", df_Render()$fileExt[jj])
-    )
-  }
+  paste("Bericht: \nStatistik erstellt")|>
+    writeLines()
 }
 
 ###############################################
@@ -124,32 +119,27 @@ StatistikErstellen <- function() {
 JahresrechnungErstellen <- function() {
   # Einlesen
   c_raw <- readLines("source/Jahresrechnung.Rmd")
-  c_raw
   
   # Inhaltsverzeichnis
-  if (TRUE) { # neues file schreiben mit toc
-    c_raw |>
-      r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis") |>
+  if(toc()|>as.logical()){# neues file schreiben mit toc
+    c_raw|>
+      r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis")|>
       writeLines(paste0("source/temp.Rmd"))
-  } else { # neues file schreiben ohne toc
-    c_raw |>
+  }else {# neues file schreiben ohne toc
+    c_raw|>
       writeLines(paste0("source/temp.Rmd"))
   }
   
   # Render
-  rmarkdown::render(paste0("source/temp.Rmd"),
-                    df_Render()$Render,
+  rmarkdown::render(input = paste0("source/temp.Rmd"),
+                    output_format = df_Render$Render,
+                    output_file = paste0("Jahresrechnung",df_Render$fileExt),
                     output_dir = paste0(getwd(), "/output"),
                     envir = data_env
   )
   
-  # Rename the file
-  for (jj in 1:length(df_Render()$Render)) {
-    file.rename(
-      from = paste0(getwd(), "/output/temp", df_Render()$fileExt[jj]),
-      to = paste0(getwd(), "/output/", "Jahresrechnung", df_Render()$fileExt[jj])
-    )
-  }
+  paste("Bericht: \nJahresrechnung erstellt")|>
+    writeLines()
 }
 
 #######################################################
