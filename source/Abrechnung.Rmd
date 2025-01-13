@@ -62,11 +62,14 @@ df_temp|>
 ```
 
 ```{r echo=FALSE}
-df_temp <- df_keine_Rechnnung|>
-  filter(Datum == c_Date[ii])
-
-if(nrow(df_temp) > 0) {
-  writeLines("Achtung es gibt noch keine Verleiherabrechnung für diesen Film. Deshalb fehlen die Reklame- und Portokosten.\nDer Gewinn kann sich deshalb noch ändern.")
+if(!is.null(data_env$df_keine_Rechnung)) {
+  df_temp <- df_keine_Rechnnung |>
+    filter(Datum == c_Date[ii])
+  if (nrow(df_temp) > 0) {
+    writeLines(
+      "Achtung es gibt noch keine Verleiherabrechnung für diesen Film. Deshalb fehlen die Reklame- und Portokosten.\nDer Gewinn kann sich deshalb noch ändern."
+    )
+  }
 }
 
 ```
@@ -125,21 +128,33 @@ df_temp|>
 
 Für jeden gezeigten Film sind verschiedenen Abgaben und Gebühren zu entrichten. Es müssen verschieden Scenarien unterschieden werden. 
 
-```{r echo=FALSE}
-df_temp <- df_keine_Rechnnung|>
-  filter(Datum == c_Date[ii])
 
-if(nrow(df_temp) > 0) {
-  writeLines("Achtung es gibt noch keine Verleiherabrechnung für diesen Film.")
-}else{
-  df_temp <-df_Abrechnung |>
-    filter(Datum %in% c(c_Date[ii]))
-  
-  if(!is.na(df_temp$`Link Datum`)){
-    paste("Dieser Film wird zusammen mit diesem Datum", 
-        paste0(lubridate::day(df_temp$`Link Datum`),".",lubridate::month(df_temp$`Link Datum`),".",lubridate::year(df_temp$`Link Datum`)), 
-        "abgerechnet.")|>
-    writeLines()  
+```{r echo=FALSE}
+
+if(!is.null(data_env$df_keine_Rechnung)) {
+  df_temp <- df_keine_Rechnnung |>
+    filter(Datum == c_Date[ii])
+
+  if (nrow(df_temp) > 0) {
+    writeLines("Achtung es gibt noch keine Verleiherabrechnung für diesen Film.")
+  } else{
+    df_temp <- df_Abrechnung |>
+      filter(Datum %in% c(c_Date[ii]))
+
+    if (!is.na(df_temp$`Link Datum`)) {
+      paste(
+        "Dieser Film wird zusammen mit diesem Datum",
+        paste0(
+          lubridate::day(df_temp$`Link Datum`),
+          ".",
+          lubridate::month(df_temp$`Link Datum`),
+          ".",
+          lubridate::year(df_temp$`Link Datum`)
+        ),
+        "abgerechnet."
+      ) |>
+        writeLines()
+    }
   }
 }
 ```
