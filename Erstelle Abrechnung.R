@@ -272,6 +272,9 @@ df_mapping <- mapping(data_env$c_Date)
 # Statistik-Bericht erstellen
 #############################################################################################################################################
 print(clc)
+paste("Bericht: \nStatistik erstellen!")|>
+  writeLines()
+
 # Einlesen
 c_raw <- readLines("source/Statistik.Rmd")
 
@@ -300,6 +303,8 @@ paste("Bericht: \nStatistik erstellt")|>
 # Jahresrechnung-Bericht erstellen
 #############################################################################################################################################
 print(clc)
+paste("Bericht: \nJahresrechnung erstellen!")|>
+  writeLines()
 # Einlesen
 c_raw <- readLines("source/Jahresrechnung.Rmd")
 
@@ -324,10 +329,12 @@ rmarkdown::render(input = paste0("source/temp.Rmd"),
 paste("Bericht: \nJahresrechnung erstellt")|>
   writeLines()
 
-ls(envir = data_env)
 #############################################################################################################################################
 # Bericht(e) Abrechnung pro Filmforführung erstellen
 #############################################################################################################################################
+print(clc)
+paste("Bericht:\nJahresrechnung erstellt")|>
+  writeLines()
 ii <- 1
 for(ii in 1:nrow(df_mapping)){
   # Einlesen template der Abrechnung
