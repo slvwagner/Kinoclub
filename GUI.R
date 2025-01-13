@@ -21,34 +21,6 @@ invisible(lapply(packages, library, character.only = TRUE))
 remove(packages, installed_packages)
 
 #############################################################################################################################################
-# load existing data or run "calculate.R"
-#############################################################################################################################################
-# Envirnoment for Data read in
-data_env <- new.env()
-  
-if (file.exists("environment.RData")) {
-  load("environment.RData", envir = data_env)
-  calculate_warnings <- ("Daten aus der letzen Session wurden geladen!\nFalls neue Datensätze vorhanden sind, bitte Dateien nochmals einlesen!")
-} else {
-  # Daten berechnen und laden, Warnings für user interaction im GUI anzeigen
-  tryCatch({
-    # Warnings abfangen
-    calculate_warnings <- capture.output({
-      source("source/calculate.R", local =  data_env)
-    }, type = "message")
-  }, error = function(e) {
-    writeLines(paste0("Fehler beim Ausführen von 'source/calculate.R': ", e$message))
-  })
-  if(file.exists("environment.RData")){
-    load("environment.RData", envir = data_env)
-  }else{
-    stop("Das Dateneinlesen war nicht erfolgreich:\ncalculate.R")
-  }
-  calculate_warnings <- calculate_warnings[!str_detect(calculate_warnings, "\r\r-\r/\r")]
-}
-calculate_warnings
-
-#############################################################################################################################################
 # Functions
 #############################################################################################################################################
 
@@ -580,8 +552,6 @@ webserver <- function() {
   
 }
 
-#webserver()
-
 #######################################################
 # Erstellen der Abrechnung pro Filmvorführung
 #######################################################
@@ -732,7 +702,7 @@ sommerpause[, 2] |>
   str_split(SPC, simplify = T) -> sommerpause
 sommerpause <- sommerpause[, 1] |> as.integer() # Tage
 
-# import c_MWSR
+# import c_MWST
 c_raw[str_detect(c_raw, "c_MWST")] |>
   str_split("=", simplify = T) -> c_MWST
 c_MWST <- str_extract(c_MWST, one_or_more(DGT) %R% DOT %R% optional(DGT)) |>
@@ -747,7 +717,26 @@ df_P_kat_verechnen <- tibble(
 #############################################################################################################################################
 # Shiny reactive variables
 #############################################################################################################################################
+# Envirnoment for Data read in
+calculate_warnings <- ""
+ausgabe_text <- ""
+data_env <- new.env()
 
+# Daten berechnen und laden, Warnings für user interaction im GUI anzeigen
+tryCatch({
+  # Warnings abfangen
+  calculate_warnings <- capture.output({
+    source("source/calculate.R", local =  data_env)
+  }, type = "message")
+}, error = function(e) {
+  ausgabe_text <- paste0("Fehler beim Ausführen von 'source/calculate.R': ", e$message)
+})
+
+ausgabe_text
+calculate_warnings
+
+calculate_warnings <- calculate_warnings[!str_detect(calculate_warnings, "\r\r-\r/\r")]
+calculate_warnings
 # Sollen Inhaltsverzeichnisse erstellt werden
 toc <- shiny::reactiveVal(TRUE)
 
@@ -773,7 +762,8 @@ if(exists("df_show",envir = data_env))  {
 }
 
 # Variable, um Status zu speichern
-ausgabe_text <- paste0(calculate_warnings,
+ausgabe_text <- paste0(
+  calculate_warnings, ausgabe_text,
   collapse = "\n"
 ) |>
   shiny::reactiveVal()
