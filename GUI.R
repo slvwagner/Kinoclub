@@ -62,7 +62,6 @@ mapping <- function(c_Datum) {
 StatistikErstellen <- function() {
   # Einlesen
   c_raw <- readLines("source/Statistik.Rmd")
-  
   # Inhaltsverzeichnis
   if(toc()|>as.logical()){# neues file schreiben mit toc
     c_raw|>
@@ -72,7 +71,6 @@ StatistikErstellen <- function() {
     c_raw|>
       writeLines(paste0("source/temp.Rmd"))
   }
-  
   # Render
   rmarkdown::render(input = paste0("source/temp.Rmd"),
                     output_format  = df_Render$Render,
@@ -80,7 +78,6 @@ StatistikErstellen <- function() {
                     output_dir = paste0(getwd(), "/output"),
                     envir = data_env
   )
-  
   paste("Bericht: \nStatistik erstellt")|>
     writeLines()
 }
@@ -91,7 +88,6 @@ StatistikErstellen <- function() {
 JahresrechnungErstellen <- function() {
   # Einlesen
   c_raw <- readLines("source/Jahresrechnung.Rmd")
-  
   # Inhaltsverzeichnis
   if(toc()|>as.logical()){# neues file schreiben mit toc
     c_raw|>
@@ -101,7 +97,6 @@ JahresrechnungErstellen <- function() {
     c_raw|>
       writeLines(paste0("source/temp.Rmd"))
   }
-  
   # Render
   rmarkdown::render(input = paste0("source/temp.Rmd"),
                     output_format = df_Render$Render,
@@ -109,7 +104,6 @@ JahresrechnungErstellen <- function() {
                     output_dir = paste0(getwd(), "/output"),
                     envir = data_env
   )
-  
   paste("Bericht: \nJahresrechnung erstellt")|>
     writeLines()
 }
@@ -724,30 +718,22 @@ data_env <- new.env()
 
 # Daten berechnen und laden, Warnings für user interaction im GUI anzeigen
 tryCatch({
-  # Warnings abfangen
+  # Fehler abfangen
   calculate_warnings <- capture.output({
-    source("source/calculate.R", local =  data_env)
+    source("source/calculate.R", local = data_env)
   }, type = "message")
 }, error = function(e) {
   ausgabe_text <- paste0("Fehler beim Ausführen von 'source/calculate.R': ", e$message)
+  stop("Fehler beim Ausführen von 'source/calculate.R': ", e$message)
 })
 
-ausgabe_text
-calculate_warnings
+df_mapping__ <- mapping(data_env$c_Date)|>
+    shiny::reactiveVal()
 
-calculate_warnings <- calculate_warnings[!str_detect(calculate_warnings, "\r\r-\r/\r")]
-calculate_warnings
 # Sollen Inhaltsverzeichnisse erstellt werden
 toc <- shiny::reactiveVal(TRUE)
 
 # Ausgabeformate
-# 1 = only html
-# 2 = only docx
-# 3 = only pdf (Achtung für pdf install Latex for Windows (Miktex) for Mac (MacTex))
-# 4 = html and docx
-# 5 = html and pdf (Achtung für pdf install Latex for Windows (Miktex) for Mac (MacTex))
-# 6 = docx and pdf (Achtung für pdf install Latex for Windows (Miktex) for Mac (MacTex))
-# 7 = html, docx and pdf (Achtung für pdf install Latex for Windows (Miktex) for Mac (MacTex))
 c_render_option <- shiny::reactiveVal("1")
 
 # Vektor mit Datumseinträgen
@@ -763,6 +749,7 @@ if(exists("df_show",envir = data_env))  {
 
 # Variable, um Status zu speichern
 ausgabe_text <- paste0(
+  "Daten wurden eingelesen.",
   calculate_warnings, ausgabe_text,
   collapse = "\n"
 ) |>
@@ -788,10 +775,6 @@ if(!dir.exists("output/webserver")) {
   dir.create("output/webserver", recursive = TRUE)
 }
 shiny::addResourcePath("reports", "output/webserver")
-
-
-# # Create reactive envirnonment
-# df_Abrechnung <- shiny::reactiveVal(get("df_Abrechnung", envir = data_env))
 
 
 #############################################################################################################################################
@@ -824,33 +807,30 @@ server <- function(input, output, session) {
   # Überwachung Button Daten Einlesen
   shiny::observeEvent(input$DatenEinlesen, {
     print(clc)
-    ausgabe_text("Daten wurden eingelesen.\nBerichte können nun erstellte werden.")
+    ausgabe_text("")
     # Daten berechnen und laden, Warnings für user interaction im GUI anzeigen
     tryCatch({
       # Warnings abfangen
       capture.output({
         source("source/calculate.R", local =  data_env)
-      }, type = "message")
-    }, error = function(e) {
-      ausgabe_text(paste0("Fehler beim Ausführen von 'source/calculate.R': ", e$message))
-    })
-      
-    if (!file.exists("environment.RData")) {
-      datum_vektor <- seq(
-        as.Date(paste0(Abrechungsjahr,"-01-01")),
-        as.Date(paste0(Abrechungsjahr,"-12-31")),
-        by = "day"
-        )
-      End_date_choose(Sys.Date() + ((max(datum_vektor) - Sys.Date()) |> as.integer()))
-      ausgabe_text("Alle Dateien eingelesen")
-    } 
+      }, type = "message")|>
+        calculate_warnings()
+      }, error = function(e) {
+        paste0("Fehler beim Ausführen von 'source/calculate.R': ", e$message)|>
+          ausgabe_text()
+      })
+    paste0(calculate_warnings(), 
+           collapse = "\n"
+           )|>
+      paste0(ausgabe_text())|>
+      ausgabe_text()
     file_exists(file.exists("output/webserver/index.html"))
   })
 
   # Überwachung Button Abrechnunge erstellen über Datum-Range
   shiny::observeEvent(input$Abrechnung, {
     ausgabe_text("")
-    if (file.exists("environment.RData")) {
+    if (TRUE) {
       start_datum <- input$dateRange |> min()
       end_datum <- input$dateRange |> max()
       
@@ -867,10 +847,9 @@ server <- function(input, output, session) {
         ##############################################
         # Filmabrechnungen erstellen mit dateRange user input
         tryCatch({
-          print(clc)
-          if(!exists("df_Abrechnung", envir = data_env, inherits = FALSE)) stop("df_Abrechnung nicht gefunden")
-          df_mapping__ <- mapping(data_env$c_Date) |>
-            filter(between(Datum, start_datum, end_datum))
+          mapping(data_env()$c_Date) |>
+            filter(between(Datum, start_datum, end_datum))|>
+            df_mapping__()
           AbrechnungErstellen(df_mapping__, get("df_Abrechnung", envir = data_env))
           webserver()
         }, error = function(e) {
