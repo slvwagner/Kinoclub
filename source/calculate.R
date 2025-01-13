@@ -494,23 +494,50 @@ r_is.defined <- function(sym) {
   exists(sym, env)
 }
 
-#######################################################################################
-# 
-#######################################################################################
+
 r_signif <- function (x, significant_digits = 3)
 {
   format(x, format = "g", digits = significant_digits)
 }
 
+#############################################################################################################################################
+# Benutzereinstellungen importieren aus "Erstelle Abrechnung.R"
+#############################################################################################################################################
+# Import c_script_version and Abrechnungsjahr
+c_raw <- readLines("Erstelle Abrechnung.R")
+c_script_version <- c_raw[c_raw |> str_detect("c_script_version <-")] |>
+  str_split(pattern = "\"") |>
+  unlist()
+Abrechungsjahr <- c_script_version[2]|>
+  str_split(SPC)|>
+  unlist()
+Abrechungsjahr <- Abrechungsjahr[1]|>
+  as.integer()
+c_script_version <- c_script_version[2]
 
-if(!r_is.defined(c_MWST)){
-  c_MWST <- 8.1
-}
+# import sommerpause
+c_raw[str_detect(c_raw, "sommerpause")] |>
+  str_split("=", simplify = T) -> sommerpause
+sommerpause[, 2] |>
+  str_trim() |>
+  str_split(SPC, simplify = T) -> sommerpause
+sommerpause <- sommerpause[, 1] |> as.integer() # Tage
 
-if (!r_is.defined(df_P_kat_verechnen)) {
-  df_P_kat_verechnen <- tibble(Kinoförderer = c("Kinoförderer"),
-                               Verkaufspreis =  c(13))
-}
+# import c_MWST
+c_raw[str_detect(c_raw, "c_MWST")] |>
+  str_split("=", simplify = T) -> c_MWST
+c_MWST <- str_extract(c_MWST, one_or_more(DGT) %R% DOT %R% optional(DGT)) |>
+  as.numeric()
+
+# Platzkategorien die für gewisse Verleiherabgerechnet werden müssen
+df_P_kat_verechnen <- tibble(
+  Kinoförderer = c("Kinoförderer", "Kinofördererkarte"),
+  Verkaufspreis = c(13, 13)
+)
+
+#############################################################################################################################################
+# Errorhandling open excel files
+#############################################################################################################################################
 
 c_openfiles <- list.files(paste0("Input/"),"~")
 if(length(c_openfiles) > 0) stop(paste0("\nFile: ", c_openfiles ," ist geöffnet und muss geschlossen werden!"))
@@ -706,8 +733,6 @@ if(nrow(df_temp)>0){
   )
 }
 
-df_Eintritt
-
 # create data frame
 df_Eintritt <- l_Eintritt|>
   bind_rows(.id = "Datum")|>
@@ -717,8 +742,6 @@ df_Eintritt <- l_Eintritt|>
          Tax = NULL, 
          Zahlend = if_else(Verkaufspreis == 0, F, T))|>
   select(Datum, Filmtitel,`Suisa Nummer`,Platzkategorie,Zahlend,Verkaufspreis, Anzahl,Umsatz,`SUISA-Vorabzug`)
-
-df_Eintritt
 
 ########################################################################
 # Filmvorführungen
@@ -730,7 +753,6 @@ df_Flimvorfuerungen <- l_Eintritt|>
   })|>
   bind_rows()|>
   mutate(Datum = Datum_|>dmy()|>as.Date())
-df_Flimvorfuerungen
 
 c_Date <- df_Flimvorfuerungen$Datum
 c_suisa_nr <- df_Flimvorfuerungen$`Suisa Nummer`
@@ -1695,7 +1717,7 @@ remove(c_file,
        )
 
 # # Remove all functions in the global environment
-rm(list = ls(envir = .GlobalEnv)[sapply(ls(envir = .GlobalEnv), function(x) is.function(get(x, envir = .GlobalEnv)))])
+# rm(list = ls(envir = .GlobalEnv)[sapply(ls(envir = .GlobalEnv), function(x) is.function(get(x, envir = .GlobalEnv)))])
 
 # ########################################################################
 # # create list object for "GUI.R"
@@ -1711,7 +1733,7 @@ rm(list = ls(envir = .GlobalEnv)[sapply(ls(envir = .GlobalEnv), function(x) is.f
 ########################################################################
 # write data to file and load all to envirnonment
 ########################################################################
-save.image(file = "environment.RData")
+# save.image(file = "environment.RData")
 
 ########################################################################
 # user interaction
