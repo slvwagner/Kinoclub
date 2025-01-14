@@ -818,14 +818,19 @@ server <- function(input, output, session) {
       }, type = "message")|>
         calculate_warnings()
       }, error = function(e) {
-        paste0("Fehler beim Ausführen von 'source/calculate.R': ", e$message)|>
+        paste0("Fehler beim Ausführen von 'source/calculate.R':\n", e$message)|>
           ausgabe_text()
       })
-    paste0(calculate_warnings(), 
-           collapse = "\n"
-           )|>
-      paste0(ausgabe_text())|>
-      ausgabe_text()
+    if(nchar(ausgabe_text()) > 0){
+      paste0(ausgabe_text(), 
+             "\n\n***********************\n",
+             paste0(calculate_warnings(), collapse = "\n")
+             )|>
+        ausgabe_text()
+    }else{
+      paste0(calculate_warnings(), collapse = "\n")|>
+        ausgabe_text()
+    }
     file_exists(file.exists("output/webserver/index.html"))
   })
 
