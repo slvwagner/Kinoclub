@@ -778,11 +778,9 @@ c_files <- paste0(c_path,"/", c_files)
 
 readLines(c_files)
 l_raw <- lapply(c_files, function (x) suppressWarnings(readLines(x)))
-l_raw
 
 ## extract file date 
 c_fileDate <- str_match(c_files,capture(one_or_more(DGT)%R%DOT%R%one_or_more(DGT)%R%DOT%R%one_or_more(DGT))%R%DOT%R%"txt" )[,2]
-
 
 ######################################################################## 
 # Extrakt Verkäufe  und Überschuss / Manko
