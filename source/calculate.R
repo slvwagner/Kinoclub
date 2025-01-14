@@ -1103,7 +1103,7 @@ try(c_raw <- list.files(pattern = "Shows", recursive = T)|>
     outFile = "error.log"
 )
 if(length(list.files(pattern = "error.log"))>0) {
-  stop("\nEs sind nicht alle shows vorhanden: \nDatei .../Kinoklub/input/advance tickets/Shows.txt nicht gefunden. \nBitte herunterladen und abspeichern.")
+  stop("Es sind nicht alle shows vorhanden: \nDatei .../Kinoklub/input/advance tickets/Shows.txt nicht gefunden. \nBitte herunterladen und abspeichern:\nhttps://www.advance-ticket.ch/shows?lang=de")
 }
 
 c_select <- tibble(found = str_detect(c_raw, "Tag"))|>
@@ -1152,9 +1152,9 @@ df_temp
 
 if(nrow(df_temp) != 0) {
   stop(paste0(
-    "\nFür den Film: ",df_temp$Filmtitel, " am ", 
+    "Für den Film: ",df_temp$Filmtitel, " am ", 
     day(df_temp$Datum),".",month(df_temp$Datum),".",year(df_temp$Datum), 
-    " gibt es keinen Eintrag in der Datei .../Kinoklub/Input/advance tickets/show.txt\nBitte herunterladen und abspeichern")
+    " gibt es keinen Eintrag in der Datei .../Kinoklub/Input/advance tickets/show.txt\nBitte herunterladen und abspeichern\nhttps://www.advance-ticket.ch/shows?lang=de")
   )}
 
 ########################################################################
