@@ -980,7 +980,7 @@ df_Einkaufspreise
 
 c_files <- list.files(c_path,pattern = START%R%"Kiosk", recursive = T)
 
-if(length(c_files) == 0) stop("\nEs sind keinen Kiosk-Dateinen vorhanden.")
+if(length(c_files) == 0) stop("\nEs sind keinen Kiosk-Dateinen vorhanden.\nBitte herunterladen:\nhttps://www.advance-ticket.ch/decomptecaisse?lang=de")
 
 c_files <- c_files <- paste0(c_path,"/", c_files)
 c_files
@@ -1003,18 +1003,32 @@ colnames(df_Mapping_Einkaufspreise) <- c_Einkaufslistendatum|>
   as.character()
 rownames(df_Mapping_Einkaufspreise) <- c_Date_Kiosk|>as.character()
 
-df_Mapping_Einkaufspreise <- df_Mapping_Einkaufspreise|>
-  apply(2, function(x) ifelse(x >= 0, NA, x))|>
-  apply(1, function(x){
-    c_select <- max(x, na.rm = T)
-    y <- x[c_select == x]
-    y <- y[!is.na(y)]
-    return(names(y))
-  })
+if(nrow(df_Mapping_Einkaufspreise) == 1){
+  df_Mapping_Einkaufspreise <- df_Mapping_Einkaufspreise|>
+    apply(1, function(x){
+      c_select <- max(x, na.rm = T)
+      y <- x[c_select == x]
+      y <- y[!is.na(y)]
+      return(names(y))
+    })
+  
+}else{
+  df_Mapping_Einkaufspreise <- df_Mapping_Einkaufspreise|>
+    apply(2, function(x) ifelse(x >= 0, NA, x))|>
+    apply(1, function(x){
+      c_select <- max(x, na.rm = T)
+      y <- x[c_select == x]
+      y <- y[!is.na(y)]
+      return(names(y))
+    })
+
+}
 df_Mapping_Einkaufspreise <- tibble(Einkaufspreise = df_Mapping_Einkaufspreise|>as.Date(),
-                                    Datum = names(df_Mapping_Einkaufspreise)|>as.Date())
+       Datum = names(df_Mapping_Einkaufspreise)|>as.Date())
+
 
 df_Mapping_Einkaufspreise
+
 
 ########################################################################
 # Join Einkaufspreise 
@@ -1592,16 +1606,6 @@ for (ii in 1:length(c_Date)) {
   l_abrechnung[[ii]]$Abrechnung <- l_abrechnung[[ii]]$Abrechnung|>
     filter(Datum == c_Date[ii])
 }
-
-
-# l_abrechnung[["2024-10-12"]]$Abrechnung|>
-#   as.data.frame()|>
-#   print()
-# 
-# l_abrechnung[["2024-10-11"]]$Abrechnung|>
-#   as.data.frame()|>
-#   print()
-
 
 ##############################################################################
 # Abrechnung Filmvorführung erstellen (für Berichte verwendet)

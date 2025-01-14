@@ -823,10 +823,10 @@ server <- function(input, output, session) {
           ausgabe_text()
       })
     if(nchar(ausgabe_text()) > 0){
-      paste0(ausgabe_text())|>
+      paste0("Daten wurden einglesen!\n",ausgabe_text())|>
         ausgabe_text()
     }else{
-      paste0(calculate_warnings(), collapse = "\n")|>
+      paste0("Daten wurden einglesen!\n",paste0(calculate_warnings(), collapse = "\n"))|>
         ausgabe_text()
     }
     file_exists(file.exists("output/webserver/index.html"))
