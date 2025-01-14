@@ -45,6 +45,7 @@ invisible(lapply(packages, library, character.only = TRUE))
 # Functions
 #############################################################################################################################################
 source("source/functions.R")
+
 mapping <- function(c_Date) {
   df_mapping <- tibble(Datum = c_Date)|>
     mutate(user_Datum = paste0(day(Datum),".", month(Datum),".", year(Datum)),
@@ -245,7 +246,8 @@ if(!file.exists("version control.ini")) { # ist kein versions kontrolle vorhande
     write(c_script_version, "version control.ini")
     
     # Löschen aller Daten die mit einer anderen Version erstellt wurden
-    file.remove("environment.RData")
+    file.remove("environment.RData")|>
+      suppressWarnings()
   }
 }
 
