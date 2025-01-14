@@ -748,7 +748,6 @@ df_Eintritt <- l_Eintritt|>
 ########################################################################
 # Filmvorführungen
 ########################################################################
-
 df_Flimvorfuerungen <- l_Eintritt|>
   lapply( function(x){ 
     distinct(x, Datum_,`Suisa Nummer`)
@@ -756,6 +755,9 @@ df_Flimvorfuerungen <- l_Eintritt|>
   bind_rows()|>
   mutate(Datum = Datum_|>dmy()|>as.Date())
 
+########################################################################
+# Bericht mapping
+########################################################################
 c_Date <- df_Flimvorfuerungen$Datum
 c_suisa_nr <- df_Flimvorfuerungen$`Suisa Nummer`
 

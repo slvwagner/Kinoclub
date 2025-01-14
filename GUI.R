@@ -717,17 +717,23 @@ calculate_warnings <- ""
 ausgabe_text <- ""
 data_env <- new.env()
 
-# Daten berechnen und laden, Warnings für user interaction im GUI anzeigen
-tryCatch({
-  # Fehler abfangen
-  calculate_warnings <- capture.output({
-    source("source/calculate.R", local = data_env)
-  }, type = "message")
-}, error = function(e) {
-  ausgabe_text <- paste0("Fehler beim Ausführen von 'source/calculate.R': ", e$message)
-  stop(paste0("Fehler beim Ausführen von 'source/calculate.R': ", e$message))
-})
+# if(file.exists("environment.RData")){
+#   load("environment.RData", envir = data_env)
+# }else{
 
+  # Daten berechnen und laden, Warnings für user interaction im GUI anzeigen
+  tryCatch({
+    # Fehler abfangen
+    calculate_warnings <- capture.output({
+      source("source/calculate.R", local = data_env)
+    }, type = "message")
+  }, error = function(e) {
+    ausgabe_text <- paste0("Fehler beim Ausführen von 'source/calculate.R': ", e$message)
+    stop(ausgabe_text)
+  })
+# }
+ls(envir = data_env)
+if(!exists("df_Abrechnung", envir = data_env)) stop("\nDEBUG01: df_Abrechnung wurde nicht gefunden")
 
 #############################################################################################################################################
 # Shiny reactive variables
