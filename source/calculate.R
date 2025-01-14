@@ -1231,7 +1231,6 @@ if(nrow(df_temp)>0){
 
 ########################################################################
 # Eintrite 
-########################################################################
 df_Eintritt <- df_Eintritt|>
   left_join(df_verleiherabgaben|>
               select(-Titel, -Adresse, -PLZ, -Ort),
@@ -1385,8 +1384,6 @@ df_Eintritt <- bind_rows(
 )|>
   arrange(desc(Datum))
 
-df_Eintritt|>
-  filter(Datum == as.Date("2024-10-12"))
 
 #########################################################################################################
 # Abrechnungsperiode erstellen
@@ -1588,16 +1585,15 @@ for (ii in 1:length(c_Date)) {
            `Gewinn/Verlust Filmvorführungen [CHF]` = (`Gewinn/Verlust Tickets [CHF]` + `Gewinn/Verlust Kiosk [CHF]`+ `Überschuss / Manko Kiosk [CHF]` + `Eventeinnahmen [CHF]` - `Eventausgaben [CHF]`)
            )
   
-  l_abrechnung[[ii]]$Abrechnung|>
-    select(7,15:ncol(l_abrechnung[[ii]]$Abrechnung))  
-  
   ########################################################################
   # Nur Abrechnung für aktuelles Datum behalten
   ########################################################################
-  l_abrechnung[[ii]]$Abrechnung <- l_abrechnung[[ii]]$Abrechnung|>
-    filter(Datum == c_Date[ii])
+  if(nrow(l_abrechnung[[ii]]$Abrechnung) != 0){
+    l_abrechnung[[ii]]$Abrechnung <- l_abrechnung[[ii]]$Abrechnung|>
+      filter(Datum == c_Date[ii])  
+  }
 }
-
+class(l_abrechnung)
 ##############################################################################
 # Abrechnung Filmvorführung erstellen (für Berichte verwendet)
 # Runden aller [CHF]  Beträge
