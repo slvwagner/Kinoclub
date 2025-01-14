@@ -1079,7 +1079,7 @@ if(n_kiosk|>nrow() > n_Film|>nrow()){
   df_temp <- anti_join(n_kiosk,n_Film, by = "Datum")|>
     select(Datum)
   
-  stop(paste0("\nEs fehlt eine Datei: \"Eintritt ",
+  stop(paste0("Es fehlt eine Datei:\n \"Eintritt ",
               day(df_temp$Datum),".",month(df_temp$Datum), ".",year(df_temp$Datum), ".txt\""
   )
   )
@@ -1087,7 +1087,7 @@ if(n_kiosk|>nrow() > n_Film|>nrow()){
   
   df_temp <- anti_join(n_Film, n_kiosk, by = "Datum")|>
     select(1:3)
-  stop(paste0("\nEs fehlt einen Kioskabrechnug zum Film:\n", 
+  stop(paste0("Es fehlt einen Kioskabrechnug zum Film:\n", 
               df_temp$Filmtitel, " am ", day(df_temp$Datum),".",month(df_temp$Datum), ".",year(df_temp$Datum)
   ))
 }
@@ -1161,7 +1161,9 @@ if(nrow(df_temp) != 0) {
 # Abos und Kinogutscheine
 ########################################################################
 
-if(!file.exists("Input/advance tickets/atelierkino_abo.txt")) stop("Die Datei: .../Input/advance tickets/atelierkino_abo.txt wurde nicht gefunden.")
+if(!file.exists("Input/advance tickets/atelierkino_abo.txt")) {
+  stop("Die Datei: .../Input/advance tickets/atelierkino_abo.txt wurde nicht gefunden.\nBitte herunterladen\nhttps://www.advance-ticket.ch/abos?lang=de")
+  }
 atelierkino_abo <- read_delim("Input/advance tickets/atelierkino_abo.txt", 
                               delim = "\t", escape_double = FALSE, 
                               col_types = cols(creation = col_date(format = "%Y-%m-%d"), 
@@ -1170,7 +1172,9 @@ atelierkino_abo <- read_delim("Input/advance tickets/atelierkino_abo.txt",
                                                expiration = col_date(format = "%Y-%m-%d"), 
                                                count_use = col_integer()), trim_ws = TRUE)
 
-if(!file.exists("Input/advance tickets/atelierkino_foerderer.txt")) stop("Die Datei: .../Input/advance tickets/atelierkino_foerderer.txt wurde nicht gefunden.")
+if(!file.exists("Input/advance tickets/atelierkino_foerderer.txt")) {
+  stop("Die Datei: .../Input/advance tickets/atelierkino_foerderer.txt wurde nicht gefunden.\nBitte herunterladen\nhttps://www.advance-ticket.ch/abos?lang=de")
+  }
 atelierkino_foerderer <- read_delim("Input/advance tickets/atelierkino_foerderer.txt", 
                                     delim = "\t", escape_double = FALSE, 
                                     col_types = cols(creation = col_date(format = "%Y-%m-%d"), 
@@ -1179,7 +1183,9 @@ atelierkino_foerderer <- read_delim("Input/advance tickets/atelierkino_foerderer
                                                      expiration = col_date(format = "%Y-%m-%d"), 
                                                      count_use = col_integer()), trim_ws = TRUE)
 
-if(!file.exists("Input/advance tickets/atelierkino_gutschein.txt")) stop("Die Datei: .../Input/advance tickets/atelierkino_gutschein.txt wurde nicht gefunden.")
+if(!file.exists("Input/advance tickets/atelierkino_gutschein.txt")) {
+  stop("Die Datei: .../Input/advance tickets/atelierkino_gutschein.txt wurde nicht gefunden.\nBitte herunterladen\nhttps://www.advance-ticket.ch/abos?lang=de")
+  }
 atelierkino_gutschein <- read_delim("Input/advance tickets/atelierkino_gutschein.txt", 
                                     delim = "\t", escape_double = FALSE, 
                                     col_types = cols(creation = col_date(format = "%Y-%m-%d"), 
