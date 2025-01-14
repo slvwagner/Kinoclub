@@ -560,14 +560,6 @@ Einnahmen_und_Ausgaben <- lapply(c_sheets, function(x) {
                      sheet = x)
 })
 names(Einnahmen_und_Ausgaben) <- c_sheets
-Einnahmen_und_Ausgaben
-
-Einnahmen_und_Ausgaben[["Ausgaben"]] <- Einnahmen_und_Ausgaben[["Ausgaben"]]|>
-  mutate(Spieldatum = as.Date(Spieldatum),
-         Datum = as.Date(Datum))
-
-Einnahmen_und_Ausgaben$Ausgaben|>
-  filter(Spieldatum == as.Date("2024-10-11"))
 
 # error handling
 # Datachecking 
@@ -784,6 +776,7 @@ c_path <- "input/advance tickets"
 c_files <- list.files(c_path,pattern = "Kiosk", recursive = T)
 c_files <- paste0(c_path,"/", c_files)
 
+readLines(c_files)
 l_raw <- lapply(c_files, function (x) suppressWarnings(readLines(x)))
 l_raw
 
@@ -1085,7 +1078,9 @@ remove(df_Mapping_Einkaufspreise,l_Kiosk, l_Einkaufspreise,
 ## User interaction
 writeLines("\nKiosk eingelesen")
 
-
+########################################################################
+# Bericht mapping
+########################################################################
 n_kiosk <- df_Kiosk|>distinct(Datum, .keep_all = T)
 n_Film <- df_Eintritt|>distinct(Datum, .keep_all = T )
 
@@ -1611,6 +1606,7 @@ for (ii in 1:length(c_Date)) {
 # Abrechnung Filmvorführung erstellen (für Berichte verwendet)
 # Runden aller [CHF]  Beträge
 ##############################################################################
+
 df_Abrechnung <- bind_cols(
   l_abrechnung|>
     lapply(function(x){
