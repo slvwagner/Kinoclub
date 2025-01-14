@@ -73,8 +73,8 @@ StatistikErstellen <- function() {
   }
   # Render
   rmarkdown::render(input = paste0("source/temp.Rmd"),
-                    output_format  = df_Render$Render,
-                    output_file = paste0("Statistik",df_Render$fileExt),
+                    output_format  = df_Render()$Render,
+                    output_file = paste0("Statistik",df_Render()$fileExt),
                     output_dir = paste0(getwd(), "/output"),
                     envir = data_env
   )
@@ -99,8 +99,8 @@ JahresrechnungErstellen <- function() {
   }
   # Render
   rmarkdown::render(input = paste0("source/temp.Rmd"),
-                    output_format = df_Render$Render,
-                    output_file = paste0("Jahresrechnung",df_Render$fileExt),
+                    output_format = df_Render()$Render,
+                    output_file = paste0("Jahresrechnung",df_Render()$fileExt),
                     output_dir = paste0(getwd(), "/output"),
                     envir = data_env
   )
@@ -709,7 +709,7 @@ df_P_kat_verechnen <- tibble(
 )
 
 #############################################################################################################################################
-# Shiny reactive variables
+# Daten einlesen
 #############################################################################################################################################
 # Envirnoment for Data read in
 calculate_warnings <- ""
@@ -727,8 +727,10 @@ tryCatch({
   stop("Fehler beim Ausführen von 'source/calculate.R': ", e$message)
 })
 
-df_mapping__ <- mapping(data_env$c_Date)|>
-    shiny::reactiveVal()
+
+#############################################################################################################################################
+# Shiny reactive variables
+#############################################################################################################################################
 
 # Sollen Inhaltsverzeichnisse erstellt werden
 toc <- shiny::reactiveVal(TRUE)
@@ -751,8 +753,7 @@ if(exists("df_show",envir = data_env))  {
 ausgabe_text <- paste0(
   "Daten wurden eingelesen.",
   calculate_warnings, ausgabe_text,
-  collapse = "\n"
-) |>
+  collapse = "\n") |>
   shiny::reactiveVal()
 
 calculate_warnings <- shiny::reactiveVal(calculate_warnings)
@@ -847,9 +848,8 @@ server <- function(input, output, session) {
         ##############################################
         # Filmabrechnungen erstellen mit dateRange user input
         tryCatch({
-          mapping(data_env()$c_Date) |>
-            filter(between(Datum, start_datum, end_datum))|>
-            df_mapping__()
+          df_mapping__ <- mapping(data_env$c_Date) |>
+            filter(between(Datum, start_datum, end_datum))
           AbrechnungErstellen(df_mapping__, get("df_Abrechnung", envir = data_env))
           webserver()
         }, error = function(e) {
