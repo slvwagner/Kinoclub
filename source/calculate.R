@@ -701,7 +701,7 @@ c_files <- list.files(pattern = "Eintritte", recursive = T)
 c_files
 
 # error handling
-if(length(c_file) == 1) stop(paste0("\nEs gibt keinen Dateien \"Eintritte xx.xx.",Abrechungsjahr,"\""))
+if(length(c_file) < 1) stop(paste0("\nEs gibt keinen Dateien \"Eintritte xx.xx.",Abrechungsjahr,"\""))
 
 l_Eintritt <- convert_data_Film_txt(c_files)
 
