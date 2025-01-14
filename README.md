@@ -1,4 +1,4 @@
-Script Version: 2024 V1.15
+Script Version: 2024 V1.16
  
 ## Kinoklub 
 
@@ -471,5 +471,6 @@ zusätzlich werden alle Fimvorschläge als Excel ausgegeben
 2024 V1.13 Gemeinsame Abrechnung über Link Datum in Excel file "Verleiherabgaben.xlsx"  \
 2024 V1.14 GUI Graphical user interface   \
 2024 V1.15 Fake Suisa Nummer von Advanced Tickets kann nun auch verarbeitet werden   \
+2024 V1.16 Introduction of envirnonments to run GUI  \
 
 

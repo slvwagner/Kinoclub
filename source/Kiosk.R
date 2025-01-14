@@ -16,6 +16,10 @@ if(!r_is.defined(c_MWST)){
 
 # verkaufsartikel
 c_files <- list.files(pattern = "Einkauf Kiosk", recursive = T)
+c_files
+
+# error handling
+if(length(c_files) == 0) stop("\nEs sind keine Kiosk Dateinen vorhanden.")
 
 df_verkaufsartikel <- read_excel(c_files)
 
@@ -140,8 +144,6 @@ if(length(c_test)>sum(c_test)){
   )
 }
 
-
-
 ######################################################################## 
 # Extrakt Überschuss / Manko
 ######################################################################## 
@@ -156,10 +158,11 @@ df_manko_uerberschuss
 ########################################################################
 # Kiosk Spez Verkaufsartikel / Spezialpreise einlesen
 ########################################################################
+# errohandling
+stopifnot(file.exists("Input/Spezialpreisekiosk.xlsx"))
 
 Spezialpreisekiosk <- readxl::read_excel("Input/Spezialpreisekiosk.xlsx")|>
   mutate(Datum = as.Date(Datum))
-
 
 # error handling
 # Sind für alle Spezialpreise pro Datum definiert?  
@@ -220,6 +223,9 @@ df_Einkaufspreise
 ########################################################################
 
 c_files <- list.files(c_path,pattern = START%R%"Kiosk", recursive = T)
+
+if(length(c_files) == 0) stop("\nEs sind keinen Kiosk-Dateinen vorhanden.")
+
 c_files <- c_files <- paste0(c_path,"/", c_files)
 c_files
 
@@ -242,7 +248,7 @@ colnames(df_Mapping_Einkaufspreise) <- c_Einkaufslistendatum|>
 rownames(df_Mapping_Einkaufspreise) <- c_Date_Kiosk|>as.character()
 
 df_Mapping_Einkaufspreise <- df_Mapping_Einkaufspreise|>
-  apply(2, function(x)ifelse(x>=0, NA, x))|>
+  apply(2, function(x) ifelse(x >= 0, NA, x))|>
   apply(1, function(x){
     c_select <- max(x, na.rm = T)
     y <- x[c_select == x]

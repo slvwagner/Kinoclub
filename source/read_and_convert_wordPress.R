@@ -1,4 +1,6 @@
-library(readr)
+library(rebus)
+library(tidyverse)
+# library(readr)
 
 ##########################################################################################
 # read in csv export from wordpress homepage 
@@ -176,7 +178,8 @@ insertImage(
   startCol = 1,
   width = 25,
   height = 3 + nrow(Filmvorschlaege_wordpress_export) * 0.35,
-  units = "cm"
+  units = "cm",
+  m_pos
 )
 
 ##########################################################################################

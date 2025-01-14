@@ -142,11 +142,11 @@ if(c_SiteMap){
   c_typ_Berichte
   
   # Convert filenames to URL
-  c_url <- paste0("file:///",URLencode(paste0(c_WD,"/output/", m_Film$FileName)), 
+  c_url <- paste0("file:///",URLencode(paste0(getwd(),"/output/", m_Film$FileName)), 
                   sep = "")
   c_url
   
-  c_path <- paste0(c_WD,"/output/pict")
+  c_path <- paste0(getwd(),"/output/pict")
   c_path
   dir.create(c_path)|>suppressWarnings()
   
