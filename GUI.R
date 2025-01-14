@@ -725,7 +725,7 @@ tryCatch({
   }, type = "message")
 }, error = function(e) {
   ausgabe_text <- paste0("Fehler beim Ausführen von 'source/calculate.R': ", e$message)
-  stop("Fehler beim Ausführen von 'source/calculate.R': ", e$message)
+  stop(paste0("Fehler beim Ausführen von 'source/calculate.R': ", e$message))
 })
 
 
