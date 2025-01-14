@@ -901,7 +901,7 @@ server <- function(input, output, session) {
       paste0("\n", getwd(), "/output")
     ) |>
       ausgabe_text()
-    if (file.exists("environment.RData")) {
+    if (exists("data_env")) {
       tryCatch({
         JahresrechnungErstellen()
         webserver()
@@ -1109,7 +1109,7 @@ server <- function(input, output, session) {
   # Update table with all the dates in the selected range
   ######################################
   output$dateTable <- shiny::renderTable({
-    if (file.exists("environment.RData")){
+    if (exists("data_env")){
       start_datum <- input$dateRange |> min()
       end_datum <- input$dateRange |> max()
     
