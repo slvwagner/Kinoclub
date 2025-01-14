@@ -59,11 +59,11 @@ mapping <- function(c_Datum) {
 ###############################################
 # Statistik-Bericht erstellen
 ###############################################
-StatistikErstellen <- function() {
+StatistikErstellen <- function(toc, df_Render) {
   # Einlesen
   c_raw <- readLines("source/Statistik.Rmd")
   # Inhaltsverzeichnis
-  if(toc()|>as.logical()){# neues file schreiben mit toc
+  if(toc|>as.logical()){# neues file schreiben mit toc
     c_raw|>
       r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis")|>
       writeLines(paste0("source/temp.Rmd"))
@@ -73,8 +73,8 @@ StatistikErstellen <- function() {
   }
   # Render
   rmarkdown::render(input = paste0("source/temp.Rmd"),
-                    output_format  = df_Render()$Render,
-                    output_file = paste0("Statistik",df_Render()$fileExt),
+                    output_format  = df_Render$Render,
+                    output_file = paste0("Statistik",df_Render$fileExt),
                     output_dir = paste0(getwd(), "/output"),
                     envir = data_env
   )
@@ -85,11 +85,11 @@ StatistikErstellen <- function() {
 ###############################################
 # Jahresrechnung-Bericht erstellen
 ###############################################
-JahresrechnungErstellen <- function() {
+JahresrechnungErstellen <- function(toc, df_Render) {
   # Einlesen
   c_raw <- readLines("source/Jahresrechnung.Rmd")
   # Inhaltsverzeichnis
-  if(toc()|>as.logical()){# neues file schreiben mit toc
+  if(toc|>as.logical()){# neues file schreiben mit toc
     c_raw|>
       r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis")|>
       writeLines(paste0("source/temp.Rmd"))
@@ -99,8 +99,8 @@ JahresrechnungErstellen <- function() {
   }
   # Render
   rmarkdown::render(input = paste0("source/temp.Rmd"),
-                    output_format = df_Render()$Render,
-                    output_file = paste0("Jahresrechnung",df_Render()$fileExt),
+                    output_format = df_Render$Render,
+                    output_file = paste0("Jahresrechnung",df_Render$fileExt),
                     output_dir = paste0(getwd(), "/output"),
                     envir = data_env
   )
@@ -883,7 +883,7 @@ server <- function(input, output, session) {
     ))
     if (exists("data_env")) {
       tryCatch({
-        StatistikErstellen()
+        StatistikErstellen(toc(), df_Render())
         webserver()
       }, error = function(e) {
         ausgabe_text(paste("Statistik, Fehler beim Bericht erstellen:", e$message))
@@ -907,7 +907,7 @@ server <- function(input, output, session) {
       ausgabe_text()
     if (exists("data_env")) {
       tryCatch({
-        JahresrechnungErstellen()
+        JahresrechnungErstellen(toc(), df_Render())
         webserver()
       }, error = function(e) {
         ausgabe_text(paste("Jahresrechnung, Fehler beim Bericht erstellen:", e$message))
@@ -989,13 +989,13 @@ server <- function(input, output, session) {
       source("source/calculate.R", local =  data_env)
 
       # Statistik-Bericht erstellen
-      StatistikErstellen()
+      StatistikErstellen(toc(), df_Render())
       paste("Bericht: \nStatistik erstellt") |>
         writeLines()
 
       # Jahresrechnung-Bericht erstellen
       print(clc)
-      JahresrechnungErstellen()
+      JahresrechnungErstellen(toc(), df_Render())
 
       paste("Bericht: \nJahresrechnung erstellt") |>
         writeLines()
