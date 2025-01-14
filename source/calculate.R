@@ -698,15 +698,15 @@ convert_data_Film_txt <- function(fileName) {
 ########################################################################
 
 c_files <- list.files(pattern = "Eintritte", recursive = T)
+c_files
 
 # error handling
-if(length(c_file) == 0) stop(paste0("Es gibt keinen Dateien \"Eintritte xx.xx.xxxx"))
+if(length(c_file) == 1) stop(paste0("Es gibt keinen Dateien \"Eintritte xx.xx.xxxx"))
 
 l_Eintritt <- convert_data_Film_txt(c_files)
 
 names(l_Eintritt) <- c_files|>
   str_extract(one_or_more(DGT)%R%DOT%R%one_or_more(DGT)%R%DOT%R%one_or_more(DGT))
-
 
 # check file datum vs in file datum found
 df_Eintritt <- l_Eintritt|>
@@ -773,10 +773,8 @@ df_verkaufsartikel <- readxl::read_excel(c_files)
 
 c_path <- "input/advance tickets"
 # Kioskabrechnung
-c_files <- list.files(c_path,pattern = "Kiosk", recursive = T)
-c_files <- paste0(c_path,"/", c_files)
+c_files <- list.files(c_path,pattern = "Kiosk", recursive = TRUE, full.names = TRUE)
 
-readLines(c_files)
 l_raw <- lapply(c_files, function (x) suppressWarnings(readLines(x)))
 
 ## extract file date 
@@ -1604,7 +1602,6 @@ for (ii in 1:length(c_Date)) {
 # Abrechnung Filmvorführung erstellen (für Berichte verwendet)
 # Runden aller [CHF]  Beträge
 ##############################################################################
-
 df_Abrechnung <- bind_cols(
   l_abrechnung|>
     lapply(function(x){
@@ -1688,8 +1685,6 @@ df_Besucherzahlen <- df_Eintritt|>
   group_by(Datum, Filmtitel, `Suisa Nummer`)|>
   reframe(Besucher = sum(Anzahl))
 df_Besucherzahlen
-
-
 
 ########################################################################
 # write to Excel
