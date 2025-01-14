@@ -154,14 +154,22 @@ instert_picts <- function(raw_rmd, output_dir, index, fileNames, url) {
 # Create Site-Map and webserver data
 #######################################################
 webserver <- function() {
-  # Alle Dateien löschen
-  if(dir.exists("output/webserver")){
-    file.remove(list.files("output/webserver", full.names = TRUE))
+  # Alle Bilder löschen die nicht als html vorhanden sind
+  if(dir.exists("output/pict")){
+    c_pict <- list.files("output/pict")|>str_remove(pattern = ".png")
+    c_html <- list.files("output/", pattern = "html")
+    
+    list.files("output/pict", full.names = TRUE)[!(c_pict %in% c_html)]|>
+      file.remove()
   }
   
-  #######################################################
+  # Alle html Dateien löschen
+  if(dir.exists("output/webserver")){
+    list.files("output/webserver", full.names = TRUE)|>
+      file.remove()
+  }
+  
   # Find reports
-  #######################################################
   c_path <- paste0("output/")
   writeLines(c_path)
   df_reports <- tibble(FileName = list.files(c_path, "html"))
@@ -549,7 +557,7 @@ webserver <- function() {
 #######################################################
 # Erstellen der Abrechnung pro Filmvorführung
 #######################################################
-AbrechnungErstellen <- function(df_mapping__, df_Abrechnung, c_Date) {
+AbrechnungErstellen <- function(df_mapping__, df_Abrechnung) {
   for (ii in df_mapping__$index) {
     # Template der Abrechnung einlesen
     c_raw <- readLines("source/Abrechnung.Rmd")
@@ -592,20 +600,13 @@ AbrechnungErstellen <- function(df_mapping__, df_Abrechnung, c_Date) {
     }
     
     # Render
-    rmarkdown::render(paste0("source/temp.Rmd"),
-                      df_Render()$Render,
-                      output_dir = paste0(getwd(), "/output"),
+    rmarkdown::render(input = paste0("source/temp.Rmd"),
+                      output_format = df_Render()$Render,
+                      output_file = paste0("Abrechnung ",df_mapping__ |> filter(index == ii) |> select(user_Datum) |> pull(),df_Render()$fileExt),
+                      output_dir = "output",
                       envir = data_env
     )
-    
-    # Rename the file
-    for (jj in 1:length(df_Render()$Render)) {
-      file.rename(
-        from = paste0(getwd(), "/output/temp", df_Render()$fileExt[jj]),
-        to = paste0(getwd(), "/output/", "Abrechnung Filmvorführung ", df_mapping__ |> filter(index == ii) |> select(user_Datum) |> pull(), df_Render()$fileExt[jj])
-      )
-    }
-    
+
     # user interaction
     print(clc)
     paste("Bericht: \nFilmabrechnung vom", df_mapping__ |> filter(index == ii) |> select(user_Datum) |> pull(), "erstellt") |>
@@ -630,7 +631,7 @@ AbrechnungErstellen <- function(df_mapping__, df_Abrechnung, c_Date) {
       # Render
       rmarkdown::render(
         input = "Verleiherabrechnung.Rmd",
-        output_file = paste0("Verleiherabrechnung ", df_mapping__ |> filter(index == ii) |> select(user_Datum) |> pull(), df_Render()$fileExt[jj]),
+        output_file = paste0("Verleiherabrechnung ", df_mapping__ |> filter(index == ii) |> select(user_Datum) |> pull(), df_Render()$fileExt),
         output_format = df_Render()$Render,
         output_dir = paste0(getwd(), "/output"),
         envir = data_env
