@@ -4,7 +4,7 @@ library(rebus)
 library(openxlsx)
 library(lubridate)
 
-writeLines("Daten einlesen und Berechnen!")
+writeLines("Daten werden einlesen und berechnet...")
 
 file.remove("error.log")|>suppressWarnings()
 
