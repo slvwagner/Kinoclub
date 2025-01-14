@@ -83,7 +83,7 @@ n_days_till_now
 n_days_per_year <- (365 - sommerpause) 
 n_days_per_year
 
-n <- n$`Anzahl Vorführungen`
+if(is_tibble(n)) n <- n$`Anzahl Vorführungen`
 
 shows_per_year <- floor((n/n_days_till_now)*n_days_per_year)
 
@@ -98,7 +98,15 @@ m <- str_split(timeRange, "-")|>
   sapply(function(range){
     hm(df_temp$Anfang) >= hm(range[1]) & hm(df_temp$Anfang) < hm(range[2])
   })
-colnames(m) <- timeRange
+
+# 
+if(is.matrix(m)){ # multiple shows 
+  colnames(m) <- timeRange
+}else if(is.logical(m)){ # one a single show 
+    names(m) <- timeRange
+    m <- as.matrix(m)|>
+      t()
+  }
 ```
 
 ```{r}
