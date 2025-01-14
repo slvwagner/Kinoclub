@@ -822,10 +822,7 @@ server <- function(input, output, session) {
           ausgabe_text()
       })
     if(nchar(ausgabe_text()) > 0){
-      paste0(ausgabe_text(), 
-             "\n\n***********************\n",
-             paste0(calculate_warnings(), collapse = "\n")
-             )|>
+      paste0(ausgabe_text())|>
         ausgabe_text()
     }else{
       paste0(calculate_warnings(), collapse = "\n")|>
