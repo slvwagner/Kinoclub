@@ -830,6 +830,7 @@ server <- function(input, output, session) {
         ausgabe_text()
     }
     file_exists(file.exists("output/webserver/index.html"))
+    End_date_choose(Sys.Date() + ((max(data_env$df_Abrechnung$Datum) - Sys.Date()) |> as.integer()))
   })
 
   # Überwachung Button Abrechnunge erstellen über Datum-Range
