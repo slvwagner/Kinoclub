@@ -1092,8 +1092,8 @@ if(n_kiosk|>nrow() > n_Film|>nrow()){
   df_temp <- anti_join(n_kiosk,n_Film, by = "Datum")|>
     select(Datum)
   
-  stop(paste0("Es fehlt eine Datei:\n \"Eintritt ",
-              day(df_temp$Datum),".",month(df_temp$Datum), ".",year(df_temp$Datum), ".txt\""
+  stop(paste0("Es fehlt eine Datei: Eintritt ", day(df_temp$Datum),".",month(df_temp$Datum), ".",year(df_temp$Datum), ".txt\"",
+              "\nBitte herunterladen unter: https://www.advance-ticket.ch/decomptefilms?lang=de"
   )
   )
 }else if(df_Kiosk|>distinct(Datum)|>nrow() < df_Eintritt|>distinct(Datum)|>nrow()){
@@ -1101,7 +1101,8 @@ if(n_kiosk|>nrow() > n_Film|>nrow()){
   df_temp <- anti_join(n_Film, n_kiosk, by = "Datum")|>
     select(1:3)
   stop(paste0("Es fehlt einen Kioskabrechnug zum Film:\n", 
-              df_temp$Filmtitel, " am ", day(df_temp$Datum),".",month(df_temp$Datum), ".",year(df_temp$Datum)
+              df_temp$Filmtitel, " am ", day(df_temp$Datum),".",month(df_temp$Datum), ".",year(df_temp$Datum),
+              "\n\nBitter herunterladen unter: https://www.advance-ticket.ch/decomptecaisse?lang=de"
   ))
 }
 
