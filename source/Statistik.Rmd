@@ -174,8 +174,18 @@ s <- (Gewinn_pro_Vorführung * shows_per_year)/365
 
 
 ```{r fig.width=10}
-
-df_temp|>
+if(nrow(df_Abrechnung)){
+  df_temp|>
+  ggplot(aes(Datum, cumsum))+
+  geom_col(fill ="darkorange2")+
+  # geom_abline(slope = s, intercept = (time_diff * s)|>as.integer(), linewidth = 2, color = "lightblue")+
+  # geom_smooth(formula = 'y ~ x',method = "lm", fullrange = T, se = F)+
+  # scale_x_date(limits = c(start_of_year, end_of_year))+
+  labs(title = paste0("Prognose mit Sommerpause von ", sommerpause, " Tagen"),
+       y = "Kumulierter Gewinn/Verlust [CHF]")+
+  my_template
+}else{
+  df_temp|>
   ggplot(aes(Datum, cumsum))+
   geom_col(fill ="darkorange2")+
   geom_abline(slope = s, intercept = (time_diff * s)|>as.integer(), linewidth = 2, color = "lightblue")+
@@ -184,6 +194,8 @@ df_temp|>
   labs(title = paste0("Prognose mit Sommerpause von ", sommerpause, " Tagen"),
        y = "Kumulierter Gewinn/Verlust [CHF]")+
   my_template
+}
+
 ```
 
 
