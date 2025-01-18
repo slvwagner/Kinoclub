@@ -700,8 +700,14 @@ convert_data_Film_txt <- function(fileName) {
 c_files <- list.files(pattern = "Eintritte", recursive = T)
 c_files
 
+
 # error handling
-if(length(c_file) < 1) stop(paste0("\nEs gibt keinen Dateien \"Eintritte xx.xx.",Abrechungsjahr,"\""))
+if(is_empty(c_files)) {
+  stop(paste0("\nEs gibt keinen Dateien im Verzeichniss: \".../Kinoklub/Input/advance tickets\"",
+              "\nBitte herunterladen ","<https://www.advance-ticket.ch/decomptefilms?lang=de> und abspeichern:",
+              "\n\"Eintritte xx.xx.",Abrechungsjahr,"\"")
+       )
+  }
 
 l_Eintritt <- convert_data_Film_txt(c_files)
 
@@ -1425,8 +1431,8 @@ for (ii in 1:length(c_Date)) {
   }else{
     # Error handling: Keine Verleiherrechnung vorhanden
     warning(paste0("\nAchtung für den Film \"", l_abrechnung[[ii]]$Abrechnung$Filmtitel,"\" am ",
-                   day(l_abrechnung[[ii]]$Abrechnung$Datum),".",month(l_abrechnung[[ii]]$Abrechnung$Datum),".", lubridate::year(l_abrechnung[[ii]]$Abrechnung$Datum)," gibt es keine Verleiherrechnung.",
-                   "\nBitte korrigieren in der Datei:",
+                   day(l_abrechnung[[ii]]$Abrechnung$Datum),".",month(l_abrechnung[[ii]]$Abrechnung$Datum),".", lubridate::year(l_abrechnung[[ii]]$Abrechnung$Datum),
+                   "\ngibt es keine Verleiherrechnung. Bitte korrigieren in der Datei:",
                    "\n.../Kinokulb/input/Einnahmen und Ausgaben.xlsx\n")
     )
     # Rechnungen vorhanden (wird im Bericht verwendet)
