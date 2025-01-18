@@ -99,20 +99,16 @@ m <- str_split(timeRange, "-")|>
     hm(df_temp$Anfang) >= hm(range[1]) & hm(df_temp$Anfang) < hm(range[2])
   })
 
-# 
-if(is.matrix(m)){ # multiple shows 
-  colnames(m) <- timeRange
-}else if(is.logical(m)){ # one a single show 
-    names(m) <- timeRange
-    m <- as.matrix(m)|>
-      t()
-  }
+m <- tibble(
+  `Time Range` = timeRange, 
+  value = m
+  )
 ```
 
 ```{r}
 df_temp <- m|>
-  as_tibble()|>
-  pivot_longer(cols = everything(), names_to = "Time Range")|>
+  # as_tibble()|>
+  # pivot_longer(cols = everything(), names_to = "Time Range")|>
   filter(`value` == TRUE)|>
   bind_cols(df_temp)|>
   select(-value)|>
@@ -251,16 +247,20 @@ m <- str_split(timeRange, "-")|>
   sapply(function(range){
     hm(df_temp$Anfang) >= hm(range[1]) & hm(df_temp$Anfang) < hm(range[2])
   })
-colnames(m) <- timeRange
+
+m <- tibble(
+  `Time Range` = timeRange, 
+  value = m
+  )
 ```
 
 
 
 ```{r}
 df_temp <- m|>
-  as_tibble()|>
-  pivot_longer(cols = everything(), names_to = "Time Range")|>
-  filter(`value` == TRUE)|>
+  # as_tibble()|>
+  # pivot_longer(cols = everything(), names_to = "Time Range")|>
+  filter(value)|>
   bind_cols(df_temp)|>
   select(-value)|>
   mutate(weekday = weekdays(Datum)|>
@@ -294,7 +294,10 @@ df_temp <- df_Abrechnung|>
 df_temp <- df_temp|>
   arrange(Datum)|>
   mutate(cumsum = cumsum(`Gewinn/Verlust Tickets [CHF]`))
+```
 
+
+```{r }
 if(df_temp$`Gewinn/Verlust Tickets [CHF]`|>mean(na.rm = T) > df_temp$`Gewinn/Verlust Tickets [CHF]`|>median(na.rm = T)){
   gewinn <- df_temp$`Gewinn/Verlust Tickets [CHF]`|>median(na.rm = T)
 }else{
@@ -627,20 +630,22 @@ df_temp|>
 ```{r }
 timeRange <- paste0(seq(0,23,1),":00","-", seq(1,24,1),":00")
 
-x <- str_split(timeRange, "-")[[1]]
-
 m <- str_split(timeRange, "-")|>
-  sapply(function(x){
-    hm(df_temp$Anfang) >= hm(x[1]) & hm(df_temp$Anfang) < hm(x[2])
+  sapply(function(range){
+    hm(df_temp$Anfang) >= hm(range[1]) & hm(df_temp$Anfang) < hm(range[2])
   })
-colnames(m) <- timeRange
+
+m <- tibble(
+  `Time Range` = timeRange, 
+  value = m
+  )
 ```
 
 ```{r}
 df_temp <- m|>
-  as_tibble()|>
-  pivot_longer(cols = everything(), names_to = "Time Range")|>
-  filter(`value` == TRUE)|>
+  # as_tibble()|>
+  # pivot_longer(cols = everything(), names_to = "Time Range")|>
+  filter(value)|>
   bind_cols(df_temp)|>
   select(-value)|>
   mutate(weekday = weekdays(Datum)|>factor(levels = c("Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag")))|>
@@ -848,20 +853,27 @@ df_temp|>
 df_temp <- df_temp|>
   mutate(Datum = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)),
          Anfang = paste0(lubridate::hour(Anfang),":", lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(SPC,"0")))
+```
 
+
+```{r }
 timeRange <- paste0(seq(0,23,1),":00","-", seq(1,24,1),":00")
 
 m <- str_split(timeRange, "-")|>
   sapply(function(range){
     hm(df_temp$Anfang) >= hm(range[1]) & hm(df_temp$Anfang) < hm(range[2])
   })
-colnames(m) <- timeRange
+
+m <- tibble(
+  `Time Range` = timeRange, 
+  value = m
+  )
 ```
 
 ```{r}
 df_temp <- m|>
-  as_tibble()|>
-  pivot_longer(cols = everything(), names_to = "Time Range")|>
+  # as_tibble()|>
+  # pivot_longer(cols = everything(), names_to = "Time Range")|>
   filter(`value` == TRUE)|>
   bind_cols(df_temp)|>
   select(-value)|>
