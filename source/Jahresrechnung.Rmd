@@ -749,7 +749,7 @@ Sonstiges|>
 ## Gewinn / Verlust
 
 ```{r echo=FALSE}
-if(nrow(df_keine_Rechnnung)>0) {
+if(nrow(df_keine_Rechnung)>0) {
   writeLines("Achtung es sind noch nicht alle Filmabrechnungen vorhanden. Die Einnahmen aus dem Ticketverkauf werden sich noch ändern.")
 }
 
