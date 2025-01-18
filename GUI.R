@@ -823,7 +823,7 @@ server <- function(input, output, session) {
           ausgabe_text()
       })
     if(nchar(ausgabe_text()) > 0){
-      paste0("Daten einlesen!\n",ausgabe_text())|>
+      paste0("Es konnten nicht alle Daten einlesen werden.\n",ausgabe_text())|>
         ausgabe_text()
     }else{
       paste0("Daten einlesen!\n",paste0(calculate_warnings(), collapse = "\n"))|>
