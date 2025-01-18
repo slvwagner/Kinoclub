@@ -818,7 +818,7 @@ server <- function(input, output, session) {
         source("source/calculate.R", local =  data_env)
       }, type = "message")|>
         calculate_warnings()
-      }, error = function(e) {
+      }, error = function(e) { # Fehler abfangen
         paste0("Fehler beim Ausführen von 'source/calculate.R':\n", e$message)|>
           ausgabe_text()
       })
