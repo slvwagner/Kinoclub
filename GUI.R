@@ -819,7 +819,7 @@ server <- function(input, output, session) {
       }, type = "message")|>
         calculate_warnings()
       }, error = function(e) {
-        paste0("Fehler beim Ausführen von 'source/calculate.R':\n", e$message)|>
+        paste0("Fehler beim Ausführen von 'source/calculate.R': ", e$message)|>
           ausgabe_text()
       })
     if(nchar(ausgabe_text()) > 0){
