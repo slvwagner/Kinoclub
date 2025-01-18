@@ -1388,18 +1388,31 @@ df_Eintritt <- bind_rows(
 #########################################################################################################
 # Abrechnungsperiode erstellen
 #########################################################################################################
+ii <- 1
+
 l_keineRechnung <- list()
 l_abrechnung <- list()
 ii<-19
 for (ii in 1:length(c_Date)) {
-  l_abrechnung[[ii]] <- list(Abrechnung = df_Abrechnung|>
-                               filter(Datum %in% c(c_Date[ii], df_Abrechnung$`Link Datum`[ii]))|>
-                               select(Datum, `Link Datum`, Anfang, Ende, Filmtitel, `Suisa Nummer`, Verleiher,`Verleiherrechnungsbetrag [CHF]`, 
-                                      `SUISA-Vorabzug [%]`, `Link Datum`, `Minimal Abzug [CHF]`, `Abzug [%]`, `Abzug fix [CHF]`, `Kinoförderer gratis?`),
-                             Tickets = df_Eintritt|>
-                               filter(Datum %in% c(c_Date[ii], df_Abrechnung$`Link Datum`[ii]))|>
-                               select(Datum, Filmtitel, `Suisa Nummer`, Platzkategorie, Verkaufspreis, Anzahl, Umsatz, `Verkaufspreis Abgerechnet [CHF]`,`Umsatz für Netto3 [CHF]`)
-                             )
+  if(length(c_Date) == 1){
+    l_abrechnung[[ii]] <- list(Abrechnung = df_Abrechnung|>
+                                 filter(Datum == c_Date[ii])|>
+                                 select(Datum, `Link Datum`, Anfang, Ende, Filmtitel, `Suisa Nummer`, Verleiher,`Verleiherrechnungsbetrag [CHF]`, 
+                                        `SUISA-Vorabzug [%]`, `Link Datum`, `Minimal Abzug [CHF]`, `Abzug [%]`, `Abzug fix [CHF]`, `Kinoförderer gratis?`),
+                               Tickets = df_Eintritt|>
+                                 filter(Datum %in% c(c_Date[ii], df_Abrechnung$`Link Datum`[ii]))|>
+                                 select(Datum, Filmtitel, `Suisa Nummer`, Platzkategorie, Verkaufspreis, Anzahl, Umsatz, `Verkaufspreis Abgerechnet [CHF]`,`Umsatz für Netto3 [CHF]`)
+    )
+  }else{
+    l_abrechnung[[ii]] <- list(Abrechnung = df_Abrechnung|>
+                                 filter(Datum %in% c(c_Date[ii], df_Abrechnung$`Link Datum`[ii]))|>
+                                 select(Datum, `Link Datum`, Anfang, Ende, Filmtitel, `Suisa Nummer`, Verleiher,`Verleiherrechnungsbetrag [CHF]`, 
+                                        `SUISA-Vorabzug [%]`, `Link Datum`, `Minimal Abzug [CHF]`, `Abzug [%]`, `Abzug fix [CHF]`, `Kinoförderer gratis?`),
+                               Tickets = df_Eintritt|>
+                                 filter(Datum %in% c(c_Date[ii], df_Abrechnung$`Link Datum`[ii]))|>
+                                 select(Datum, Filmtitel, `Suisa Nummer`, Platzkategorie, Verkaufspreis, Anzahl, Umsatz, `Verkaufspreis Abgerechnet [CHF]`,`Umsatz für Netto3 [CHF]`)
+    )
+  }
   
   ########################################################################
   # error handling
@@ -1409,6 +1422,7 @@ for (ii in 1:length(c_Date)) {
     # Gemeinsame Abrechnung (Datum und link Datum): Verleiherrechnung wir auch auf dem Linkdatum eingetragen
     c_Verleiherrechnungsbetrag <- l_abrechnung[[ii]]$Abrechnung$`Verleiherrechnungsbetrag [CHF]`[!is.na(l_abrechnung[[ii]]$Abrechnung$`Verleiherrechnungsbetrag [CHF]`)]
     l_abrechnung[[ii]]$Abrechnung$`Verleiherrechnungsbetrag [CHF]` <- rep(c_Verleiherrechnungsbetrag, length(l_abrechnung[[ii]]$Abrechnung$`Verleiherrechnungsbetrag [CHF]`))
+    remove(c_Verleiherrechnungsbetrag)
   }else{
     # Error handling: Keine Verleiherrechnung vorhanden
     warning(paste0("\nAchtung für den Film \"", l_abrechnung[[ii]]$Abrechnung$Filmtitel,"\" am ",
@@ -1436,9 +1450,9 @@ for (ii in 1:length(c_Date)) {
 }
 names(l_abrechnung) <- c_Date
 
-df_keine_Rechnnung <- l_keineRechnung|>
+df_keine_Rechnung <- l_keineRechnung|>
   bind_rows()
-df_keine_Rechnnung
+df_keine_Rechnung
 
 #########################################################################################################
 # Einnahmen und Abgaben von mehreren Events verhältnismässig nach Umsatzzahlen 
@@ -1709,7 +1723,6 @@ remove(c_file,
        c_test,
        file_datum,
        c_names,
-       c_Verleiherrechnungsbetrag,
        ii,
        l_keineRechnung,
        c_filePath

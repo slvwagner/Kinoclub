@@ -62,8 +62,8 @@ df_temp|>
 ```
 
 ```{r echo=FALSE}
-if(!is.null(data_env$df_keine_Rechnung)) {
-  df_temp <- df_keine_Rechnnung |>
+if(!is.null(df_keine_Rechnung)) {
+  df_temp <- df_keine_Rechnung |>
     filter(Datum == c_Date[ii])
   if (nrow(df_temp) > 0) {
     writeLines(
@@ -131,8 +131,8 @@ Für jeden gezeigten Film sind verschiedenen Abgaben und Gebühren zu entrichten
 
 ```{r echo=FALSE}
 
-if(!is.null(data_env$df_keine_Rechnung)) {
-  df_temp <- df_keine_Rechnnung |>
+if(!is.null(df_keine_Rechnung)) {
+  df_temp <- df_keine_Rechnung |>
     filter(Datum == c_Date[ii])
 
   if (nrow(df_temp) > 0) {
@@ -161,9 +161,15 @@ if(!is.null(data_env$df_keine_Rechnung)) {
 
 
 ```{r echo=FALSE}
-df_temp <- df_Abrechnung|>
-  filter(Datum %in% (c_Datum) & `Suisa Nummer` == c_suisa)|>
+if(nrow(df_Abrechnung) == 1){
+  df_temp <- df_Abrechnung|>
   mutate(`Total Abgaben [CHF]` = sum(`SUISA-Vorabzug [CHF]`,`Verleiherabzug [CHF]`,na.rm = T))
+}else{
+  df_temp <- df_Abrechnung|>
+  filter(Datum %in% c(c_Datum) & `Suisa Nummer` == c_suisa)|>
+  mutate(`Total Abgaben [CHF]` = sum(`SUISA-Vorabzug [CHF]`,`Verleiherabzug [CHF]`,na.rm = T))
+}
+
 ```
 
 
