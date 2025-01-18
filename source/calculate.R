@@ -723,7 +723,7 @@ df_temp <- df_Eintritt|>
 
 if(nrow(df_temp)>0){
   stop(paste0("Im file: .../Kinoklub/Input/advance tickets/Eintritt ",day(df_temp$Datum),".",month(df_temp$Datum),".", year(df_temp$Datum), 
-              " wurde ein anderes Datum gefunden: ", day(df_temp$Datum_),".",month(df_temp$Datum_),".", year(df_temp$Datum_))
+              " wurde ein anderes Datum gefunden: ", day(df_temp$Datum_),".",month(df_temp$Datum_),".", year(df_temp$Datum_), collapse = "\n")
   )
 }
 
@@ -1315,7 +1315,8 @@ df_Abrechnung <- df_Eintritt|>
     by = join_by(Datum)
   )|>
   rename(`SUISA-Vorabzug [%]` = `SUISA-Vorabzug`,
-         `Minimal Abzug [CHF]` =  `Minimal Abzug`)
+         `Minimal Abzug [CHF]` =  `Minimal Abzug`)|>
+  mutate(Datum = as.Date(Datum))
 df_Abrechnung
 
 ########################################################################
@@ -1388,15 +1389,13 @@ df_Eintritt <- bind_rows(
 #########################################################################################################
 # Abrechnungsperiode erstellen
 #########################################################################################################
-ii <- 1
-
 l_keineRechnung <- list()
 l_abrechnung <- list()
 ii<-19
 for (ii in 1:length(c_Date)) {
   if(length(c_Date) == 1){
     l_abrechnung[[ii]] <- list(Abrechnung = df_Abrechnung|>
-                                 filter(Datum == c_Date[ii])|>
+                                 filter(Datum %in% c(c_Date[ii], df_Abrechnung$`Link Datum`[ii]))|>
                                  select(Datum, `Link Datum`, Anfang, Ende, Filmtitel, `Suisa Nummer`, Verleiher,`Verleiherrechnungsbetrag [CHF]`, 
                                         `SUISA-Vorabzug [%]`, `Link Datum`, `Minimal Abzug [CHF]`, `Abzug [%]`, `Abzug fix [CHF]`, `Kinoförderer gratis?`),
                                Tickets = df_Eintritt|>
@@ -1458,8 +1457,10 @@ df_keine_Rechnung
 # Einnahmen und Abgaben von mehreren Events verhältnismässig nach Umsatzzahlen 
 # auf die gelinkten Filme aufteilen (Link im Excel file: .../Kinoklub/Input/Verleiherabgaben.xlsx ) 
 #########################################################################################################
-
+writeLines("Debug_01")
 for (ii in 1:length(c_Date)) {
+  paste0("Debug_01: ii=",ii)|>
+    writeLines()
   ############
   # umsatz- und Netto3 Umsatz-Berechnung
   ############
@@ -1608,22 +1609,26 @@ for (ii in 1:length(c_Date)) {
   }
 }
 class(l_abrechnung)
+
+paste0("Debug_02")|>
+  writeLines()
+
 ##############################################################################
 # Abrechnung Filmvorführung erstellen (für Berichte verwendet)
 # Runden aller [CHF]  Beträge
 ##############################################################################
+x <- l_abrechnung[[1]]
 df_Abrechnung <- bind_cols(
   l_abrechnung|>
     lapply(function(x){
       x$Abrechnung|>
         select(!ends_with("[CHF]"))
-    })|>
+      })|>
     bind_rows(),
   l_abrechnung|>
     lapply(function(x){
       c_temp <- x$Abrechnung|>
         select(ends_with("[CHF]"))|>
-        as_vector()|>
         round5Rappen()
       as.data.frame(c_temp)|>
         t()|>
@@ -1632,7 +1637,7 @@ df_Abrechnung <- bind_cols(
     bind_rows()
 )|>
   rename(`Umsatz [CHF]` = Umsatz)
-
+df_Abrechnung
 ##############################################################################
 # Abrechnung Tickets erstellen (für Berichte verwendet)
 ##############################################################################
@@ -1695,7 +1700,8 @@ df_Besucherzahlen <- df_Eintritt|>
   group_by(Datum, Filmtitel, `Suisa Nummer`)|>
   reframe(Besucher = sum(Anzahl))
 df_Besucherzahlen
-
+paste0("Debug_02")|>
+  writeLines()
 ########################################################################
 # write to Excel
 ########################################################################
