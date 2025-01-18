@@ -1117,7 +1117,7 @@ try(c_raw <- list.files(pattern = "Shows", recursive = T)|>
     outFile = "error.log"
 )
 if(length(list.files(pattern = "error.log"))>0) {
-  stop("Es sind nicht alle shows vorhanden: \nDatei .../Kinoklub/input/advance tickets/Shows.txt nicht gefunden. \nBitte herunterladen und abspeichern:\nhttps://www.advance-ticket.ch/shows?lang=de")
+  stop("Es sind nicht alle shows vorhanden: \nDatei \".../Kinoklub/input/advance tickets/Shows.txt\" nicht gefunden. \nBitte herunterladen und abspeichern: https://www.advance-ticket.ch/shows?lang=de")
 }
 
 c_select <- tibble(found = str_detect(c_raw, "Tag"))|>
@@ -1176,7 +1176,8 @@ if(nrow(df_temp) != 0) {
 ########################################################################
 
 if(!file.exists("Input/advance tickets/atelierkino_abo.txt")) {
-  stop("Die Datei: .../Input/advance tickets/atelierkino_abo.txt wurde nicht gefunden.\nBitte herunterladen\nhttps://www.advance-ticket.ch/abos?lang=de")
+  stop(paste0("Die Datei: \".../Input/advance tickets/atelierkino_abo.txt\" wurde nicht gefunden.",
+       "\nBitte herunterladen unter: https://www.advance-ticket.ch/abos?lang=de"))
   }
 atelierkino_abo <- read_delim("Input/advance tickets/atelierkino_abo.txt", 
                               delim = "\t", escape_double = FALSE, 
@@ -1187,7 +1188,8 @@ atelierkino_abo <- read_delim("Input/advance tickets/atelierkino_abo.txt",
                                                count_use = col_integer()), trim_ws = TRUE)
 
 if(!file.exists("Input/advance tickets/atelierkino_foerderer.txt")) {
-  stop("Die Datei: .../Input/advance tickets/atelierkino_foerderer.txt wurde nicht gefunden.\nBitte herunterladen\nhttps://www.advance-ticket.ch/abos?lang=de")
+  stop(paste("Die Datei: .../Input/advance tickets/atelierkino_foerderer.txt wurde nicht gefunden.",
+         "\nBitte herunterladen unter: https://www.advance-ticket.ch/abos?lang=de"))
   }
 atelierkino_foerderer <- read_delim("Input/advance tickets/atelierkino_foerderer.txt", 
                                     delim = "\t", escape_double = FALSE, 
@@ -1198,7 +1200,8 @@ atelierkino_foerderer <- read_delim("Input/advance tickets/atelierkino_foerderer
                                                      count_use = col_integer()), trim_ws = TRUE)
 
 if(!file.exists("Input/advance tickets/atelierkino_gutschein.txt")) {
-  stop("Die Datei: .../Input/advance tickets/atelierkino_gutschein.txt wurde nicht gefunden.\nBitte herunterladen\nhttps://www.advance-ticket.ch/abos?lang=de")
+  stop(paste("Die Datei: .../Input/advance tickets/atelierkino_gutschein.txt wurde nicht gefunden.",
+             "\nBitte herunterladen\nhttps://www.advance-ticket.ch/abos?lang=de"))
   }
 atelierkino_gutschein <- read_delim("Input/advance tickets/atelierkino_gutschein.txt", 
                                     delim = "\t", escape_double = FALSE, 
@@ -1230,7 +1233,7 @@ df_temp <- df_verleiherabgaben|>
   filter(is.na(Verleiher))
 
 if(nrow(df_temp)>0){
-  stop(paste0("\nEs gibt keinen Verleiherangeben für den Film, ",df_temp$Titel," am ",day(df_temp$Datum), ".", month(df_temp$Datum), ".", year(df_temp$Datum),".",   
+  stop(paste0("\nEs gibt keinen Verleiherabgaben für den Film, ",df_temp$Titel," am ",day(df_temp$Datum), ".", month(df_temp$Datum), ".", year(df_temp$Datum),".",   
               "\nBitte korrrigieren in der Exceldatei .../Kinoklub/input/Verleiherabgaben.xlsx"))
 }
 
@@ -1338,10 +1341,9 @@ df_temp <- df_Abrechnung|>
 
 # error handling, keine Verleiherrechnung
 if(nrow(df_temp)>0) {
-  warning(paste0("\nAchtung für die diesen Film \"", df_temp$Filmtitel,"\" am ",
-                 day(df_temp$Datum),".",month(df_temp$Datum),".", lubridate::year(df_temp$Datum)," gibt es keine Verleiherrechnung.",
-                 "\nBitte korrigieren in der Datei:",
-                 "\n.../Kinokulb/input/Einnahmen und Ausgaben.xlsx\n"
+  warning(paste0("\nAchtung für den Film \"", df_temp$Filmtitel,"\" am ", day(df_temp$Datum),".",month(df_temp$Datum),".", lubridate::year(df_temp$Datum),
+                 "\nist der Verleiherrechnungsbetrag kleiner als die Mindestgarantie.",
+                 "\nBitte korrigieren in der Datei: .../Kinokulb/input/Verleiherabgaben.xlsx\n"
   )
   )  
 }
