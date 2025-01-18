@@ -92,17 +92,29 @@ if(n > shows_per_year) shows_per_year <- n
 
 ### Wochentaganalyse
 ```{r }
-timeRange <- paste0(seq(0,23,1),":00","-", seq(1,24,1),":00")
-
-m <- str_split(timeRange, "-")|>
-  sapply(function(range){
-    hm(df_temp$Anfang) >= hm(range[1]) & hm(df_temp$Anfang) < hm(range[2])
-  })
-
-m <- tibble(
-  `Time Range` = timeRange, 
-  value = m
-  )
+if(nrow(df_temp)>1){
+  timeRange <- paste0(seq(0,23,1),":00","-", seq(1,24,1),":00")
+  m <- str_split(timeRange, "-")|>
+    sapply(function(range){
+      hm(df_temp$Anfang) >= hm(range[1]) & hm(df_temp$Anfang) < hm(range[2])
+    })
+  colnames(m) <- timeRange
+  m <- m|>
+  as_tibble()|>
+  pivot_longer(cols = everything(), names_to = "Time Range")|>
+  filter(`value` == TRUE)
+}else{
+  timeRange <- paste0(seq(0,23,1),":00","-", seq(1,24,1),":00")
+  m <- str_split(timeRange, "-")|>
+    sapply(function(range){
+      hm(df_temp$Anfang) >= hm(range[1]) & hm(df_temp$Anfang) < hm(range[2])
+    })
+  
+  m <- tibble(
+    `Time Range` = timeRange, 
+    value = m
+    )
+}
 ```
 
 ```{r}
@@ -241,17 +253,29 @@ df_temp|>
 ### Wochentaganalyse
 
 ```{r }
-timeRange <- paste0(seq(0,23,1),":00","-", seq(1,24,1),":00")
-
-m <- str_split(timeRange, "-")|>
-  sapply(function(range){
-    hm(df_temp$Anfang) >= hm(range[1]) & hm(df_temp$Anfang) < hm(range[2])
-  })
-
-m <- tibble(
-  `Time Range` = timeRange, 
-  value = m
-  )
+if(nrow(df_temp)>1){
+  timeRange <- paste0(seq(0,23,1),":00","-", seq(1,24,1),":00")
+  m <- str_split(timeRange, "-")|>
+    sapply(function(range){
+      hm(df_temp$Anfang) >= hm(range[1]) & hm(df_temp$Anfang) < hm(range[2])
+    })
+  colnames(m) <- timeRange
+  m <- m|>
+  as_tibble()|>
+  pivot_longer(cols = everything(), names_to = "Time Range")|>
+  filter(`value` == TRUE)
+}else{
+  timeRange <- paste0(seq(0,23,1),":00","-", seq(1,24,1),":00")
+  m <- str_split(timeRange, "-")|>
+    sapply(function(range){
+      hm(df_temp$Anfang) >= hm(range[1]) & hm(df_temp$Anfang) < hm(range[2])
+    })
+  
+  m <- tibble(
+    `Time Range` = timeRange, 
+    value = m
+    )
+}
 ```
 
 
@@ -628,17 +652,29 @@ df_temp|>
 
 ### Wochentaganalyse
 ```{r }
-timeRange <- paste0(seq(0,23,1),":00","-", seq(1,24,1),":00")
-
-m <- str_split(timeRange, "-")|>
-  sapply(function(range){
-    hm(df_temp$Anfang) >= hm(range[1]) & hm(df_temp$Anfang) < hm(range[2])
-  })
-
-m <- tibble(
-  `Time Range` = timeRange, 
-  value = m
-  )
+if(nrow(df_temp)>1){
+  timeRange <- paste0(seq(0,23,1),":00","-", seq(1,24,1),":00")
+  m <- str_split(timeRange, "-")|>
+    sapply(function(range){
+      hm(df_temp$Anfang) >= hm(range[1]) & hm(df_temp$Anfang) < hm(range[2])
+    })
+  colnames(m) <- timeRange
+  m <- m|>
+  as_tibble()|>
+  pivot_longer(cols = everything(), names_to = "Time Range")|>
+  filter(`value` == TRUE)
+}else{
+  timeRange <- paste0(seq(0,23,1),":00","-", seq(1,24,1),":00")
+  m <- str_split(timeRange, "-")|>
+    sapply(function(range){
+      hm(df_temp$Anfang) >= hm(range[1]) & hm(df_temp$Anfang) < hm(range[2])
+    })
+  
+  m <- tibble(
+    `Time Range` = timeRange, 
+    value = m
+    )
+}
 ```
 
 ```{r}
@@ -857,17 +893,29 @@ df_temp <- df_temp|>
 
 
 ```{r }
-timeRange <- paste0(seq(0,23,1),":00","-", seq(1,24,1),":00")
-
-m <- str_split(timeRange, "-")|>
-  sapply(function(range){
-    hm(df_temp$Anfang) >= hm(range[1]) & hm(df_temp$Anfang) < hm(range[2])
-  })
-
-m <- tibble(
-  `Time Range` = timeRange, 
-  value = m
-  )
+if(nrow(df_temp)>1){
+  timeRange <- paste0(seq(0,23,1),":00","-", seq(1,24,1),":00")
+  m <- str_split(timeRange, "-")|>
+    sapply(function(range){
+      hm(df_temp$Anfang) >= hm(range[1]) & hm(df_temp$Anfang) < hm(range[2])
+    })
+  colnames(m) <- timeRange
+  m <- m|>
+  as_tibble()|>
+  pivot_longer(cols = everything(), names_to = "Time Range")|>
+  filter(`value` == TRUE)
+}else{
+  timeRange <- paste0(seq(0,23,1),":00","-", seq(1,24,1),":00")
+  m <- str_split(timeRange, "-")|>
+    sapply(function(range){
+      hm(df_temp$Anfang) >= hm(range[1]) & hm(df_temp$Anfang) < hm(range[2])
+    })
+  
+  m <- tibble(
+    `Time Range` = timeRange, 
+    value = m
+    )
+}
 ```
 
 ```{r}
