@@ -943,7 +943,7 @@ df_Kiosk <- df_Kiosk|>
             by = c(Datum ="Datum", Verkaufsartikel = "Spezialpreis")
   )|>
   mutate(Verkaufsartikel = if_else(is.na(Artikelname), Verkaufsartikel, Artikelname))|>
-  select(-Artikelname, -Verkaufspreis, -`Anzahl verkaufter Artikel`)
+  select(-Artikelname, -Verkaufspreis)
 
 
 ########################################################################
