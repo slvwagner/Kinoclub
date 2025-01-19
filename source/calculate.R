@@ -538,6 +538,32 @@ df_P_kat_verechnen <- tibble(
 )
 
 #############################################################################################################################################
+# System Variablen und Vorlagen
+#############################################################################################################################################
+# Vorlage für Diagramme (Bei einer Änderung soll auch das css (".../source/Kinokulub_dark.css") geändert werden)
+my_template <-
+  theme_bw() +
+  theme(
+    panel.background = element_rect(
+      fill = "#322f3b",
+      colour = "#322f3b",
+      linewidth = 0.5,
+      linetype = "solid"
+    ),
+    plot.background = element_rect(fill = "#322f3b"),
+    axis.title = element_text(colour = "#f4cccc", size = 15),
+    axis.text = element_text(colour = "#f4cccc"),
+    legend.justification = c("right", "top"),
+    legend.box.just = "right",
+    legend.margin = margin(6, 6, 6, 6),
+    legend.background = element_rect(fill = "#322f3b", color = "black"),
+    legend.text = element_text(color = "#f4cccc"),
+    legend.title = element_text(size = 12),
+    title = element_text(color = "#f4cccc", size = 22)
+  )
+
+
+#############################################################################################################################################
 # Errorhandling open excel files
 #############################################################################################################################################
 

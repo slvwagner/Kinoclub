@@ -557,7 +557,7 @@ webserver <- function() {
 #######################################################
 # Erstellen der Abrechnung pro Filmvorführung
 #######################################################
-AbrechnungErstellen <- function(df_mapping__, df_Abrechnung) {
+AbrechnungErstellen <- function(df_mapping__, df_Abrechnung, df_Render, toc) {
   for (ii in df_mapping__$index) {
     # Template der Abrechnung einlesen
     c_raw <- readLines("source/Abrechnung.Rmd")
@@ -590,7 +590,7 @@ AbrechnungErstellen <- function(df_mapping__, df_Abrechnung) {
     c_raw[(index)] <- paste0(c(c_temp, "\""), collapse = "")
     
     # Inhaltsverzeichnis
-    if (toc()) { # neues file schreiben mit toc
+    if (toc) { # neues file schreiben mit toc
       c_raw |>
         r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis") |>
         writeLines(paste0("source/temp.Rmd"))
@@ -600,9 +600,9 @@ AbrechnungErstellen <- function(df_mapping__, df_Abrechnung) {
     }
     
     # Render
-    rmarkdown::render(input = paste0("source/temp.Rmd"),
-                      output_format = df_Render()$Render,
-                      output_file = paste0("Abrechnung ",df_mapping__ |> filter(index == ii) |> select(user_Datum) |> pull(),df_Render()$fileExt),
+    rmarkdown::render(input = "source/temp.Rmd",
+                      output_format = df_Render$Render,
+                      output_file = paste0("Abrechnung ",df_mapping__ |> filter(index == ii) |> select(user_Datum) |> pull(),df_Render$fileExt),
                       output_dir = "output",
                       envir = data_env
     )
@@ -723,12 +723,12 @@ tryCatch({
     source("source/calculate.R", local = data_env)
   }, type = "message")
 }, error = function(e) {
-  ausgabe_text <- paste0("Fehler beim Ausführen von 'source/calculate.R': ", e$message)
+  ausgabe_text <- paste0("Fehler beim Ausführen von 'source/calculate.R':\n", e$message)
   ausgabe_text <-
-    paste0("\n",
+    paste0("\n\n",
            "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n",
            "! Es konnten nicht alle Daten einlesen werden. !\n",
-           "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n",
+           "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\n",
            ausgabe_text,
            collapse = "\n"
     )
@@ -831,49 +831,48 @@ server <- function(input, output, session) {
              "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n",
              ausgabe_text())|>
         ausgabe_text()
+      stop(ausgabe_text())
     }else{
-      paste0("Daten einlesen!\n",paste0(calculate_warnings(), collapse = "\n"))|>
+      paste0("Daten einlesen!\n",paste0(calculate_warnings(),ausgabe_text(), collapse = "\n"))|>
         ausgabe_text()
     }
     file_exists(file.exists("output/webserver/index.html"))
     End_date_choose(Sys.Date() + ((max(data_env$df_Abrechnung$Datum) - Sys.Date()) |> as.integer()))
   })
 
-  # Überwachung Button Abrechnunge erstellen über Datum-Range
+  # Überwachung Button Abrechnung erstellen über Datum-Range
   shiny::observeEvent(input$Abrechnung, {
     ausgabe_text("")
-    if (TRUE) {
-      start_datum <- input$dateRange |> min()
-      end_datum <- input$dateRange |> max()
+    start_datum <- input$dateRange |> min()
+    end_datum <- input$dateRange |> max()
+    
+    # Überprüfen, ob beide Daten gültig sind
+    if (start_datum <= end_datum) {
+      # Aktion ausführen
+      ausgabe_text(paste0(
+        "Die Filmabrechnungen für den Zeitraum \n",
+        format(start_datum, "%d.%m.%Y"), " bis ",
+        format(end_datum, "%d.%m.%Y"), " wurden erstellt",
+        paste0("\n", getwd(), "/output")
+      ))
       
-      # Überprüfen, ob beide Daten gültig sind
-      if (start_datum <= end_datum) {
-        # Aktion ausführen
-        ausgabe_text(paste0(
-          "Die Filmabrechnungen für den Zeitraum \n",
-          format(start_datum, "%d.%m.%Y"), " bis ",
-          format(end_datum, "%d.%m.%Y"), " wurden erstellt",
-          paste0("\n", getwd(), "/output")
-        ))
-        
-        ##############################################
-        # Filmabrechnungen erstellen mit dateRange user input
-        tryCatch({
-          df_mapping__ <- mapping(data_env$c_Date) |>
-            filter(between(Datum, start_datum, end_datum))
-          AbrechnungErstellen(df_mapping__, get("df_Abrechnung", envir = data_env))
-          webserver()
-        }, error = function(e) {
-          ausgabe_text(paste(
-            "Filmabrechnungen erstellen, Fehler beim Bericht erstellen:",
+      ##############################################
+      # Filmabrechnungen erstellen mit dateRange user input
+      tryCatch({
+        df_mapping__ <- mapping(data_env$c_Date) |>
+          filter(between(Datum, start_datum, end_datum))
+        AbrechnungErstellen(df_mapping__, get("df_Abrechnung", envir = data_env), df_Render = df_Render(), toc = toc())
+        webserver()
+      }, error = function(e) {
+        ausgabe_text(
+          paste0(
+            "Filmabrechnungen erstellen, Fehler beim Bericht erstellen:\n",
             e$message
-          ))
-        })
-      } else {
-        ausgabe_text("Das Enddatum darf nicht vor dem Startdatum liegen.")
-      }
-    } else{
-      ausgabe_text("Abrechnung kann nicht erstellt werden.\nKeine Daten vorhanden, bitte neu einlesen!!!!")
+            )
+          )
+      })
+    } else {
+      ausgabe_text("Das Enddatum darf nicht vor dem Startdatum liegen.")
     }
     file_exists(file.exists("output/webserver/index.html"))
   })
@@ -1009,7 +1008,7 @@ server <- function(input, output, session) {
 
       # Bericht(e) Abrechnung pro Filmforführung erstellen
       df_mapping__ <- mapping(data_env$c_Date)
-      AbrechnungErstellen(df_mapping__, get("df_Abrechnung", envir = data_env))
+      AbrechnungErstellen(df_mapping__, get("df_Abrechnung", envir = data_env), df_Render = df_Render(), toc = toc())
 
       print(clc)
 
@@ -1020,7 +1019,7 @@ server <- function(input, output, session) {
       webserver()
     },
     error = function(e) {
-      ausgabe_text(paste("Erstelle Abrechnung, Fehler beim Bericht erstellen:", e$message))
+      ausgabe_text(paste("Alles erstellen mit Webserver\nFehler beim Bericht erstellen:", e$message))
       }
     )
     End_date_choose(Sys.Date() + ((max(datum_vektor) - Sys.Date()) |> as.integer()))
