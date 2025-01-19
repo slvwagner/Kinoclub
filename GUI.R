@@ -714,7 +714,7 @@ df_P_kat_verechnen <- tibble(
 #############################################################################################################################################
 # Envirnoment for Data read in
 calculate_warnings <- ""
-ausgabe_text <- ""
+ausgabe_text <- "Daten wurden eingelesen."
 data_env <- new.env()
 
 tryCatch({
@@ -724,25 +724,17 @@ tryCatch({
   }, type = "message")
 }, error = function(e) {
   ausgabe_text <- paste0("Fehler beim Ausführen von 'source/calculate.R': ", e$message)
+  ausgabe_text <-
+    paste0("\n",
+           "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n",
+           "! Es konnten nicht alle Daten einlesen werden. !\n",
+           "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n",
+           ausgabe_text,
+           collapse = "\n"
+    )
   stop(ausgabe_text)
 })
 
-if(nchar(ausgabe_text) > 0){
-  ausgabe_text <- 
-    paste0("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n",
-           "! Es konnten nicht alle Daten einlesen werden. !\n",
-           "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n",
-           ausgabe_text
-           )
-    
-}else{
-  ausgabe_text <- paste0("Daten wurden eingelesen. Berichte können erstellt werden.",
-                         paste0(calculate_warnings, collapse = "\n"), 
-                         ausgabe_text,"\n", 
-                         capture.output(print(warnings()))|>paste0(collapse = "\n"),
-                         collapse = "\n"
-  )
-}
 
 #############################################################################################################################################
 # Shiny reactive variables
