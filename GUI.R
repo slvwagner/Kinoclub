@@ -806,8 +806,9 @@ server <- function(input, output, session) {
           ausgabe_text()
       })
     if(nchar(ausgabe_text()) == 0){
-      paste0("Daten einlesen ohne Fehlermeldungen, Berichte können erstellt werden!\n",
-             collapse = "\n"
+      paste0("Daten einlesen mit den folgenden Fehlermeldungen, Berichte können dennoch erstellt werden!\n\n",
+             paste0(calculate_warnings(),
+                    collapse = "\n")
              )|>
         ausgabe_text()
     }
