@@ -631,7 +631,7 @@ AbrechnungErstellen <- function(df_mapping__, df_Abrechnung, df_Render, toc) {
       # Render
       rmarkdown::render(
         input = "Verleiherabrechnung.Rmd",
-        output_file = paste0("Verleiherabrechnung ", df_mapping__ |> filter(index == ii) |> select(user_Datum) |> pull(), df_Render()$fileExt),
+        output_file = paste0("Verleiherabrechnung ", df_mapping__ |> filter(index == ii) |> select(user_Datum) |> pull(), df_Render$fileExt),
         output_format = df_Render()$Render,
         output_dir = paste0(getwd(), "/output"),
         envir = data_env
@@ -648,31 +648,6 @@ AbrechnungErstellen <- function(df_mapping__, df_Abrechnung, df_Render, toc) {
     }
   }
 }
-
-#############################################################################################################################################
-# System Variablen und Vorlagen
-#############################################################################################################################################
-# Vorlage für Diagramme (Bei einer Änderung soll auch das css (".../source/Kinokulub_dark.css") geändert werden)
-my_template <-
-  theme_bw() +
-  theme(
-    panel.background = element_rect(
-      fill = "#322f3b",
-      colour = "#322f3b",
-      linewidth = 0.5,
-      linetype = "solid"
-    ),
-    plot.background = element_rect(fill = "#322f3b"),
-    axis.title = element_text(colour = "#f4cccc", size = 15),
-    axis.text = element_text(colour = "#f4cccc"),
-    legend.justification = c("right", "top"),
-    legend.box.just = "right",
-    legend.margin = margin(6, 6, 6, 6),
-    legend.background = element_rect(fill = "#322f3b", color = "black"),
-    legend.text = element_text(color = "#f4cccc"),
-    legend.title = element_text(size = 12),
-    title = element_text(color = "#f4cccc", size = 22)
-  )
 
 #############################################################################################################################################
 # Benutzereinstellungen importieren aus "Erstelle Abrechnung.R"
