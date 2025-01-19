@@ -806,7 +806,9 @@ server <- function(input, output, session) {
           ausgabe_text()
       })
     if(nchar(ausgabe_text()) == 0){
-      paste0("Daten einlesen ohne Fehlermeldungen!\n",paste0(calculate_warnings(),ausgabe_text(), collapse = "\n"))|>
+      paste0("Daten einlesen ohne Fehlermeldungen, Berichte können erstellt werden!\n",
+             collapse = "\n"
+             )|>
         ausgabe_text()
     }
     file_exists(file.exists("output/webserver/index.html"))
