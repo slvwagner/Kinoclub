@@ -799,15 +799,13 @@ server <- function(input, output, session) {
       }, error = function(e) { # Fehler abfangen
         paste0("Fehler beim Ausführen von 'source/calculate.R':\n", e$message)|>
           ausgabe_text()
+        paste0("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n",
+               "! Es konnten nicht alle Daten einlesen werden. !\n",
+               "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n",
+               ausgabe_text())|>
+          ausgabe_text()
       })
-    if(nchar(ausgabe_text()) > 0){
-      paste0("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n",
-             "! Es konnten nicht alle Daten einlesen werden. !\n",
-             "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n",
-             ausgabe_text())|>
-        ausgabe_text()
-      stop(ausgabe_text())
-    }else{
+    if(nchar(ausgabe_text()) == 0){
       paste0("Daten einlesen!\n",paste0(calculate_warnings(),ausgabe_text(), collapse = "\n"))|>
         ausgabe_text()
     }
