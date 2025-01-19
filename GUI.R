@@ -724,6 +724,7 @@ tryCatch({
   }, type = "message")
 }, error = function(e) {
   ausgabe_text <- paste0("Fehler beim Ausführen von 'source/calculate.R': ", e$message)
+  stop(ausgabe_text)
 })
 
 if(nchar(ausgabe_text) > 0){
@@ -735,11 +736,13 @@ if(nchar(ausgabe_text) > 0){
            )
     
 }else{
-  ausgabe_text <- paste0("Daten einlesen!\n",paste0(calculate_warnings, collapse = "\n"))
+  ausgabe_text <- paste0("Daten wurden eingelesen. Berichte können erstellt werden.",
+                         paste0(calculate_warnings, collapse = "\n"), 
+                         ausgabe_text,"\n", 
+                         capture.output(print(warnings()))|>paste0(collapse = "\n"),
+                         collapse = "\n"
+  )
 }
-
-
-# if(!exists("df_Abrechnung", envir = data_env)) stop("\nDEBUG01: df_Abrechnung wurde nicht gefunden")
 
 #############################################################################################################################################
 # Shiny reactive variables
