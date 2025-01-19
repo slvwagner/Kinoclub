@@ -728,8 +728,10 @@ df_temp <- df_Eintritt|>
   distinct(Datum,.keep_all = T)
 
 if(nrow(df_temp)>0){
-  stop(paste0("Im file: .../Kinoklub/Input/advance tickets/Eintritt ",day(df_temp$Datum),".",month(df_temp$Datum),".", year(df_temp$Datum), 
-              " wurde ein anderes Datum gefunden: ", day(df_temp$Datum_),".",month(df_temp$Datum_),".", year(df_temp$Datum_), collapse = "\n")
+  stop(paste0("Im file \".../Kinoklub/Input/advance tickets/Eintritt ",day(df_temp$Datum),".",month(df_temp$Datum),".", year(df_temp$Datum)-2000, "\"",
+              "\nwurde ein anderes Datum gefunden: ", day(df_temp$Datum_),".",month(df_temp$Datum_),".", year(df_temp$Datum_),
+              "\nBitte korrigieren!",
+              collapse = "\n")
   )
 }
 
@@ -1233,7 +1235,7 @@ df_temp <- df_verleiherabgaben|>
   filter(is.na(Verleiher))
 
 if(nrow(df_temp)>0){
-  stop(paste0("\nEs gibt keinen Verleiherabgaben für den Film, ",df_temp$Titel," am ",day(df_temp$Datum), ".", month(df_temp$Datum), ".", year(df_temp$Datum),".",   
+  stop(paste0("\nEs gibt keinen Verleiher für den Film, ",df_temp$Titel," am ",day(df_temp$Datum), ".", month(df_temp$Datum), ".", year(df_temp$Datum),".",   
               "\nBitte korrrigieren in der Exceldatei .../Kinoklub/input/Verleiherabgaben.xlsx"))
 }
 
@@ -1378,12 +1380,15 @@ writeLines("Daten eingelesen")
 # Für die Berechnung von "Netto 3" müssen die Kinoförder als Umsatz verrechnet werden.
 # Netto 3 = Umsatz minus SUISA-Vorabzug.
 #########################################################################################################
+
+df_Eintritt$Platzkategorie %in% df_P_kat_verechnen$Kinoförderer
+
 df_Eintritt <- bind_rows(
   df_Eintritt|>
     filter(!`Kinoförderer gratis?`)|>
     mutate(
       `Umsatz für Netto3 [CHF]` = if_else(Platzkategorie %in% df_P_kat_verechnen$Kinoförderer,
-                                    Anzahl * df_P_kat_verechnen$Verkaufspreis,
+                                    Anzahl * df_P_kat_verechnen$Verkaufspreis[1],
                                     Umsatz
                                     ),
       `Verkaufspreis Abgerechnet [CHF]` = `Umsatz für Netto3 [CHF]` / Anzahl

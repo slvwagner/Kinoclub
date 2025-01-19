@@ -724,10 +724,22 @@ tryCatch({
   }, type = "message")
 }, error = function(e) {
   ausgabe_text <- paste0("Fehler beim Ausführen von 'source/calculate.R': ", e$message)
-  stop(ausgabe_text)
 })
 
-if(!exists("df_Abrechnung", envir = data_env)) stop("\nDEBUG01: df_Abrechnung wurde nicht gefunden")
+if(nchar(ausgabe_text) > 0){
+  ausgabe_text <- 
+    paste0("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n",
+           "! Es konnten nicht alle Daten einlesen werden. !\n",
+           "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n",
+           ausgabe_text
+           )
+    
+}else{
+  ausgabe_text <- paste0("Daten einlesen!\n",paste0(calculate_warnings, collapse = "\n"))
+}
+
+
+# if(!exists("df_Abrechnung", envir = data_env)) stop("\nDEBUG01: df_Abrechnung wurde nicht gefunden")
 
 #############################################################################################################################################
 # Shiny reactive variables
@@ -751,11 +763,7 @@ if(exists("df_show",envir = data_env))  {
 }
 
 # Variable, um Status zu speichern
-ausgabe_text <- paste0(
-  "Daten wurden eingelesen.",
-  calculate_warnings, ausgabe_text,
-  collapse = "\n") |>
-  shiny::reactiveVal()
+ausgabe_text <- shiny::reactiveVal(ausgabe_text)
 
 calculate_warnings <- shiny::reactiveVal(calculate_warnings)
 
@@ -823,7 +831,10 @@ server <- function(input, output, session) {
           ausgabe_text()
       })
     if(nchar(ausgabe_text()) > 0){
-      paste0("Es konnten nicht alle Daten einlesen werden.\n",ausgabe_text())|>
+      paste0("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n",
+             "! Es konnten nicht alle Daten einlesen werden. !\n",
+             "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n",
+             ausgabe_text())|>
         ausgabe_text()
     }else{
       paste0("Daten einlesen!\n",paste0(calculate_warnings(), collapse = "\n"))|>
