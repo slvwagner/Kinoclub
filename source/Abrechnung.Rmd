@@ -62,16 +62,17 @@ df_temp|>
 ```
 
 ```{r echo=FALSE}
-if(!is.null(df_keine_Rechnung)) {
-  df_temp <- df_keine_Rechnung |>
-    filter(Datum == c_Date[ii])
-  if (nrow(df_temp) > 0) {
-    writeLines(
-      "Achtung es gibt noch keine Verleiherabrechnung für diesen Film. Deshalb fehlen die Reklame- und Portokosten.\nDer Gewinn kann sich deshalb noch ändern."
-    )
+if(r_is.defined(df_keine_Rechnung)){
+  if(nrow(df_keine_Rechnung) > 0) {
+    df_temp <- df_keine_Rechnung |>
+      filter(Datum == c_Date[ii])
+    if (nrow(df_temp) > 0) {
+      writeLines(
+        "Achtung es gibt noch keine Verleiherabrechnung für diesen Film. Deshalb fehlen die Reklame- und Portokosten.\nDer Gewinn kann sich deshalb noch ändern."
+      )
+    }
   }
 }
-
 ```
 
 \
@@ -130,30 +131,31 @@ Für jeden gezeigten Film sind verschiedenen Abgaben und Gebühren zu entrichten
 
 
 ```{r echo=FALSE}
-
-if(!is.null(df_keine_Rechnung)) {
-  df_temp <- df_keine_Rechnung |>
-    filter(Datum == c_Date[ii])
-
-  if (nrow(df_temp) > 0) {
-    writeLines("Achtung es gibt noch keine Verleiherabrechnung für diesen Film.")
-  } else{
-    df_temp <- df_Abrechnung |>
-      filter(Datum %in% c(c_Date[ii]))
-
-    if (!is.na(df_temp$`Link Datum`)) {
-      paste(
-        "Dieser Film wird zusammen mit diesem Datum",
-        paste0(
-          lubridate::day(df_temp$`Link Datum`),
-          ".",
-          lubridate::month(df_temp$`Link Datum`),
-          ".",
-          lubridate::year(df_temp$`Link Datum`)
-        ),
-        "abgerechnet."
-      ) |>
-        writeLines()
+if(r_is.defined(df_keine_Rechnung)){
+  if(nrow(df_keine_Rechnung) > 0) {
+    df_temp <- df_keine_Rechnung |>
+      filter(Datum == c_Date[ii])
+  
+    if (nrow(df_temp) > 0) {
+      writeLines("Achtung es gibt noch keine Verleiherabrechnung für diesen Film.")
+    } else{
+      df_temp <- df_Abrechnung |>
+        filter(Datum %in% c(c_Date[ii]))
+  
+      if (!is.na(df_temp$`Link Datum`)) {
+        paste(
+          "Dieser Film wird zusammen mit diesem Datum",
+          paste0(
+            lubridate::day(df_temp$`Link Datum`),
+            ".",
+            lubridate::month(df_temp$`Link Datum`),
+            ".",
+            lubridate::year(df_temp$`Link Datum`)
+          ),
+          "abgerechnet."
+        ) |>
+          writeLines()
+      }
     }
   }
 }
