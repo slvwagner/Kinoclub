@@ -56,10 +56,10 @@ if (any(installed_packages == FALSE)) {
     webshot::install_phantomjs()
 ```
 
-8.  Run the Script:
+### Run the GUI:
 
 ```         
-    source("Erstelle Abrechnung.R")
+    source("GUI.R")
 ```
 
 ## Git Passwort / Personal Access Token (PAT)
