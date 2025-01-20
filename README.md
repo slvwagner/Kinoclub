@@ -56,7 +56,7 @@ if (any(installed_packages == FALSE)) {
     webshot::install_phantomjs()
 ```
 
-### Run the GUI:
+## Run the GUI:
 
 ```         
     source("GUI.R")
