@@ -64,7 +64,7 @@ if (any(installed_packages == FALSE)) {
 
 ## Git Passwort / Personal Access Token (PAT)
 Git Passwort gibt es seit 2021 nicht mehr. Um sich bei Git anzumelden, muss man auf der GitHub Webseite unter dem eigenen Profil in den Einstellungen auf **Developer Settings** navigieren. Dann unter **Personal access tokens** **Tokens (classic)** anwählen. Oben rechts auf **Generate new token** klicken und **classic** auswählen. Dem Token einen Namen geben und **Expiration** auf **No Expiration** setzen. Danach alle **repo** anwählen. Nach unten scrollen und Token generieren. Token kopieren und Anleitung unten im Bild folgen. \
-![](doc/PAT.png)
+![](doc/picts/PAT.png)
 
 ## Datensätze
 
@@ -75,7 +75,7 @@ Die Datensätze können von <https://www.advance-ticket.ch/admin> heruntergelade
 #### Eintritte
 **Eintritte 02.12.23.txt**  \
 Copy paste von html für jede Vorführung und bitte speichern unter "input/advance tickets/Eintritt xx.xx.xx.txt" Es muss die Kalenderwoche sowie der Film ausgewählt werden.\
-![Eintritt](doc/eintritt.png) \
+![Eintritt](doc/picts/eintritt.png) \
 Alles mit "ctrl a" markieren und kopieren "crtl c" und entsprechend abspeichern("input/advance tickets/Eintritt xx.xx.xx.txt").
 
 #### Kiosk
@@ -83,7 +83,7 @@ Alles mit "ctrl a" markieren und kopieren "crtl c" und entsprechend abspeichern(
 Copy paste von html für jede Vorführung und Speichern unter "input/advance tickets/Kiosk xx.xx.xx.txt".\
 Im Menu auf "DecompteCaisse" <https://www.advance-ticket.ch/decomptecaisse?lang=de> navigieren.\
 Spalte 1 Das Datum muss gewählt werden, Spalte 2 "reinach", Splate 3 "Atelierkino Kasse" und Spalte 4 "..." eingestellt werden.\
-![Kiosk](doc/Kiosk.png) \
+![Kiosk](doc/picts/Kiosk.png) \
 Alles mit "ctrl a" markieren und kopieren "crtl c" und entsprechend abspeichern("input/advance tickets/Kiosk xx.xx.xx.txt").
 
 #### Shows
@@ -91,7 +91,7 @@ Alles mit "ctrl a" markieren und kopieren "crtl c" und entsprechend abspeichern(
 Copy paste von html für die gewünschte Abrechnungsperiode. Bitte speichern unter "input/advance tickets/Shows.txt"\
 Im Menu auf "Shows" <https://www.advance-ticket.ch/shows?lang=de> navigieren.\
 Spalte 1 startdatum wählen 1.1.20xx, Spalte 2 Enddatum wählen 31.12.20xx\
-![Shows](doc/shows.png)
+![Shows](doc/picts/shows.png)
 
 #### Gutscheine und Abos
 ##### Abos
@@ -100,7 +100,7 @@ Copy paste von html für die gewünschte Abrechnungsperiode. Bitte speichern unt
 Im Menu auf "Abos" <https://www.advance-ticket.ch/abos?lang=de> navigieren.\
 Abo typ wählen: **atelierkino/abo** \ und den Button suchen wählen. \
 Nun können die Daten exportiert werden. Bitte speichern unter .../Kinoklub/Input/advance tickets \
-![Shows](doc/atelierkino_abo.png)
+![Shows](doc/picts/atelierkino_abo.png)
 
 ##### Förderer
 **"atelierkino_foerderer.txt"**
@@ -108,7 +108,7 @@ Copy paste von html für die gewünschte Abrechnungsperiode. Bitte speichern unt
 Im Menu auf "Abos" <https://www.advance-ticket.ch/abos?lang=de> navigieren.\
 Abo typ wählen: **atelierkino/abo** \ und den Button suchen wählen. \
 Nun können die Daten exportiert werden. Bitte speichern unter .../Kinoklub/Input/advance tickets \
-![Shows](doc/atelierkino_foerderer.png)
+![Shows](doc/picts/atelierkino_foerderer.png)
 
 ##### Gutschein
 **"atelierkino_gutschein.txt"**
@@ -116,7 +116,7 @@ Copy paste von html für die gewünschte Abrechnungsperiode. Bitte speichern unt
 Im Menu auf "Abos" <https://www.advance-ticket.ch/abos?lang=de> navigieren.\
 Abo typ wählen: **atelierkino/abo** \ und den Button suchen wählen. \
 Nun können die Daten exportiert werden. Bitte speichern unter .../Kinoklub/Input/advance tickets \
-![Shows](doc/atelierkino_gutschein.png)
+![Shows](doc/picts/atelierkino_gutschein.png)
 
 
 ### Excel Dateien
