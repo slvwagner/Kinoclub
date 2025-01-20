@@ -6,6 +6,7 @@
 #############################################################################################################################################
 # Vorbereiten / Installieren
 #############################################################################################################################################
+source("user_settings.R")
 rm(list = ls())
 
 # Define libraries to be installed
@@ -30,7 +31,7 @@ load("col_env.RData", envir = col_env)
 
 # 
 source("source/functions.R")
-source("doc/create Readme and Docu.R")
+
 
 ###############################################
 # Index pro Suisa-Nummer und Datum erstellen
@@ -931,27 +932,27 @@ server <- function(input, output, session) {
     file_exists(file.exists("output/webserver/index.html"))
   })
 
-  ######################################
-  # Überwachung Button webserver
-  ######################################
-  shiny::observeEvent(input$webserver, {
-    print(clc)
-    paste0(
-      "Bericht:",
-      "\nWebserver und Site-Map wurden aktualisiert.",
-      "\n", getwd(), "output/webserver"
-    ) |>
-      ausgabe_text()
-    tryCatch(
-      {
-        webserver()
-      },
-      error = function(e) {
-        ausgabe_text(paste("Webserver, Fehler beim Bericht erstellen:\n", e$message))
-      }
-    )
-    file_exists(file.exists("output/webserver/index.html"))
-  })
+  # ######################################
+  # # Überwachung Button webserver
+  # ######################################
+  # shiny::observeEvent(input$webserver, {
+  #   print(clc)
+  #   paste0(
+  #     "Bericht:",
+  #     "\nWebserver und Site-Map wurden aktualisiert.",
+  #     "\n", getwd(), "output/webserver"
+  #   ) |>
+  #     ausgabe_text()
+  #   tryCatch(
+  #     {
+  #       webserver()
+  #     },
+  #     error = function(e) {
+  #       ausgabe_text(paste("Webserver, Fehler beim Bericht erstellen:\n", e$message))
+  #     }
+  #   )
+  #   file_exists(file.exists("output/webserver/index.html"))
+  # })
 
   ######################################
   # Überwachung Button Erstelle Abrechnung (source("user_settings.R"))
@@ -1195,11 +1196,11 @@ server <- function(input, output, session) {
       shiny::actionButton("Jahresrechnung", "Jahresrechnung erstellen"),
       shiny::tags$hr(),
 
-      #############################
-      # Button zum Ausführen von Code Update Site-Map
-      #############################
-      shiny::actionButton("webserver", "Update Site-Map"),
-      shiny::tags$hr(),
+      # #############################
+      # # Button zum Ausführen von Code Update Site-Map
+      # #############################
+      # shiny::actionButton("webserver", "Update Site-Map"),
+      # shiny::tags$hr(),
 
       #############################
       # Button zum Download der Werbung
