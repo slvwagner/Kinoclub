@@ -9,6 +9,10 @@ if (any(installed_packages == FALSE)) {
 # Packages loading
 invisible(lapply(packages, library, character.only = TRUE))
 
+# Load excel column definition database
+col_env <- new.env()
+load("col_env.RData", envir = col_env)
+
 #######################################################
 # function to edit Site-Map: insert pictures
 #######################################################

@@ -22,13 +22,14 @@
 # 2024 V1.14 GUI Graphical user interface 
 # 2024 V1.15 Fake Suisa Nummer von Advanced Tickets kann nun auch verarbeitet werden 
 # 2024 V1.16 Introduction of envirnonments to run GUI
+# 2025 V1.17 Data typ for excel files are definded by column type database 
 
 #############################################################################################################################################
 # Vorbereiten / Installieren
 #############################################################################################################################################
 rm(list = ls())
 
-c_script_version <- "2025 V1.16"
+c_script_version <- "2025 V1.17"
 
 # Define libraries to be installed
 packages <- c("rmarkdown", "rebus", "openxlsx", "tidyverse", "lubridate","DT")
@@ -40,6 +41,9 @@ if (any(installed_packages == FALSE)) {
 # Packages loading
 invisible(lapply(packages, library, character.only = TRUE))
 
+# Load excel column definition database
+col_env <- new.env()
+load("col_env.RData", envir = col_env)
 
 #############################################################################################################################################
 # Functions
@@ -252,18 +256,16 @@ if(!file.exists("version control.ini")) { # ist kein versions kontrolle vorhande
 }
 
 #############################################################################################################################################
-# Filmvorschläge auswerten
-#############################################################################################################################################
-data_env <- new.env()
-source("source/read_and_convert_wordPress.R", local = data_env)
-ls(envir = data_env)
-
-#############################################################################################################################################
 # Daten einlesen und konvertieren
 #############################################################################################################################################
 data_env <- new.env()
 source("source/calculate.R", local = data_env)
-ls(envir = data_env)
+data_env$col_env <- col_env
+
+#############################################################################################################################################
+# Filmvorschläge auswerten
+#############################################################################################################################################
+source("source/read_and_convert_wordPress.R", local = data_env)
 
 #############################################################################################################################################
 # Was für Berichte müssen erstellt werden
@@ -377,7 +379,6 @@ for(ii in 1:nrow(df_mapping)){
       writeLines(paste0("source/temp.Rmd"))
   }
   
-  ls(envir = data_env)
   # Render
   rmarkdown::render(input = paste0("source/temp.Rmd"),
                     output_format = df_Render$Render,
@@ -433,6 +434,7 @@ paste("Bericht: \nAlle Abrechnungen für Filmvorführungen wurden erstellt.")|>
 #############################################################################################################################################
 # Create Site-Map and webserver data 
 #############################################################################################################################################
+ls(envir = data_env) == "col_env"
 source("source/create_webserver_data.R", local = data_env)
 
 #############################################################################################################################################

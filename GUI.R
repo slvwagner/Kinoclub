@@ -24,6 +24,11 @@ remove(packages, installed_packages)
 # Functions
 #############################################################################################################################################
 
+# Load excel column definition database
+col_env <- new.env()
+load("col_env.RData", envir = col_env)
+
+# 
 source("source/functions.R")
 
 ###############################################
@@ -868,7 +873,7 @@ server <- function(input, output, session) {
         StatistikErstellen(toc(), df_Render())
         webserver()
       }, error = function(e) {
-        ausgabe_text(paste("Statistik, Fehler beim Bericht erstellen:", e$message))
+        ausgabe_text(paste("Statistik, Fehler beim Bericht erstellen:\n", e$message))
       })
     } else{
       ausgabe_text("Statistik kann nicht erstellte werden.\nKeine Daten vorhanden bitte neu einlesen!!!!")
@@ -892,7 +897,7 @@ server <- function(input, output, session) {
         JahresrechnungErstellen(toc(), df_Render())
         webserver()
       }, error = function(e) {
-        ausgabe_text(paste("Jahresrechnung, Fehler beim Bericht erstellen:", e$message))
+        ausgabe_text(paste("Jahresrechnung, Fehler beim Bericht erstellen:\n", e$message))
       })
     }else{
       ausgabe_text("Jahresrechnung kann nicht erstellte werden.\nKeine Daten vorhanden bitte neu einlesen!!!!")
@@ -919,7 +924,7 @@ server <- function(input, output, session) {
         source("source/read_and_convert_wordPress.R")
       },
       error = function(e) {
-        ausgabe_text(paste("Filmvorschläge, Fehler beim Bericht erstellen:", e$message))
+        ausgabe_text(paste("Filmvorschläge, Fehler beim Bericht erstellen:\n", e$message))
       }
     )
     file_exists(file.exists("output/webserver/index.html"))
@@ -941,7 +946,7 @@ server <- function(input, output, session) {
         webserver()
       },
       error = function(e) {
-        ausgabe_text(paste("Webserver, Fehler beim Bericht erstellen:", e$message))
+        ausgabe_text(paste("Webserver, Fehler beim Bericht erstellen:\n", e$message))
       }
     )
     file_exists(file.exists("output/webserver/index.html"))
@@ -995,7 +1000,7 @@ server <- function(input, output, session) {
       webserver()
     },
     error = function(e) {
-      ausgabe_text(paste("Alles erstellen mit Webserver\nFehler beim Bericht erstellen:", e$message))
+      ausgabe_text(paste("Alles erstellen mit Webserver\nFehler beim Bericht erstellen:\n", e$message))
       }
     )
     End_date_choose(Sys.Date() + ((max(datum_vektor) - Sys.Date()) |> as.integer()))
