@@ -962,9 +962,9 @@ server <- function(input, output, session) {
       "Script wurde korrekt ausgeführt.",
       "\nWebserver erstellt.",
       paste0("\n", (paste0(getwd(), "/output/webserver/", "index.html")),
-        sep = ""
-      )
-    ) |>
+             sep = ""
+             )
+      ) |>
       ausgabe_text()
 
     tryCatch({
