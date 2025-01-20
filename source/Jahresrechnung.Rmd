@@ -120,7 +120,7 @@ df_temp|>
 
 ```{r}
 df_temp1 <- Einnahmen_und_Ausgaben$Ausgaben|>
-  filter(Kategorie == Einnahmen_und_Ausgaben$dropdown$`drop down`[5])|>
+  filter(Kategorie == Einnahmen_und_Ausgaben$dropdown$`dropdown`[5])|>
   arrange(desc(Spieldatum))
 
 df_temp1 <- df_temp1|>
@@ -189,7 +189,7 @@ Filmvorführungen|>
 Einnahmen für den Event, z.B. Beiträgemitveranstalter, Eventsponsoring, ...
 ```{r}
 df_temp <- Einnahmen_und_Ausgaben$Einnahmen|>
-  filter(Kategorie == Einnahmen_und_Ausgaben$dropdown$`drop down`[1])|>
+  filter(Kategorie == Einnahmen_und_Ausgaben$dropdown$`dropdown`[1])|>
   arrange((Datum))|>
   left_join(df_show, by = "Datum")|>
   mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))|>
@@ -214,7 +214,7 @@ df_temp|>
 Alle Ausgaben für den Event, z.B. Werbung, Esswaren, Spesen, ...
 ```{r}
 df_temp1 <-  Einnahmen_und_Ausgaben$Ausgaben|>
-  filter(Kategorie == Einnahmen_und_Ausgaben$dropdown$`drop down`[1])|>
+  filter(Kategorie == Einnahmen_und_Ausgaben$dropdown$`dropdown`[1])|>
   arrange((Datum))|>
   left_join(df_show, by = c("Spieldatum" = "Datum"))|>
   mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))|>
@@ -303,7 +303,7 @@ EinkaufGetränke|>
 #### Einkauf Kino
 ```{r echo=FALSE}
 EinkaufKino <- Einnahmen_und_Ausgaben$Ausgaben|>
-  filter(Kategorie == Einnahmen_und_Ausgaben$dropdown$`drop down`[2])|>
+  filter(Kategorie == Einnahmen_und_Ausgaben$dropdown$`dropdown`[2])|>
     arrange(Datum)|>   mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))|>
   select(Datum, Bezeichnung, Betrag)|>
   rename(`Betrag [CHF]` = Betrag)
@@ -518,7 +518,7 @@ df_temp|>
 ### Einnahmen
 ```{r echo=FALSE}
 df_temp <- Einnahmen_und_Ausgaben$Einnahmen|>
-  filter(Kategorie == Einnahmen_und_Ausgaben$dropdown$`drop down`[7])|>
+  filter(Kategorie == Einnahmen_und_Ausgaben$dropdown$`dropdown`[7])|>
   select(Datum, Firmennamen , Betrag)|>
   rename(`Betrag [CHF]` = Betrag)|>
     arrange(Datum)|>   
@@ -530,7 +530,7 @@ df_temp|>
 
 ```{r echo=FALSE}
 df_temp <- Einnahmen_und_Ausgaben$Einnahmen|>
-  filter(Kategorie == Einnahmen_und_Ausgaben$dropdown$`drop down`[7])|>
+  filter(Kategorie == Einnahmen_und_Ausgaben$dropdown$`dropdown`[7])|>
   reframe(`Summe [CHF]` = sum(Betrag))
 
 df_temp|>
@@ -540,7 +540,7 @@ df_temp|>
 ### Ausgaben
 ```{r echo=FALSE}
 df_temp1 <- Einnahmen_und_Ausgaben$Ausgaben|>
-  filter(Kategorie == Einnahmen_und_Ausgaben$dropdown$`drop down`[7])|>
+  filter(Kategorie == Einnahmen_und_Ausgaben$dropdown$`dropdown`[7])|>
   select(Datum, Bezeichnung , Firmennamen, Betrag)|>
     arrange(Datum)|>   
   mutate(Datum = paste0(day(Datum),".",month(Datum),".",year(Datum)))|>
@@ -553,7 +553,7 @@ df_temp1|>
 
 ```{r echo=FALSE}
 df_temp1 <- Einnahmen_und_Ausgaben$Ausgaben|>
-  filter(Kategorie == Einnahmen_und_Ausgaben$dropdown$`drop down`[7])|>
+  filter(Kategorie == Einnahmen_und_Ausgaben$dropdown$`dropdown`[7])|>
   reframe(`Summe [CHF]` = sum(Betrag))
 
 df_temp1|>
@@ -572,10 +572,10 @@ df_temp|>
   knitr::kable()
 
 Werbung <- (Einnahmen_und_Ausgaben$Einnahmen|>
-  filter(Kategorie == Einnahmen_und_Ausgaben$dropdown$`drop down`[7])|>
+  filter(Kategorie == Einnahmen_und_Ausgaben$dropdown$`dropdown`[7])|>
   reframe(`Betrag [CHF]` = sum(Betrag, na.rm = T)) - 
   Einnahmen_und_Ausgaben$Ausgaben|>
-  filter(Kategorie == Einnahmen_und_Ausgaben$dropdown$`drop down`[7])|>
+  filter(Kategorie == Einnahmen_und_Ausgaben$dropdown$`dropdown`[7])|>
   reframe(`Betrag [CHF]` = sum(Betrag, na.rm = T)))
 
 Werbung|>
@@ -610,7 +610,7 @@ df_temp|>
 ### Ausgaben
 ```{r echo=FALSE}
 df_temp1 <- Einnahmen_und_Ausgaben$Ausgaben|>
-  filter(Kategorie == Einnahmen_und_Ausgaben$dropdown$`drop down`[6])|>
+  filter(Kategorie == Einnahmen_und_Ausgaben$dropdown$`dropdown`[6])|>
   select(Datum, Bezeichnung, Betrag)|>
   rename(`Betrag [CHF]` = Betrag)|>
   arrange(Datum)|>   
@@ -644,7 +644,7 @@ Vermietung|>
 
 ```{r}
 Vermietung <- (Einnahmen_und_Ausgaben$Einnahmen|>
-  filter(Kategorie == Einnahmen_und_Ausgaben$dropdown$`drop down`[6])|>
+  filter(Kategorie == Einnahmen_und_Ausgaben$dropdown$`dropdown`[6])|>
   reframe(`Betrag [CHF]`=sum(Betrag, na.rm = T))-
   Einnahmen_und_Ausgaben[["Ausgaben"]]|>
   filter(Kategorie == "Vermietung")|>
@@ -658,7 +658,7 @@ Vermietung|>
 ## Personalaufwand
 ```{r echo=FALSE}
 df_temp <- Einnahmen_und_Ausgaben$Ausgaben|>
-  filter(Kategorie == Einnahmen_und_Ausgaben$dropdown$`drop down`[3])|>
+  filter(Kategorie == Einnahmen_und_Ausgaben$dropdown$`dropdown`[3])|>
   select(Datum, Bezeichnung,Betrag)|>
   rename(`Betrag [CHF]` = Betrag)|>
   arrange(Datum)|>
@@ -683,7 +683,7 @@ Personalaufwand|>
 ### Einnahmen
 ```{r echo=FALSE}
 df_temp <- Einnahmen_und_Ausgaben$Einnahmen|>
-  filter(Kategorie == Einnahmen_und_Ausgaben$dropdown$`drop down`[4])|>
+  filter(Kategorie == Einnahmen_und_Ausgaben$dropdown$`dropdown`[4])|>
   select(Datum, Bezeichnung,Betrag)|>
   rename(`Betrag [CHF]` = Betrag)|>
   arrange(Datum)|>   
@@ -706,7 +706,7 @@ df_temp|>
 ### Ausgaben
 ```{r echo=FALSE}
 df_temp1 <- Einnahmen_und_Ausgaben$Ausgaben|>
-  filter(Kategorie == Einnahmen_und_Ausgaben$dropdown$`drop down`[4])|>
+  filter(Kategorie == Einnahmen_und_Ausgaben$dropdown$`dropdown`[4])|>
   select(Datum, Bezeichnung,Betrag)|>
   rename(`Betrag [CHF]` = Betrag)|>
   arrange(Datum)|>

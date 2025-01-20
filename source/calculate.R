@@ -8,10 +8,18 @@ writeLines("Daten werden einlesen und berechnet...")
 
 file.remove("error.log")|>suppressWarnings()
 
+# Load excel column definition database
+col_env <- new.env()
+load("col_env.RData", envir = col_env)
+
+
+###################################################################################################################################
+# Functions
+###################################################################################################################################
+
 #######################################################################################
 # spez. Round for Swiss currency "CHF"
 #######################################################################################
-
 round5Rappen <- function(zahl) {
   result <- lapply(zahl, function(zahl){
     if(is.na(zahl)){
@@ -506,7 +514,7 @@ r_signif <- function (x, significant_digits = 3)
 # Benutzereinstellungen importieren aus "Erstelle Abrechnung.R"
 #############################################################################################################################################
 # Import c_script_version and Abrechnungsjahr
-c_raw <- readLines("Erstelle Abrechnung.R")
+c_raw <- readLines("user_settings.R")
 c_script_version <- c_raw[c_raw |> str_detect("c_script_version <-")] |>
   str_split(pattern = "\"") |>
   unlist()
@@ -577,15 +585,10 @@ remove(c_openfiles)
 c_file <- "Einnahmen und Ausgaben.xlsx"
 
 # error handling
-stopifnot(file.exists(paste0("Input/",c_file)))
+stopifnot(file.exists(paste0("input/",c_file)))
 
-c_sheets <- readxl::excel_sheets(paste0("Input/",c_file))
-
-Einnahmen_und_Ausgaben <- lapply(c_sheets, function(x) {
-  readxl::read_excel(paste0("Input/", c_file),
-                     sheet = x)
-})
-names(Einnahmen_und_Ausgaben) <- c_sheets
+Einnahmen_und_Ausgaben <- paste0("input/",c_file)|>
+  col_env$get_excel_data()
 
 # error handling
 # Datachecking 
@@ -792,20 +795,28 @@ remove(df_Flimvorfuerungen)
 ########################################################################
 # Kioskabrechnungen
 ########################################################################
-######################################################################## 
-# Read in files
-######################################################################## 
+###############################
+# Einkaufspreise
+###############################
 
 # verkaufsartikel
-c_files <- list.files(pattern = "Einkauf Kiosk", recursive = T)
-c_files
+c_file <- list.files(pattern = "Einkauf Kiosk", recursive = T)
+c_file
 
 # error handling
 if(length(c_files) == 0) stop("\nEs sind keine Kiosk Dateinen vorhanden.")
 
-df_verkaufsartikel <- readxl::read_excel(c_files)
+df_verkaufsartikel <- paste0(c_file)|>
+  col_env$get_excel_data()
 
+df_verkaufsartikel <- df_verkaufsartikel$`KinoKiosk Angebot 2023`
+df_verkaufsartikel
+
+###############################
+# Advace tickets Kiosk
+###############################
 c_path <- "input/advance tickets"
+
 # Kioskabrechnung
 c_files <- list.files(c_path,pattern = "Kiosk", recursive = TRUE, full.names = TRUE)
 
@@ -938,9 +949,17 @@ df_manko_uerberschuss
 # Kiosk Spez Verkaufsartikel / Spezialpreise einlesen
 ########################################################################
 # errohandling
-stopifnot(file.exists("Input/Spezialpreisekiosk.xlsx"))
+c_file <- "Spezialpreisekiosk.xlsx"
 
-Spezialpreisekiosk <- readxl::read_excel("Input/Spezialpreisekiosk.xlsx")|>
+paste0("Input/", c_file)|>
+  file.exists()|>
+  stopifnot()
+
+Spezialpreisekiosk <-
+  paste0("Input/", c_file)|>
+  col_env$get_excel_data()
+
+Spezialpreisekiosk <-Spezialpreisekiosk[[1]]|>
   mutate(Datum = as.Date(Datum))
 
 # error handling
@@ -1104,9 +1123,6 @@ remove(df_Mapping_Einkaufspreise,l_Kiosk, l_Einkaufspreise,
        p,p1,p2,p3,
        ii,x,
        c_path, c_fileDate, c_files)
-
-## User interaction
-writeLines("\nKiosk eingelesen")
 
 ########################################################################
 # Bericht mapping
@@ -1345,7 +1361,7 @@ df_Abrechnung <- df_Eintritt|>
             by = join_by(Datum, `Suisa Nummer`))|>
   left_join( # Verleiherrechnungen 
     Einnahmen_und_Ausgaben[["Ausgaben"]]|>
-      filter(Kategorie == Einnahmen_und_Ausgaben[["dropdown"]]$`drop down`[5])|> # suchen nach den Verleiher Einträgen
+      filter(Kategorie == Einnahmen_und_Ausgaben[["dropdown"]]$`dropdown`[5])|> # suchen nach den Verleiher Einträgen
       select(-Kategorie,-Datum, -Bezeichnung)|>
       select(1:2)|>
       rename(`Verleiherrechnungsbetrag [CHF]` = Betrag,
@@ -1393,12 +1409,6 @@ if(nrow(df_temp) > 1) {
   stop("In der Datei .../input/Verleiherabgaben.xlsx gibt es mehrere Filme am selben Datum")}
 
 remove(m, df_temp, n_Film, n_kiosk)
-
-########################################################################
-# user interaction
-########################################################################
-writeLines("Daten eingelesen")
-
 
 
 #########################################################################################################
@@ -1497,10 +1507,8 @@ df_keine_Rechnung
 # Einnahmen und Abgaben von mehreren Events verhältnismässig nach Umsatzzahlen 
 # auf die gelinkten Filme aufteilen (Link im Excel file: .../Kinoklub/Input/Verleiherabgaben.xlsx ) 
 #########################################################################################################
-writeLines("Debug_01")
+
 for (ii in 1:length(c_Date)) {
-  paste0("Debug_01: ii=",ii)|>
-    writeLines()
   ############
   # umsatz- und Netto3 Umsatz-Berechnung
   ############
@@ -1650,8 +1658,6 @@ for (ii in 1:length(c_Date)) {
 }
 class(l_abrechnung)
 
-paste0("Debug_02")|>
-  writeLines()
 
 ##############################################################################
 # Abrechnung Filmvorführung erstellen (für Berichte verwendet)
@@ -1740,8 +1746,7 @@ df_Besucherzahlen <- df_Eintritt|>
   group_by(Datum, Filmtitel, `Suisa Nummer`)|>
   reframe(Besucher = sum(Anzahl))
 df_Besucherzahlen
-paste0("Debug_02")|>
-  writeLines()
+
 ########################################################################
 # write to Excel
 ########################################################################

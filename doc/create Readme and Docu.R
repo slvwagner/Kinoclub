@@ -7,7 +7,7 @@ library(tidyverse)
 
 ######################################################################################
 # Import c_script_version 
-c_raw <- readLines("Erstelle Abrechnung.R")
+c_raw <- readLines("user_settings.R")
 c_script_version <- c_raw[c_raw |> str_detect("c_script_version <-")] |>
   str_split(pattern = "\"") |>
   unlist()

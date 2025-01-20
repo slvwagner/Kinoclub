@@ -4,7 +4,7 @@
 
 Author: Florian Wagner\
 Script Version:\
-2024 V1.16
+2025 V1.17
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
@@ -106,6 +106,31 @@ Copy paste von html für die gewünschte Abrechnungsperiode. Bitte speichern unt
 Im Menu auf "Shows" <https://www.advance-ticket.ch/shows?lang=de> navigieren.\
 Spalte 1 startdatum wählen 1.1.20xx, Spalte 2 Enddatum wählen 31.12.20xx\
 ![Shows](doc/shows.png)
+
+#### Gutscheine und Abos
+##### Abos
+**"atelierkino_abo.txt"**
+Copy paste von html für die gewünschte Abrechnungsperiode. Bitte speichern unter "input/advance tickets/atelierkino_abo.txt"\
+Im Menu auf "Abos" <https://www.advance-ticket.ch/abos?lang=de> navigieren.\
+Abo typ wählen: **atelierkino/abo** \ und den Button suchen wählen. \
+Nun können die Daten exportiert werden. Bitte speichern unter .../Kinoklub/Input/advance tickets \
+![Shows](doc/atelierkino_abo.png)
+
+##### Förderer
+**"atelierkino_foerderer.txt"**
+Copy paste von html für die gewünschte Abrechnungsperiode. Bitte speichern unter "input/advance tickets/atelierkino_foerderer.txt"\
+Im Menu auf "Abos" <https://www.advance-ticket.ch/abos?lang=de> navigieren.\
+Abo typ wählen: **atelierkino/abo** \ und den Button suchen wählen. \
+Nun können die Daten exportiert werden. Bitte speichern unter .../Kinoklub/Input/advance tickets \
+![Shows](doc/atelierkino_foerderer.png)
+
+##### Gutschein
+**"atelierkino_gutschein.txt"**
+Copy paste von html für die gewünschte Abrechnungsperiode. Bitte speichern unter "input/advance tickets/atelierkino_gutschein.txt"\
+Im Menu auf "Abos" <https://www.advance-ticket.ch/abos?lang=de> navigieren.\
+Abo typ wählen: **atelierkino/abo** \ und den Button suchen wählen. \
+Nun können die Daten exportiert werden. Bitte speichern unter .../Kinoklub/Input/advance tickets \
+![Shows](doc/atelierkino_gutschein.png)
 
 
 ### Excel Dateien
@@ -486,5 +511,6 @@ zusätzlich werden alle Fimvorschläge als Excel ausgegeben
 2024 V1.14 GUI Graphical user interface   \
 2024 V1.15 Fake Suisa Nummer von Advanced Tickets kann nun auch verarbeitet werden   \
 2024 V1.16 Introduction of envirnonments to run GUI  \
+2025 V1.17 Data typ for excel files are definded by column type database   \
 
 

@@ -100,7 +100,7 @@ df_col_type <- tibble::tibble(
     "text",
     "text",
     
-    "numeric",
+    "text",
     "text",
     "numeric",
     "date",
