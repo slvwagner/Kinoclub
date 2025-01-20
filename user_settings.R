@@ -39,7 +39,7 @@ c_script_version <- "2025 V1.17"
 Abrechungsjahr <- str_split(c_script_version,SPC, simplify = T)[,1]|>as.integer()
 
 # Wiel lange dauer die Sommerpause
-sommerpause <- 65 # Tage
+sommerpause = 65 # Tage
 
 # Sollen Inhaltsverzeichnisse erstellt werden
 toc <- TRUE
