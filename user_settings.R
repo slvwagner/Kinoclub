@@ -39,7 +39,7 @@ c_script_version <- "2025 V1.17"
 Abrechungsjahr <- str_split(c_script_version,SPC, simplify = T)[,1]|>as.integer()
 
 # Wiel lange dauer die Sommerpause
-sommerpause = 65 # Tage
+sommerpause <- 65 # Tage
 
 # Sollen Inhaltsverzeichnisse erstellt werden
 toc <- TRUE
@@ -60,9 +60,6 @@ df_P_kat_verechnen <- tibble(Kinoförderer = c("Kinoförderer","Kinofördererkar
 # 6 = docx and pdf (Achtung für pdf install Latex for Windows (Miktex) for Mac (MacTex))
 # 7 = html, docx and pdf (Achtung für pdf install Latex for Windows (Miktex) for Mac (MacTex))
 c_render_option <- "1" 
-
-# create Site Map 
-c_SiteMap <- TRUE
 
 
 #############################################################################################################################################
