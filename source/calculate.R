@@ -514,7 +514,7 @@ r_signif <- function (x, significant_digits = 3)
 # Benutzereinstellungen importieren aus "Erstelle Abrechnung.R"
 #############################################################################################################################################
 # Import c_script_version and Abrechnungsjahr
-c_raw <- readLines("Erstelle Abrechnung.R")
+c_raw <- readLines("user_settings.R")
 c_script_version <- c_raw[c_raw |> str_detect("c_script_version <-")] |>
   str_split(pattern = "\"") |>
   unlist()
@@ -1124,9 +1124,6 @@ remove(df_Mapping_Einkaufspreise,l_Kiosk, l_Einkaufspreise,
        ii,x,
        c_path, c_fileDate, c_files)
 
-## User interaction
-writeLines("\nKiosk eingelesen")
-
 ########################################################################
 # Bericht mapping
 ########################################################################
@@ -1413,12 +1410,6 @@ if(nrow(df_temp) > 1) {
 
 remove(m, df_temp, n_Film, n_kiosk)
 
-########################################################################
-# user interaction
-########################################################################
-writeLines("Daten eingelesen")
-
-
 
 #########################################################################################################
 # Je nach Verleiher müssen die Kinoförderer als Umsatz abgerechnet werden. 
@@ -1516,10 +1507,8 @@ df_keine_Rechnung
 # Einnahmen und Abgaben von mehreren Events verhältnismässig nach Umsatzzahlen 
 # auf die gelinkten Filme aufteilen (Link im Excel file: .../Kinoklub/Input/Verleiherabgaben.xlsx ) 
 #########################################################################################################
-writeLines("Debug_01")
+
 for (ii in 1:length(c_Date)) {
-  paste0("Debug_01: ii=",ii)|>
-    writeLines()
   ############
   # umsatz- und Netto3 Umsatz-Berechnung
   ############
@@ -1669,8 +1658,6 @@ for (ii in 1:length(c_Date)) {
 }
 class(l_abrechnung)
 
-paste0("Debug_02")|>
-  writeLines()
 
 ##############################################################################
 # Abrechnung Filmvorführung erstellen (für Berichte verwendet)
@@ -1759,8 +1746,7 @@ df_Besucherzahlen <- df_Eintritt|>
   group_by(Datum, Filmtitel, `Suisa Nummer`)|>
   reframe(Besucher = sum(Anzahl))
 df_Besucherzahlen
-paste0("Debug_02")|>
-  writeLines()
+
 ########################################################################
 # write to Excel
 ########################################################################
