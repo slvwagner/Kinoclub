@@ -30,6 +30,7 @@ load("col_env.RData", envir = col_env)
 
 # 
 source("source/functions.R")
+source("doc/create Readme and Docu.R")
 
 ###############################################
 # Index pro Suisa-Nummer und Datum erstellen

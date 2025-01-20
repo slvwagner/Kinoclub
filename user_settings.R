@@ -110,22 +110,10 @@ if(c_raw[c_index+1] != c_script_version){
   source("doc/create Readme and Docu.R")
 }
 
-
-source("source/calculate.R")
-
 #############################################################################################################################################
 # remove temp files 
 #############################################################################################################################################
 list.files(pattern = "temp", recursive = TRUE)|>
   file.remove()
 
-#############################################################################################################################################
-# User Interaktion
-#############################################################################################################################################
-print(clc)
-paste0("****************************************\n",
-       "Script Version:  ", c_script_version,
-       "\n\nAlles wurde korrekt ausgeführt.", if(warnings()|>length()>0) {"\nEs Fehlen noch Datensätze. \nBitte beachte die Fehlermeldungen unten in orange."},"\n\n",
-       paste0("Dateinen wurden im folgenden Verzeichniss erstellt:\n", getwd(), "/output/"),
-       "\n****************************************\n")|>
-  writeLines()
+
