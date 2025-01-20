@@ -34,12 +34,12 @@ c_script_version <- "2025 V1.17"
 #############################################################################################################################################
 # Benutzereinstellungen 
 #############################################################################################################################################
+
+# Abrechnungsjahr import
 Abrechungsjahr <- str_split(c_script_version,SPC, simplify = T)[,1]|>as.integer()
 
+# Wiel lange dauer die Sommerpause
 sommerpause = 65 # Tage
-
-# Sollen für jede Vorführung eine Abrechnung erstellt werden?
-c_run_single <- TRUE
 
 # Sollen Inhaltsverzeichnisse erstellt werden
 toc <- TRUE
