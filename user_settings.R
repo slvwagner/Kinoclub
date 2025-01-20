@@ -22,7 +22,7 @@
 # 2024 V1.14 GUI Graphical user interface 
 # 2024 V1.15 Fake Suisa Nummer von Advanced Tickets kann nun auch verarbeitet werden 
 # 2024 V1.16 Introduction of envirnonments to run GUI
-# 2025 V1.17 Data typ for excel files are definded by column type database 
+# 2025 V1.17 Data type for excel files are definded by column type database 
 
 #############################################################################################################################################
 # Vorbereiten / Installieren
