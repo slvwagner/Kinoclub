@@ -258,20 +258,6 @@ Die Variable `df_P_kat_verechnen` definiert welche Platzkategorien ohne Umsatz z
 -   `c_render_option` \<- "7" html, docx and pdf (Achtung für pdf install Latex for Windows (Miktex) for Mac (MacTex))
 
 
-## Ablauf
-
-"Erstelle Abrechnung.R" Script führt folgendes auf.
-
-1.    Konfigurations variablen erstellen.
-2.    Die Daten werden mit Script "read and convert.R" eingelesen und Konvertiert. Der Script "read and convert.R" benötigt "function.R" und "Kiosk.R"
-3.    Erstellen Statistikbericht 
-3.    Erstellen Jahresbericht
-4.    Erstellen Jahresbericht detailed
-5.    Erstellen Abrechnung Filmvorführung pro Datum respektive Vorführung
-6.    Site-Map mit Berichtvorschau wird erstellt
-7.    Daten für Webserver werden erstellt. 
-
-
 
 ## Berichte
 
