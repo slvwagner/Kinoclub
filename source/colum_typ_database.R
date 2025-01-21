@@ -1,6 +1,10 @@
 ########################################################################
 # Excel column type definition data base 
 ########################################################################
+# This script need the some function form the slvwagner library
+devtools::install_git("https://github.com/wagnius-GmbH/slvwagner/",   build_manual = TRUE,
+                      build_vignettes = TRUE)
+
 rm(list = ls())
 
 ########################################################################
