@@ -1012,6 +1012,10 @@ server <- function(input, output, session) {
              )
       ) |>
       ausgabe_text()
+    
+    # Delete all files prior to creating new files 
+    list.files("output/", "html", full.names = TRUE)|>
+      file.remove()
 
     tryCatch({
       # erstellen von Verzeichnissen
