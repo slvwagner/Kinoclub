@@ -377,12 +377,12 @@ Die Einnahmen und Ausgaben werden für die Jahresabrechnung verwendet und je nac
         Alle Ausgaben die für den Event, z.B. Werbung, Esswaren, Spesen, …
 -   Kiosk
     -   Einnahmen \
-        Die Einnahmen werden mit **"Anzahl x Verkaufspeis für Verkaufsartikel"** berechnet.
+        Die Einnahmen werden mit $A_{nzahl} \cdot V_{erkaufspeis für Verkaufsartikel}$ berechnet.
     -   Ausgaben
         -   Einkauf Getränke\
             Die Getränke werden von Theater am Bahnhof eingekauft.\
             Falls in der Datei **.../Kinoklub/input/Einkauf Kiosk xx.xx.xx.xlsx** der Lieferant **"Schüwo"** definiert wurde wird der Verkaufsartikel als Getränk ausgegeben.\
-            Der Getränkeeinkauf wird mit **"Anzahl x Einkaufspreis"** berechnet.
+            Der Getränkeeinkauf wird mit $A_{nzahl} x E_{inkaufspreis}$ berechnet.
         -   Einkauf Kino\
             Für alle Verkaufsartikel mit Ausnahme der Getränke wird in der Datei **".../Kinoklub/input/Einnahmen und Ausgaben.xlsx"**   mit Kategorie **Kiosk** definiert.
 -   Abos / Kinogutscheine
