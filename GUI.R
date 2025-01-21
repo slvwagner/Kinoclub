@@ -189,19 +189,31 @@ webserver <- function() {
   df_temp1 <- df_reports |>
     filter(str_detect(FileName, "Abrechnung")) 
   
-  if(nrow(df_temp1) != 0){
-    df_temp1 <- df_temp1|>
-      pull() |>
-      lapply(function(x) {
-        doc <- read_html(paste0(c_path, x))
-        # Find elements to edit
-        element <- xml_find_first(doc, "body") |>
-          xml_find_first("div")
+  df_temp1 <- df_temp1|>
+    pull() |>
+    lapply(function(x) {
+      doc <- read_html(paste0(c_path, x))
+      # Find elements to edit
+      element <- xml_find_first(doc, "body") |>
+        xml_find_first("div")
+      c_raw <- xml_children(element)|>
+        xml_text()
+      
+      if(sum(str_detect(c_raw,"Inhaltsverzeichnis")) > 0){
+        index <- c_raw|>
+          str_detect("Übersicht")
+        element <- xml_children(element)[index]
         element
         
-        children <- xml_children(element)[3]
+        index <- element|>
+          xml_text()|>
+          str_detect("Filmtitel")
+        element <- xml_children(element)[index]
+        element
+        
         # Extract data
-        c_raw <- xml_text(children) |>
+        c_raw <- element[3]|>
+          xml_text() |>
           str_split("\n") |>
           unlist() |>
           str_remove("\r")
@@ -209,15 +221,46 @@ webserver <- function() {
         
         # Create data to return
         tibble(
-          `Suisa-Nummer` = c_raw[17],
-          Filmtitel = c_raw[14],
-          Datum = c_raw[11],
+          `Suisa-Nummer` = c_raw[14],
+          Filmtitel = c_raw[11],
+          Datum = c_raw[1],
           typ = "Abrechnung Filmvorführungen",
           FileName = x
         )
-      }) |>
-      bind_rows()
-  }
+      }else{
+        index <- c_raw|>
+          str_detect("Übersicht")
+        element <- xml_children(element)[index]
+        
+        index <- element|>
+          xml_text()|>
+          str_detect("Filmtitel")
+        element <- xml_children(element)[index]
+        
+        index <- element|>
+          xml_text()|>
+          str_detect("Filmtitel")
+        element <- xml_children(element)[index]
+        
+        # Extract data
+        c_raw <- element[1]|>
+          xml_text() |>
+          str_split("\n") |>
+          unlist() |>
+          str_remove("\r")
+        c_raw
+        
+        # Create data to return
+        tibble(
+          `Suisa-Nummer` = c_raw[7],
+          Filmtitel = c_raw[4],
+          Datum = c_raw[1],
+          typ = "Abrechnung Filmvorführungen",
+          FileName = x
+        )
+      }
+    }) |>
+    bind_rows()
   
   # Verleiher suchen
   df_temp2 <- df_reports |>
