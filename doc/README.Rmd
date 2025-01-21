@@ -156,7 +156,7 @@ nach zuschlagen.
 Die Verleiherabgaben müssen in der Datei **.../Kinoklub/input/Verleiherabgaben.xlsx** definiert werden.\
 
 -   Für jeden gezeigten Film muss ein Datum definiert sein.
--   Mit dem "Link Datum" ist es möglich Kosten und Einnahme auf die beiden Daten zu verteilen. Es kann also gemeinsam abgerechnet werden. 
+-   Mit dem "Link Datum" ist es möglich Kosten und Einnahme auf die beiden Daten zu verteilen. Die Verteilung wird prozentual auf den Ticketumsatz vorgenommen. Nun werden die Eventeinnahmen und Ausgaben sowie die Verleiherabgaben respektive die Verleiherrechnung auf beide Daten verteilt . 
 -   Im **Tab Verleiherabgaben** muss der **"minimal Abzug"** sowie **"Abzug %"** oder nur der **"Abzug fix [CHF]"** definiert werden. Beide Einträge sind nicht erlaubt.
 -   Im **Tab Kinoförderer gratis** muss für jeden Verleiher definiert werden, ob gewisse Platzkategorien (z.B.Kinoförderer Tickets) als gratis abgerechnet werden dürfen.\
     Wenn **nein** gewählt wird, dann wird die Platzkategorie **Kinoförderer** als Platzkategorie "Ermässigt" verrechnet.\
