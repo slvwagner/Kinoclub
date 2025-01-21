@@ -23,13 +23,14 @@
 # 2024 V1.15 Fake Suisa Nummer von Advanced Tickets kann nun auch verarbeitet werden 
 # 2024 V1.16 Introduction of envirnonments to run GUI
 # 2025 V1.17 Data type for excel files are definded by column type database 
+# 2025 V2.00 Fist fully tested Version
 
 #############################################################################################################################################
 # Vorbereiten / Installieren
 #############################################################################################################################################
 rm(list = ls())
 source("source/functions.R")
-c_script_version <- "2025 V1.17"
+c_script_version <- "2025 V2.00"
 
 #############################################################################################################################################
 # Packages loading
