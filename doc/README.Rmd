@@ -109,27 +109,21 @@ Spalte 1 startdatum wählen 1.1.20xx, Spalte 2 Enddatum wählen 31.12.20xx\
 
 #### Gutscheine und Abos
 ##### Abos
-**"atelierkino_abo.txt"**
-Copy paste von html für die gewünschte Abrechnungsperiode. Bitte speichern unter "input/advance tickets/atelierkino_abo.txt"\
 Im Menu auf "Abos" <https://www.advance-ticket.ch/abos?lang=de> navigieren.\
 Abo typ wählen: **atelierkino/abo** \ und den Button suchen wählen. \
-Nun können die Daten exportiert werden. Bitte speichern unter .../Kinoklub/Input/advance tickets \
+Nun können die Daten exportiert werden. Bitte speichern unter .../Kinoklub/Input/advance tickets/**atelierkino_abo.txt** \
 ![Shows](doc/picts/atelierkino_abo.png)
 
 ##### Förderer
-**"atelierkino_foerderer.txt"**
-Copy paste von html für die gewünschte Abrechnungsperiode. Bitte speichern unter "input/advance tickets/atelierkino_foerderer.txt"\
 Im Menu auf "Abos" <https://www.advance-ticket.ch/abos?lang=de> navigieren.\
 Abo typ wählen: **atelierkino/abo** \ und den Button suchen wählen. \
-Nun können die Daten exportiert werden. Bitte speichern unter .../Kinoklub/Input/advance tickets \
+Nun können die Daten exportiert werden. Bitte speichern unter .../Kinoklub/Input/advance tickets/**atelierkino_foerderer.txt** \
 ![Shows](doc/picts/atelierkino_foerderer.png)
 
 ##### Gutschein
-**"atelierkino_gutschein.txt"**
-Copy paste von html für die gewünschte Abrechnungsperiode. Bitte speichern unter "input/advance tickets/atelierkino_gutschein.txt"\
 Im Menu auf "Abos" <https://www.advance-ticket.ch/abos?lang=de> navigieren.\
 Abo typ wählen: **atelierkino/abo** \ und den Button suchen wählen. \
-Nun können die Daten exportiert werden. Bitte speichern unter .../Kinoklub/Input/advance tickets \
+Nun können die Daten exportiert werden. Bitte speichern unter .../Kinoklub/Input/advance tickets/**atelierkino_gutschein.txt** \
 ![Shows](doc/picts/atelierkino_gutschein.png)
 
 
