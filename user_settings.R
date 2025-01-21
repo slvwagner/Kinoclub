@@ -91,9 +91,7 @@ if(!file.exists("version control.ini")) { # ist kein versions kontrolle vorhande
   c_files <- list.files(c_path, pattern = "html", full.names = T)
   c_files
   file.remove(c_files)|>suppressWarnings()
-  
-  
-  
+
 }else{
   x <- read_file("version control.ini")|>
     str_remove("\r")|>
