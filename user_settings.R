@@ -69,6 +69,62 @@ df_P_kat_verechnen <- tibble(Kinoförderer = c("Kinoförderer","Kinofördererkar
 # 7 = html, docx and pdf (Achtung für pdf install Latex for Windows (Miktex) for Mac (MacTex))
 c_render_option <- "1" 
 
+#############################################################################################################################################
+# Versionskontrolle
+#############################################################################################################################################
+if(!file.exists("version control.ini")) { # ist kein versions kontrolle vorhanden?
+  #versions kontrolle schreiben
+  write(c_script_version, "version control.ini")
+  
+  # Löschen aller output files 
+  c_path <- "output"
+  c_files <- list.files(c_path, pattern = "html", full.names = T)
+  c_files
+  file.remove(c_files)|>suppressWarnings()
+  
+  c_path <- "output/pict"
+  c_files <- list.files(c_path, pattern = "html", full.names = T)
+  c_files
+  file.remove(c_files)|>suppressWarnings()
+  
+  c_path <- "output/webserver"
+  c_files <- list.files(c_path, pattern = "html", full.names = T)
+  c_files
+  file.remove(c_files)|>suppressWarnings()
+  
+  
+  
+}else{
+  x <- read_file("version control.ini")|>
+    str_remove("\r")|>
+    str_remove("\n")
+  x
+  if(x != c_script_version){ # ist es nicht die aktuelle Version?
+    # Löschen aller output files 
+    c_path <- "output"
+    c_files <- list.files(c_path, pattern = "html", full.names = T)
+    c_files
+    file.remove(c_files)|>suppressWarnings()
+    
+    c_path <- "output/pict"
+    c_files <- list.files(c_path, pattern = "html", full.names = T)
+    c_files
+    file.remove(c_files)|>suppressWarnings()
+    
+    c_path <- "output/webserver"
+    c_files <- list.files(c_path, pattern = "html", full.names = T)
+    c_files
+    file.remove(c_files)|>suppressWarnings()
+    #versions kontrolle schreiben
+    write(c_script_version, "version control.ini")
+    
+    # Löschen aller Daten die mit einer anderen Version erstellt wurden
+    file.remove("environment.RData")|>
+      suppressWarnings()
+  }
+}
+
+
 
 #############################################################################################################################################
 # Versionierung
