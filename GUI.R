@@ -62,7 +62,6 @@ df_P_kat_verechnen <- tibble(
   Verkaufspreis = c(13, 13)
 )
 
-
 #############################################################################################################################################
 # Functions
 #############################################################################################################################################
@@ -256,10 +255,11 @@ webserver <- function() {
         c_raw
         
         # Create data to return
+        # Create data to return
         tibble(
           `Suisa-Nummer` = c_raw[14],
           Filmtitel = c_raw[11],
-          Datum = c_raw[1],
+          Datum = c_raw[8],
           typ = "Abrechnung Filmvorführungen",
           FileName = x
         )
@@ -336,6 +336,8 @@ webserver <- function() {
         typ = "Verleiherabrechnung",
       )
   }
+  
+  df_temp2
   
   # create 
   m_Film <- bind_rows(
