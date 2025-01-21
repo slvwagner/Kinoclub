@@ -96,19 +96,19 @@ Spalte 1 startdatum wählen 1.1.20xx, Spalte 2 Enddatum wählen 31.12.20xx\
 #### Gutscheine und Abos
 ##### Abos
 Im Menu auf "Abos" <https://www.advance-ticket.ch/abos?lang=de> navigieren.\
-Abo typ wählen: **atelierkino/abo** \ und den Button suchen wählen. \
+Abo typ wählen: **atelierkino/abo**  und den Button suchen wählen. \
 Nun können die Daten exportiert werden. Bitte speichern unter .../Kinoklub/Input/advance tickets/**atelierkino_abo.txt** \
 ![Shows](doc/picts/atelierkino_abo.png)
 
 ##### Förderer
 Im Menu auf "Abos" <https://www.advance-ticket.ch/abos?lang=de> navigieren.\
-Abo typ wählen: **atelierkino/abo** \ und den Button suchen wählen. \
+Abo typ wählen: **atelierkino/abo**  und den Button suchen wählen. \
 Nun können die Daten exportiert werden. Bitte speichern unter .../Kinoklub/Input/advance tickets/**atelierkino_foerderer.txt** \
 ![Shows](doc/picts/atelierkino_foerderer.png)
 
 ##### Gutschein
 Im Menu auf "Abos" <https://www.advance-ticket.ch/abos?lang=de> navigieren.\
-Abo typ wählen: **atelierkino/abo** \ und den Button suchen wählen. \
+Abo typ wählen: **atelierkino/abo**  und den Button suchen wählen. \
 Nun können die Daten exportiert werden. Bitte speichern unter .../Kinoklub/Input/advance tickets/**atelierkino_gutschein.txt** \
 ![Shows](doc/picts/atelierkino_gutschein.png)
 
