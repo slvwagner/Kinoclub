@@ -726,7 +726,7 @@ if(length(c_files) == 0) stop("\nEs sind keine Kiosk Dateinen vorhanden.")
 df_verkaufsartikel <- paste0(c_file)|>
   col_env$get_excel_data()
 
-df_verkaufsartikel <- df_verkaufsartikel$`KinoKiosk Angebot`
+df_verkaufsartikel <- df_verkaufsartikel$`Angebot`
 df_verkaufsartikel
 
 ###############################
