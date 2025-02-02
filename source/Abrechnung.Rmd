@@ -464,7 +464,7 @@ if(df_temp3|>nrow()){
     writeLines()
 
   df_temp <- Einnahmen_und_Ausgaben$Ausgaben|>
-  filter(Spieldatum == c_Datum, Kategorie == Einnahmen_und_Ausgaben$dropdown$`drop down`[1])
+  filter(Spieldatum == c_Datum, Kategorie == Einnahmen_und_Ausgaben$dropdown$dropdown[1])
   
   if(nrow(df_temp) == 0) {
     writeLines("\n Es sind keine Eventausgaben vorhanden mit denen die Spezialverkaufsartikel bezahlt wurden!")

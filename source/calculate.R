@@ -726,7 +726,7 @@ if(length(c_files) == 0) stop("\nEs sind keine Kiosk Dateinen vorhanden.")
 df_verkaufsartikel <- paste0(c_file)|>
   col_env$get_excel_data()
 
-df_verkaufsartikel <- df_verkaufsartikel$`KinoKiosk Angebot 2023`
+df_verkaufsartikel <- df_verkaufsartikel$`KinoKiosk Angebot`
 df_verkaufsartikel
 
 ###############################
@@ -816,7 +816,8 @@ for (ii in 1:length(l_Kiosk)) {
   }
 }
 
-l_Kiosk
+l_Kiosk$`26.01.25`|>
+  filter(!is.na(Anzahl))
 
 df_Kiosk <- l_Kiosk|>
   bind_rows(.id = "Datum")|>

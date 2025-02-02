@@ -87,37 +87,33 @@ df_col_type <- tibble::tibble(
     "numeric",
     "numeric",
     "text",
-    "numeric",
-    "numeric",
-    
+    "text",
+    "date",
+
+    "numeric",    
+    "text",
     "text",
     "text",
     "date",
-    "numeric",
-    "text",
-    "text",
-    
-    "text",
-    "date",
-    "text",
-    "text",
-    "text",
     "text",
     
     "text",
     "text",
+    "text",
+    "text",
+    "text",
     "numeric",
+    
     "date",
     "text",
     "numeric",
+    "numeric",
+    "numeric",
+    "text",
     
-    "numeric",
-    "numeric",
-    "text",
     "text",
     "text",
     "numeric",
-    
     "text"
   )
 )
@@ -127,7 +123,7 @@ library(slvwagner)
 col_env <- df_col_type|>
   dict_from_data.frame()
 
-# Export funtions
+# Export funtions to envirnonment
 col_env$find_col_names_excel <- find_col_names_excel
 col_env$dict_get_values <- dict_get_values
 col_env$df_col_type <- df_col_type
