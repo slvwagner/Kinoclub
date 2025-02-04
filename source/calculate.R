@@ -1,4 +1,5 @@
 
+# read and caluclate all input data
 library(tidyverse)
 library(rebus)
 library(openxlsx)
@@ -17,9 +18,7 @@ load("col_env.RData", envir = col_env)
 # Functions
 ###################################################################################################################################
 
-#######################################################################################
 # spez. Round for Swiss currency "CHF"
-#######################################################################################
 round5Rappen <- function(zahl) {
   result <- lapply(zahl, function(zahl){
     if(is.na(zahl)){
@@ -43,9 +42,7 @@ round5Rappen <- function(zahl) {
     round(2)
 }
 
-#######################################################################################
 # variable is present in global environment
-#######################################################################################
 r_is.defined <- function(sym) {
   sym <- deparse(substitute(sym))
   env <- parent.frame()
@@ -63,10 +60,7 @@ r_is.library_loaded <- function(package_name) {
   return(is_loaded)
 }
 
-
-#######################################################################################
 # clear command promt 
-#######################################################################################
 if (commandArgs()[1]=='RStudio'){
   print.cleanup <- function(cleanupObject) cat("\f")     
 }else if(substr(commandArgs()[1], nchar(commandArgs()[1]), nchar(commandArgs()[1])) == "R"){        
@@ -76,10 +70,7 @@ if (commandArgs()[1]=='RStudio'){
 clc <- 0                                        ##  variable from class numeric
 class(clc) <- 'cleanup'                         ##  class cleanup
 
-
-################################################################################
 # create data frame from RMD
-################################################################################
 create_df <- function(c_Rmd) {
   p <- "^```"
   df_data <- data.frame(
@@ -115,9 +106,8 @@ create_df <- function(c_Rmd) {
   return(df_data)
 }
 
-################################################################################
+
 # create table of content for RMD
-################################################################################
 r_toc_for_Rmd <- function(
     c_Rmd,
     toc_heading_string = "Table of Contents" ,
@@ -125,15 +115,15 @@ r_toc_for_Rmd <- function(
     pagebreak_level = "non"
 )
 {
-  ##########################################################################
+
   # create data frame to work with
   df_data <- create_df(c_Rmd)
   
-  ##########################################################################
+
   # Headings
   m <- df_data[df_data$is.heading, 5:ncol(df_data)]
   
-  ##########################################################################
+
   # Analyze heading structure
   heading_struct <- m|>
     apply(2, function(x) {
@@ -163,7 +153,6 @@ r_toc_for_Rmd <- function(
     }
   }
   
-  ##########################################################################
   # correct heading structure
   c_names <- c("#","##","###","####","#####","######")
   
@@ -211,7 +200,6 @@ r_toc_for_Rmd <- function(
   }
   m_
   
-  ##########################################################################
   # create structure number system
   # Heading structure counts
   heading_cnt <- rep(0, 6)
@@ -253,7 +241,6 @@ r_toc_for_Rmd <- function(
     
   }
   
-  ##########################################################################
   # create structure number
   c_nb <- m__ |>
     apply(1, function(x) {
@@ -261,16 +248,14 @@ r_toc_for_Rmd <- function(
       paste0(temp, collapse = ".")
     })
   
-  ##########################################################################
   # create link link to table of contents
   c_top_link <-  paste0("\n[", toc_heading_string, "](#", toc_heading_string, ")\n")
   c_top_link
   
-  ##########################################################################
+
   c_Heading <- c_Rmd[df_data$is.heading]|>stringr::str_remove_all("#")|>stringr::str_trim()
   c_Heading
   
-  ##########################################################################
   # create anchor
   if (create_nb) {
     if (nb_front) { # number system in front of heading
@@ -309,7 +294,6 @@ r_toc_for_Rmd <- function(
   # format toc according to found heading structure
   c_toc <- paste0(c_add_structure, c_toc)
   
-  #########################################################################
   # Enhance headings
   df_data_ <- dplyr::left_join(df_data[, 1:4],
                                data.frame(index = rownames(m__) |> as.integer(),
@@ -318,9 +302,7 @@ r_toc_for_Rmd <- function(
   
   df_data_$c_Rmd_ <-  ifelse(!is.na(df_data_$c_anchor), df_data_$c_anchor, c_Rmd)
   
-  
-  
-  #########################################################################
+
   # create TOC
   highest_order_jj <- ifelse(set_first_heading_level, 1, highest_order_jj)
   c_toc_link <- switch(highest_order_jj,
@@ -336,7 +318,6 @@ r_toc_for_Rmd <- function(
                        paste0(c_toc_link, "<a name=\"", toc_heading_string, "\"></a>"),
                        c_toc_link)
   
-  #########################################################################
   # find position to insert table of contents
   check <- stringr::str_detect(c_Rmd, "---")
   c_start <- 1
@@ -350,7 +331,6 @@ r_toc_for_Rmd <- function(
     }
   }
   
-  #########################################################################
   # Insert table of contents
   c_Rmd <- c(df_data_$c_Rmd_ [1:(c_start)],
              c_toc_link,
@@ -359,7 +339,7 @@ r_toc_for_Rmd <- function(
              df_data_$c_Rmd_[(c_start+1):nrow(df_data)]
   )
   
-  #########################################################################
+
   # Insert page breaks
   
   #create data frame to work with
@@ -415,118 +395,16 @@ r_toc_for_Rmd <- function(
   return(c_Rmd)
 }
 
-r_is.defined <- function(sym) {
-  sym <- deparse(substitute(sym))
-  env <- parent.frame()
-  exists(sym, env)
-}
-
-
+# create table of content for RMD
 r_signif <- function (x, significant_digits = 3)
 {
   format(x, format = "g", digits = significant_digits)
 }
 
-#############################################################################################################################################
-# Benutzereinstellungen importieren aus "Erstelle Abrechnung.R"
-#############################################################################################################################################
-# Import c_script_version and Abrechnungsjahr
-c_raw <- readLines("user_settings.R")
-c_script_version <- c_raw[c_raw |> str_detect("c_script_version <-")] |>
-  str_split(pattern = "\"") |>
-  unlist()
-Abrechungsjahr <- c_script_version[2]|>
-  str_split(SPC)|>
-  unlist()
-Abrechungsjahr <- Abrechungsjahr[1]|>
-  as.integer()
-c_script_version <- c_script_version[2]
 
-# import sommerpause
-c_raw[str_detect(c_raw, "sommerpause")] |>
-  str_split("=", simplify = T) -> sommerpause
-sommerpause[, 2] |>
-  str_trim() |>
-  str_split(SPC, simplify = T) -> sommerpause
-sommerpause <- sommerpause[, 1] |> as.integer() # Tage
-
-# import c_MWST
-c_raw[str_detect(c_raw, "c_MWST")] |>
-  str_split("=", simplify = T) -> c_MWST
-c_MWST <- str_extract(c_MWST, one_or_more(DGT) %R% DOT %R% optional(DGT)) |>
-  as.numeric()
-
-# Platzkategorien die für gewisse Verleiherabgerechnet werden müssen
-df_P_kat_verechnen <- tibble(
-  Kinoförderer = c("Kinoförderer", "Kinofördererkarte"),
-  Verkaufspreis = c(13, 13)
-)
-
-#############################################################################################################################################
-# System Variablen und Vorlagen
-#############################################################################################################################################
-# Vorlage für Diagramme (Bei einer Änderung soll auch das css (".../source/Kinokulub_dark.css") geändert werden)
-my_template <-
-  theme_bw() +
-  theme(
-    panel.background = element_rect(
-      fill = "#322f3b",
-      colour = "#322f3b",
-      linewidth = 0.5,
-      linetype = "solid"
-    ),
-    plot.background = element_rect(fill = "#322f3b"),
-    axis.title = element_text(colour = "#f4cccc", size = 15),
-    axis.text = element_text(colour = "#f4cccc"),
-    legend.justification = c("right", "top"),
-    legend.box.just = "right",
-    legend.margin = margin(6, 6, 6, 6),
-    legend.background = element_rect(fill = "#322f3b", color = "black"),
-    legend.text = element_text(color = "#f4cccc"),
-    legend.title = element_text(size = 12),
-    title = element_text(color = "#f4cccc", size = 22)
-  )
-
-
-#############################################################################################################################################
-# Errorhandling open excel files
-#############################################################################################################################################
-
-c_openfiles <- list.files(paste0("Input/"),"~")
-if(length(c_openfiles) > 0) stop(paste0("\nFile: ", c_openfiles ," ist geöffnet und muss geschlossen werden!"))
-remove(c_openfiles)
-
-########################################################################
-# Einnahmen und Ausgaben einlesen aus Excel 
-########################################################################
-c_file <- "Einnahmen und Ausgaben.xlsx"
-
-# error handling
-stopifnot(file.exists(paste0("input/",c_file)))
-
-Einnahmen_und_Ausgaben <- paste0("input/",c_file)|>
-  col_env$get_excel_data()
-
-# error handling
-# Datachecking 
-df_temp <- Einnahmen_und_Ausgaben[["Ausgaben"]]|>
-  filter(Kategorie %in% c("Event","Verleiher"))|>
-  mutate(error = is.na(Spieldatum))|>
-  filter(error)
-
-if(nrow(df_temp)>0) { 
-  for (ii in 1:nrow(df_temp)) {
-    warning((paste("\nFür die Kategorie \"Event\" oder \"Verleiher\" muss in der Datei \"Einnahmen und Ausgaben.xlsx\" ein Eventdatum definiert werden.",
-                   "\n\nKategorie\tSpieldatum\tBezeichnung\n",df_temp$Kategorie[ii],"\t\t", df_temp$Spieldatum[ii], "\t\t", df_temp$Bezeichnung[ii])))
-  }
-}
-
-########################################################################
-# Funktion zur Eintrittabrechnung für Advanced Tickets files
-########################################################################
-
+# Eintritte aus Advanced Tickets files
 convert_data_Film_txt <- function(fileName) {
-  fileName|>
+  l_Eintritt <- fileName|>
     lapply(function(fileName){
       
       # read in data
@@ -637,15 +515,259 @@ convert_data_Film_txt <- function(fileName) {
                `SUISA-Vorabzug` = l_temp[[4]]
         )
     })
+  names(l_Eintritt) <- fileName|>
+    str_extract(one_or_more(DGT)%R%DOT%R%one_or_more(DGT)%R%DOT%R%one_or_more(DGT))
+  return(l_Eintritt)
 }
+
+# Extrakt Verkäufe  und Überschuss / Manko
+convert_data_kiosk_txt <- function(c_files) {
+  
+  l_raw <- lapply(c_files, function (x) suppressWarnings(readLines(x)))
+  l_raw
+  
+  ## extract suisa from file name
+  c_files
+  p <- capture(one_or_more(WRD)%R%DOT%R%one_or_more(WRD))%R%DOT%R%"txt"
+  c_kiosk_suisa <- str_match(c_files, pattern = p)[,2]
+  c_kiosk_suisa
+  
+  ## extract date from file name 
+  c_fileDate  <- str_match(c_files,capture(one_or_more(DGT)%R%DOT%R%one_or_more(DGT)%R%DOT%R%one_or_more(DGT)))[,2]
+  c_fileDate
+  
+  # detect Verkaufarikel in string
+  p1 <- or1(paste0(df_verkaufsartikel$`Artikelname Kassensystem`))
+  
+  # detect Spez Preise 
+  p2 <- or1(paste0("Spez"%R%SPC, 1:4))
+  
+  # Detect Überschuss Manko 
+  p3 <- optional("-") %R% one_or_more(DGT) %R% optional(DOT)%R% one_or_more(DGT)
+  
+  l_extracted <- list()
+  for (ii in 1:length(l_raw)) {
+    l_extracted[[ii]] <- list(Verkaufsartikel = tibble(Verkaufartikel_string = c(l_raw[[ii]][str_detect(l_raw[[ii]], p1)], ## Arikel erfasst in Kassasystem
+                                                                                 l_raw[[ii]][str_detect(l_raw[[ii]], p2)] ## Spez Arikel
+    )
+    ),
+    `Überschuss / Manko` = tibble(`Überschuss / Manko` = 
+                                    l_raw[[ii]][str_detect(l_raw[[ii]], "Manko")]|>
+                                    str_extract(p3)|>
+                                    as.numeric()
+    )|>
+      mutate(`Überschuss / Manko` = if_else(is.na(`Überschuss / Manko`),0, `Überschuss / Manko`)),
+    Suisanummer =  c_kiosk_suisa[ii]
+    )
+  }
+  names(l_extracted) <- c_fileDate
+  l_extracted
+  
+  l_Kiosk <- l_extracted |>
+    lapply(function(x) {
+      y <- x[["Verkaufsartikel"]]$Verkaufartikel_string |>
+        str_split(pattern = "\t", simplify = T)
+      # y <- cbind(y, x[["Suisanummer"]])
+      return(y)
+    })
+  l_Kiosk
+  
+  c_suisanummer <- l_extracted |>
+    lapply(function(x) {
+      x[["Suisanummer"]]
+    })|>
+    unlist()
+  c_suisanummer
+  
+  # Wie viele Spalten
+  c_lenght <- l_Kiosk|>
+    lapply(ncol)|>
+    unlist()
+  c_lenght
+  
+  ii <- 1
+  for (ii in 1:length(l_Kiosk)) {
+    if(c_lenght[ii] == 7){ # mit Korrekturbuchungen
+      l_Kiosk[[ii]] <- l_Kiosk[[ii]][,c(1:2,4:5,7)]
+      x <- l_Kiosk[[ii]][,2:ncol(l_Kiosk[[ii]])]|>
+        apply(2, as.numeric)
+      colnames(x) <- c("Einzelpreis", "Anzahl", "Korrektur", "Betrag")
+      
+      x <- x|>
+        as_tibble()|>
+        mutate(Anzahl = if_else(!is.na(Korrektur),Anzahl+Korrektur,Anzahl))|>
+        select(-Korrektur)
+      
+      l_Kiosk[[ii]] <- bind_cols(Verkaufsartikel = l_Kiosk[[ii]][,1], x, tibble(Suisanummer = c_suisanummer[ii]))
+      
+    }else if(c_lenght[ii] == 5){ # keine Korrekturbuchungen
+      l_Kiosk[[ii]] <- l_Kiosk[[ii]][,c(1:3,5)]
+      x <- l_Kiosk[[ii]][,2:ncol(l_Kiosk[[ii]])]|>
+        apply(2, as.numeric)
+      colnames(x) <- c("Einzelpreis", "Anzahl", "Betrag")
+      
+      l_Kiosk[[ii]] <- bind_cols(Verkaufsartikel = l_Kiosk[[ii]][,1], x, tibble(Suisanummer = c_suisanummer[ii]))
+    }else if(c_lenght[ii] == 0){ # Keine Kioskverkäufe
+      l_Kiosk[[ii]] <- tibble(Verkaufsartikel = "Keine Kioskverkäufe",
+                              Einzelpreis = 0,
+                              Anzahl = 0,
+                              Betrag = 0,
+                              Suisanummer = c_suisanummer[ii]
+                              
+      )
+    } else {
+      stop(paste0("\nDie Datei: input/advance tickets/Kiosk ",names(l_Kiosk)[ii],".txt", 
+                  "\nhat hat ein anderes Format und ist noch nicht implementiert.\nBitte wenden dich an die Entwicklung"))
+    }
+  }
+  l_Kiosk
+
+  # Data returned by function
+  l_return <- list()
+  l_return[["df_Kiosk"]] <- l_Kiosk|>
+    bind_rows(.id = "Datum")|>
+    mutate(Datum = dmy(Datum),
+           Einzelpreis = if_else(is.na(Einzelpreis), Betrag / Anzahl, Einzelpreis),
+           Betrag = if_else(Anzahl == 0, 0, Betrag))
+  
+  # Extrakt Überschuss / Manko
+  l_return[["Überschuss / Manko"]] <- l_extracted |>
+    lapply(function(x) {
+      cbind(x[["Überschuss / Manko"]],
+            tibble(Suisanummer = x[["Suisanummer"]]))
+    })|>
+    bind_rows(.id = "Datum")|>
+    as_tibble()|>
+    mutate(Datum = lubridate::dmy(Datum))
+  
+  
+  # Error handling, compare filename date and date in file 
+  p1 <- one_or_more(DGT)%R%DOT%R%one_or_more(DGT)%R%DOT%R%one_or_more(DGT)
+  
+  file_datum <- l_raw|>
+    lapply( function(x){
+      temp <- str_extract(x,p1)  
+      temp[!is.na(temp)]
+    })|>
+    unlist()|>
+    dmy()
+  
+  file_datum
+  
+  c_test <- dmy(c_fileDate)%in%file_datum
+  c_test
+  
+  if(length(c_test)>sum(c_test)){
+    stop(  
+      paste0("Für das file: .../Kinoklub/Input/advance tickets/Kiosk ",c_fileDate[!c_test], " stimmt das Datum im Dateinamen nicht mit dem Datum welches im File gefunden wurde überein.")|>
+        paste0(collapse = "\n")|>
+        writeLines()
+    )
+  }
+  
+  return(l_return)
+}
+
+#############################################################################################################################################
+# Benutzereinstellungen importieren aus "user_settings.R"
+#############################################################################################################################################
+# Import c_script_version and Abrechnungsjahr
+c_raw <- readLines("user_settings.R")
+c_script_version <- c_raw[c_raw |> str_detect("c_script_version <-")] |>
+  str_split(pattern = "\"") |>
+  unlist()
+Abrechungsjahr <- c_script_version[2]|>
+  str_split(SPC)|>
+  unlist()
+Abrechungsjahr <- Abrechungsjahr[1]|>
+  as.integer()
+c_script_version <- c_script_version[2]
+
+# import sommerpause
+c_raw[str_detect(c_raw, "sommerpause")] |>
+  str_split("=", simplify = T) -> sommerpause
+sommerpause[, 2] |>
+  str_trim() |>
+  str_split(SPC, simplify = T) -> sommerpause
+sommerpause <- sommerpause[, 1] |> as.integer() # Tage
+
+# import c_MWST
+c_raw[str_detect(c_raw, "c_MWST")] |>
+  str_split("=", simplify = T) -> c_MWST
+c_MWST <- str_extract(c_MWST, one_or_more(DGT) %R% DOT %R% optional(DGT)) |>
+  as.numeric()
+
+# Platzkategorien die für gewisse Verleiherabgerechnet werden müssen
+df_P_kat_verechnen <- tibble(
+  Kinoförderer = c("Kinoförderer", "Kinofördererkarte"),
+  Verkaufspreis = c(13, 13)
+)
+
+#############################################################################################################################################
+# System Variablen und Vorlagen
+#############################################################################################################################################
+# Vorlage für Diagramme (Bei einer Änderung soll auch das css (".../source/Kinokulub_dark.css") geändert werden)
+my_template <-
+  theme_bw() +
+  theme(
+    panel.background = element_rect(
+      fill = "#322f3b",
+      colour = "#322f3b",
+      linewidth = 0.5,
+      linetype = "solid"
+    ),
+    plot.background = element_rect(fill = "#322f3b"),
+    axis.title = element_text(colour = "#f4cccc", size = 15),
+    axis.text = element_text(colour = "#f4cccc"),
+    legend.justification = c("right", "top"),
+    legend.box.just = "right",
+    legend.margin = margin(6, 6, 6, 6),
+    legend.background = element_rect(fill = "#322f3b", color = "black"),
+    legend.text = element_text(color = "#f4cccc"),
+    legend.title = element_text(size = 12),
+    title = element_text(color = "#f4cccc", size = 22)
+  )
+
+
+#############################################################################################################################################
+# Errorhandling open excel files
+#############################################################################################################################################
+c_openfiles <- list.files(paste0("Input/"),"~")
+if(length(c_openfiles) > 0) stop(paste0("\nFile: ", c_openfiles ," ist geöffnet und muss geschlossen werden!"))
+remove(c_openfiles)
+
+########################################################################
+# Einnahmen und Ausgaben einlesen aus Excel 
+########################################################################
+c_file <- "Einnahmen und Ausgaben.xlsx"
+
+# error handling
+stopifnot(file.exists(paste0("input/",c_file)))
+
+Einnahmen_und_Ausgaben <- paste0("input/",c_file)|>
+  col_env$get_excel_data()
+
+# error handling
+# Datachecking 
+df_temp <- Einnahmen_und_Ausgaben[["Ausgaben"]]|>
+  filter(Kategorie %in% c("Event","Verleiher"))|>
+  mutate(error = is.na(Spieldatum))|>
+  filter(error)
+
+if(nrow(df_temp)>0) { 
+  for (ii in 1:nrow(df_temp)) {
+    warning((paste("\nFür die Kategorie \"Event\" oder \"Verleiher\" muss in der Datei \"Einnahmen und Ausgaben.xlsx\" ein Eventdatum definiert werden.",
+                   "\n\nKategorie\tSpieldatum\tBezeichnung\n",df_temp$Kategorie[ii],"\t\t", df_temp$Spieldatum[ii], "\t\t", df_temp$Bezeichnung[ii])))
+  }
+}
+
+
 
 ########################################################################
 # Eintritt aus Advanced Tickets
 ########################################################################
-
+# files to read in
 c_files <- list.files(pattern = "Eintritte", recursive = T)
-c_files
-
 
 # error handling
 if(is_empty(c_files)) {
@@ -655,12 +777,9 @@ if(is_empty(c_files)) {
        )
   }
 
+# read and convert Eintritte
 l_Eintritt <- convert_data_Film_txt(c_files)
 
-names(l_Eintritt) <- c_files|>
-  str_extract(one_or_more(DGT)%R%DOT%R%one_or_more(DGT)%R%DOT%R%one_or_more(DGT))
-
-# check file datum vs in file datum found
 df_Eintritt <- l_Eintritt|>
   bind_rows(.id = "Datum")|>
   mutate(Datum = lubridate::dmy(Datum),
@@ -668,7 +787,7 @@ df_Eintritt <- l_Eintritt|>
   )
 
 
-# error handling 
+# error handling: check file datum in file name vs in file datum found in the file
 df_temp <- df_Eintritt|>
   filter(!Datum%in%Datum_)|>
   distinct(Datum,.keep_all = T)
@@ -704,24 +823,25 @@ df_Flimvorfuerungen <- l_Eintritt|>
 ########################################################################
 # Bericht mapping
 ########################################################################
-c_Date <- df_Flimvorfuerungen$Datum
-c_suisa_nr <- df_Flimvorfuerungen$`Suisa Nummer`
+
+df_mapping <- tibble(Datum = df_Flimvorfuerungen$Datum,
+                     Suisanummer = df_Flimvorfuerungen$`Suisa Nummer`)|>
+  mutate(user_Datum = paste0(day(Datum),".", month(Datum),".", year(Datum)),
+         index = row_number())
+
 
 remove(df_Flimvorfuerungen)
 
 ########################################################################
 # Kioskabrechnungen
 ########################################################################
-###############################
-# Einkaufspreise
-###############################
 
-# verkaufsartikel
+# Einkaufspreise
 c_file <- list.files(pattern = "Einkauf Kiosk", recursive = T)
 c_file
 
 # error handling
-if(length(c_files) == 0) stop("\nEs sind keine Kiosk Dateinen vorhanden.")
+if(length(c_files) == 0) stop("\nEs sind keinen Kiosk-Dateinen vorhanden.\nBitte herunterladen:\nhttps://www.advance-ticket.ch/decomptecaisse?lang=de")
 
 df_verkaufsartikel <- paste0(c_file)|>
   col_env$get_excel_data()
@@ -731,140 +851,20 @@ df_verkaufsartikel
 
 ###############################
 # Advace tickets Kiosk
-###############################
 c_path <- "input/advance tickets"
 
 # Kioskabrechnung
 c_files <- list.files(c_path,pattern = "Kiosk", recursive = TRUE, full.names = TRUE)
+c_files
 
-l_raw <- lapply(c_files, function (x) suppressWarnings(readLines(x)))
-
-## extract file date 
-c_fileDate <- str_match(c_files,capture(one_or_more(DGT)%R%DOT%R%one_or_more(DGT)%R%DOT%R%one_or_more(DGT))%R%DOT%R%"txt" )[,2]
-
-######################################################################## 
 # Extrakt Verkäufe  und Überschuss / Manko
-######################################################################## 
-
-# detect Verkaufarikel in string
-p1 <- or1(paste0(df_verkaufsartikel$`Artikelname Kassensystem`))
-
-# detect Spez Preise 
-p2 <- or1(paste0("Spez"%R%SPC, 1:4))
-
-# Detect Überschuss Manko 
-p3 <- optional("-") %R% one_or_more(DGT) %R% optional(DOT)%R% one_or_more(DGT)
-
-l_extracted <- list()
-ii <- 19L
-for (ii in 1:length(l_raw)) {
-  l_extracted[[ii]] <- list(Verkaufsartikel = tibble(Verkaufartikel_string = c(l_raw[[ii]][str_detect(l_raw[[ii]], p1)], ## Arikel erfasst in Kassasystem
-                                                                               l_raw[[ii]][str_detect(l_raw[[ii]], p2)] ## Spez Arikel
-  )
-  ),
-  tibble(`Überschuss / Manko` = l_raw[[ii]][str_detect(l_raw[[ii]], "Manko")]|>str_extract(p3)|>as.numeric())|>
-    mutate(`Überschuss / Manko` = if_else(is.na(`Überschuss / Manko`),0, `Überschuss / Manko`))
-  )
-}
-names(l_extracted) <- c_fileDate
-l_extracted
-
-l_Kiosk <- l_extracted |>
-  lapply(function(x) {
-    y <- x[[1]]$Verkaufartikel_string |>
-      str_split(pattern = "\t", simplify = T)
-    return(y)
-  })
-l_Kiosk
-
-# Wie viele Spalten
-c_lenght <- l_Kiosk|>
-  lapply(ncol)|>
-  unlist()
-
-ii <- 1
-for (ii in 1:length(l_Kiosk)) {
-  if(c_lenght[ii] == 7){ # mit Korrekturbuchungen
-    l_Kiosk[[ii]] <- l_Kiosk[[ii]][,c(1:2,4:5,7)]
-    x <- l_Kiosk[[ii]][,2:ncol(l_Kiosk[[ii]])]|>
-      apply(2, as.numeric)
-    colnames(x) <- c("Einzelpreis", "Anzahl", "Korrektur", "Betrag")
-    
-    x <- x|>
-      as_tibble()|>
-      mutate(Anzahl = if_else(!is.na(Korrektur),Anzahl+Korrektur,Anzahl))|>
-      select(-Korrektur)
-    
-    l_Kiosk[[ii]] <- bind_cols(Verkaufsartikel = l_Kiosk[[ii]][,1], x)
-    
-  }else if(c_lenght[ii] == 5){ # keine Korrekturbuchungen
-    l_Kiosk[[ii]] <- l_Kiosk[[ii]][,c(1:3,5)]
-    x <- l_Kiosk[[ii]][,2:ncol(l_Kiosk[[ii]])]|>
-      apply(2, as.numeric)
-    colnames(x) <- c("Einzelpreis", "Anzahl", "Betrag")
-    
-    l_Kiosk[[ii]] <- bind_cols(Verkaufsartikel = l_Kiosk[[ii]][,1], x)
-  }else if(c_lenght[ii] == 0){ # Keine Kioskverkäufe
-    l_Kiosk[[ii]] <- tibble(Verkaufsartikel = "Keine Kioskverkäufe",
-                            Einzelpreis = 0,
-                            Anzahl = 0,
-                            Betrag = 0
-    )
-  } else {
-    stop(paste0("\nDie Datei: input/advance tickets/Kiosk ",names(l_Kiosk)[ii],".txt", 
-                "\nhat hat ein anderes Format und ist noch nicht implementiert.\nBitte wenden dich an die Entwicklung"))
-  }
-}
-
-l_Kiosk$`26.01.25`|>
-  filter(!is.na(Anzahl))
-
-df_Kiosk <- l_Kiosk|>
-  bind_rows(.id = "Datum")|>
-  mutate(Datum = dmy(Datum),
-         Einzelpreis = if_else(is.na(Einzelpreis), Betrag / Anzahl, Einzelpreis),
-         Betrag = if_else(Anzahl == 0, 0, Betrag))
-
-
-#############################################################################################
-# Error handling
-# Detect date in file 
-p1 <- one_or_more(DGT)%R%DOT%R%one_or_more(DGT)%R%DOT%R%one_or_more(DGT)
-
-file_datum <- l_raw|>
-  lapply( function(x){
-    temp <- str_extract(x,p1)  
-    temp[!is.na(temp)]
-  })|>
-  unlist()|>
-  dmy()
-
-file_datum
-
-c_test <- dmy(c_fileDate)%in%file_datum
-c_test
-
-if(length(c_test)>sum(c_test)){
-  stop(  
-    paste0("Für das file: .../Kinoklub/Input/advance tickets/Kiosk ",c_fileDate[!c_test], " stimmt das Datum nicht mit dem Datum im File überein.")|>
-      paste0(collapse = "\n")|>
-      writeLines()
-  )
-}
-
-######################################################################## 
-# Extrakt Überschuss / Manko
-######################################################################## 
-df_manko_uerberschuss <- l_extracted |>
-  lapply(function(x) {
-    x[[2]]
-  })|>
-  bind_rows(.id = "Datum")|>
-  mutate(Datum = lubridate::dmy(Datum))
-df_manko_uerberschuss
+l_temp <- convert_data_kiosk_txt(c_files)
+df_Kiosk <- l_temp$df_Kiosk
+df_manko_uerberschuss <- l_temp$`Überschuss / Manko`
+remove(l_temp)
 
 ########################################################################
-# Kiosk Spez Verkaufsartikel / Spezialpreise einlesen
+# Spez Verkaufsartikel / Spezialpreise einlesen
 ########################################################################
 # errohandling
 c_file <- "Spezialpreisekiosk.xlsx"
@@ -884,12 +884,12 @@ Spezialpreisekiosk <-Spezialpreisekiosk[[1]]|>
 # Sind für alle Spezialpreise pro Datum definiert?  
 df_spez_preis_na <- df_Kiosk|>
   filter(str_detect(Verkaufsartikel, "Spez")) |>
-  distinct(Datum, .keep_all = T) |>
+  distinct(Datum, Suisanummer, .keep_all = T) |>
   left_join(
     df_Eintritt |>
-      distinct(Datum, .keep_all = T) |>
+      distinct(Datum, `Suisa Nummer`, .keep_all = T) |>
       select(Datum, Filmtitel, `Suisa Nummer`),
-    by = join_by(Datum)
+    by = c("Datum" = "Datum", "Suisanummer" = "Suisa Nummer")
   )|>
   anti_join(Spezialpreisekiosk |>distinct(Datum),
             by = join_by(Datum))
@@ -898,7 +898,7 @@ if(nrow(df_spez_preis_na) > 0) {
   warning(
     paste0(
       "\nFür die Filmvorführung ", df_spez_preis_na$Filmtitel, " am ", day(df_spez_preis_na$Datum),".",month(df_spez_preis_na$Datum),".",year(df_spez_preis_na$Datum), 
-      " wurde der Artikel ", df_spez_preis_na$Verkaufsartikel," nicht definiert.",
+      "\nwurde der Artikel ", df_spez_preis_na$Verkaufsartikel," nicht definiert.",
       "\nBitte korrigieren in der Datei:","\n.../Kinoklub/input/Spezialpreisekiosk.xlsx\n"
     )
   )
@@ -911,7 +911,7 @@ ii <- 1
 
 df_Kiosk <- df_Kiosk|>
   left_join(Spezialpreisekiosk, 
-            by = c(Datum ="Datum", Verkaufsartikel = "Spezialpreis")
+            by = c(Datum ="Datum", Verkaufsartikel = "Spezialpreis", Suisanummer = "Suisanummer")
   )|>
   mutate(Verkaufsartikel = if_else(is.na(Artikelname), Verkaufsartikel, Artikelname))|>
   select(-Artikelname, -Verkaufspreis)
@@ -935,13 +935,10 @@ df_Einkaufspreise <- l_Einkaufspreise |>
 df_Einkaufspreise
 
 ########################################################################
-# Kiosk Verkauf 
+# Kioskeinkauf 
 ########################################################################
 
 c_files <- list.files(c_path,pattern = START%R%"Kiosk", recursive = T)
-
-if(length(c_files) == 0) stop("\nEs sind keinen Kiosk-Dateinen vorhanden.\nBitte herunterladen:\nhttps://www.advance-ticket.ch/decomptecaisse?lang=de")
-
 c_files <- c_files <- paste0(c_path,"/", c_files)
 c_files
 
@@ -949,6 +946,7 @@ c_Date_Kiosk <- c_files|>
   str_extract(DGT%R%DGT%R%DOT%R%DGT%R%DGT%R%DOT%R%DGT%R%DGT)|>
   dmy()|>
   as.Date()
+c_Date_Kiosk
 
 c_Einkaufslistendatum <- distinct(df_Einkaufspreise, Datum)|>pull()
 c_Einkaufslistendatum
@@ -1036,11 +1034,10 @@ df_Kiosk|>
 # remove no more needed variables
 remove(df_Mapping_Einkaufspreise,l_Kiosk, l_Einkaufspreise,
        df_verkaufsartikel,
-       l_extracted, l_raw, 
        c_Date_Kiosk, c_Einkaufslistendatum,
-       p,p1,p2,p3,
-       ii,x,
-       c_path, c_fileDate, c_files)
+       p,
+       ii,
+       c_path, c_files)
 
 ########################################################################
 # Bericht mapping
@@ -1109,15 +1106,18 @@ df_show <- m|>
   rename(Filmtitel = Titel)|>
   arrange(Datum)
 
+df_show
+
 df_show <- df_show|>
   left_join(df_Eintritt|>
-              distinct(Datum, `Suisa Nummer`),
-            by = c("Datum" = "Datum")
+              distinct(Datum, `Suisa Nummer`, Filmtitel),
+            by = c(Datum = "Datum", Filmtitel = "Filmtitel")
   )|>
   arrange(Datum)
 
 df_show <- df_show|>
   filter(!is.na(`Suisa Nummer`))
+df_show
 
 ## error handling 
 df_temp <- df_Eintritt|>distinct(Datum, `Suisa Nummer`)|>
@@ -1182,13 +1182,10 @@ c_file <- "input/Verleiherabgaben.xlsx"
 # error handling
 if(!file.exists(c_file)) stop(paste0("\nDie Datei: \".../", c_file, "\" konnte nicht gefunden werden"))
 
-c_sheets <- readxl::excel_sheets(c_file)
-c_sheets
-
-df_verleiherabgaben <- readxl::read_excel(c_file,c_sheets[1])|>
+df_verleiherabgaben <- col_env$get_excel_data(c_file)[["Verleiherabgaben"]]|>
   mutate(Datum = as.Date(Datum),
          `Link Datum` = as.Date(`Link Datum`))|>
-  left_join(readxl::read_excel(c_file,c_sheets[2]), by = "Verleiher")
+  left_join(col_env$get_excel_data(c_file)[["Kinoförderer gratis"]], by = "Verleiher")
 
 # error handling 
 df_temp <- df_verleiherabgaben|>
@@ -1206,7 +1203,7 @@ if(nrow(df_temp)>0){
 df_Eintritt <- df_Eintritt|>
   left_join(df_verleiherabgaben|>
               select(-Titel, -Adresse, -PLZ, -Ort),
-            by = c(`Suisa Nummer` = "Suisa", "Datum"))|>
+            by = c(`Suisa Nummer` = "Suisanummer", "Datum"))|>
   mutate(`Kinoförderer gratis?` = if_else(`Kinoförderer gratis?` == "nein", F, T),
          Zahlend = if_else(Verkaufspreis>0, T, F))
 df_Eintritt
@@ -1280,8 +1277,8 @@ df_Abrechnung <- df_Eintritt|>
   left_join( # Verleiherrechnungen 
     Einnahmen_und_Ausgaben[["Ausgaben"]]|>
       filter(Kategorie == Einnahmen_und_Ausgaben[["dropdown"]]$`dropdown`[5])|> # suchen nach den Verleiher Einträgen
-      select(-Kategorie,-Datum, -Bezeichnung)|>
-      select(1:2)|>
+      select(Spieldatum, Suisanummer,Betrag)|>
+      # select(1:2)|>
       rename(`Verleiherrechnungsbetrag [CHF]` = Betrag,
              Datum = Spieldatum),
     by = join_by(Datum)
@@ -1310,21 +1307,21 @@ if(nrow(df_temp)>0) {
   )  
 }
 
-
-########################################################################
-# error handling
-# Es darf nur einen Eintrag pro Film geben in der Abrechnung
-df_temp <- df_Abrechnung|>
-  group_by(Datum)|>
-  reframe(n = n())|>
-  left_join(df_Abrechnung|>
-              select(Datum, Filmtitel, `Suisa Nummer`),
-            by = join_by(Datum))|>
-  filter(n > 1)
-
-if(nrow(df_temp) > 1) {
-  print(df_temp)
-  stop("In der Datei .../input/Verleiherabgaben.xlsx gibt es mehrere Filme am selben Datum")}
+ 
+# ########################################################################
+# # error handling
+# # Es darf nur einen Eintrag pro Filmvorführung geben in der Abrechnung
+# df_temp <- df_Abrechnung|>
+#   group_by(Datum)|>
+#   reframe(n = n())|>
+#   left_join(df_Abrechnung|>
+#               select(Datum, Filmtitel, `Suisa Nummer`),
+#             by = join_by(Datum))|>
+#   filter(n > 1)
+# 
+# if(nrow(df_temp) > 1) {
+#   print(df_temp)
+#   stop("In der Datei .../input/Verleiherabgaben.xlsx gibt es mehrere Filme am selben Datum")}
 
 remove(m, df_temp, n_Film, n_kiosk)
 
@@ -1334,8 +1331,6 @@ remove(m, df_temp, n_Film, n_kiosk)
 # Für die Berechnung von "Netto 3" müssen die Kinoförder als Umsatz verrechnet werden.
 # Netto 3 = Umsatz minus SUISA-Vorabzug.
 #########################################################################################################
-
-df_Eintritt$Platzkategorie %in% df_P_kat_verechnen$Kinoförderer
 
 df_Eintritt <- bind_rows(
   df_Eintritt|>
@@ -1352,35 +1347,27 @@ df_Eintritt <- bind_rows(
     mutate(`Umsatz für Netto3 [CHF]` = Umsatz)
 )|>
   arrange(desc(Datum))
-
+df_Eintritt
 
 #########################################################################################################
 # Abrechnungsperiode erstellen
 #########################################################################################################
 l_keineRechnung <- list()
 l_abrechnung <- list()
-ii<-19
-for (ii in 1:length(c_Date)) {
-  if(length(c_Date) == 1){
-    l_abrechnung[[ii]] <- list(Abrechnung = df_Abrechnung|>
-                                 filter(Datum %in% c(c_Date[ii], df_Abrechnung$`Link Datum`[ii]))|>
-                                 select(Datum, `Link Datum`, Anfang, Ende, Filmtitel, `Suisa Nummer`, Verleiher,`Verleiherrechnungsbetrag [CHF]`, 
-                                        `SUISA-Vorabzug [%]`, `Link Datum`, `Minimal Abzug [CHF]`, `Abzug [%]`, `Abzug fix [CHF]`, `Kinoförderer gratis?`),
-                               Tickets = df_Eintritt|>
-                                 filter(Datum %in% c(c_Date[ii], df_Abrechnung$`Link Datum`[ii]))|>
-                                 select(Datum, Filmtitel, `Suisa Nummer`, Platzkategorie, Verkaufspreis, Anzahl, Umsatz, `Verkaufspreis Abgerechnet [CHF]`,`Umsatz für Netto3 [CHF]`)
-    )
-  }else{
-    l_abrechnung[[ii]] <- list(Abrechnung = df_Abrechnung|>
-                                 filter(Datum %in% c(c_Date[ii], df_Abrechnung$`Link Datum`[ii]))|>
-                                 select(Datum, `Link Datum`, Anfang, Ende, Filmtitel, `Suisa Nummer`, Verleiher,`Verleiherrechnungsbetrag [CHF]`, 
-                                        `SUISA-Vorabzug [%]`, `Link Datum`, `Minimal Abzug [CHF]`, `Abzug [%]`, `Abzug fix [CHF]`, `Kinoförderer gratis?`),
-                               Tickets = df_Eintritt|>
-                                 filter(Datum %in% c(c_Date[ii], df_Abrechnung$`Link Datum`[ii]))|>
-                                 select(Datum, Filmtitel, `Suisa Nummer`, Platzkategorie, Verkaufspreis, Anzahl, Umsatz, `Verkaufspreis Abgerechnet [CHF]`,`Umsatz für Netto3 [CHF]`)
-    )
-  }
-  
+ii <- 8
+for (ii in 1:nrow(df_mapping)) {
+
+  l_abrechnung[[ii]] <- list(Abrechnung = df_Abrechnung|>
+                               filter(df_mapping$Suisanummer[ii] == `Suisa Nummer`)|>
+                               filter(Datum %in% c(df_mapping$Datum[ii], df_Abrechnung$`Link Datum`[ii]))|>
+                               select(Datum, `Link Datum`, Anfang, Ende, Filmtitel, `Suisa Nummer`, Verleiher,`Verleiherrechnungsbetrag [CHF]`, 
+                                      `SUISA-Vorabzug [%]`, `Link Datum`, `Minimal Abzug [CHF]`, `Abzug [%]`, `Abzug fix [CHF]`, `Kinoförderer gratis?`),
+                             Tickets = df_Eintritt|>
+                               filter(df_mapping$Suisanummer[ii] == `Suisa Nummer`)|>
+                               filter(Datum %in% c(df_mapping$Datum[ii], df_Abrechnung$`Link Datum`[ii]))|>
+                               select(Datum, Filmtitel, `Suisa Nummer`, Platzkategorie, Verkaufspreis, Anzahl, Umsatz, `Verkaufspreis Abgerechnet [CHF]`,`Umsatz für Netto3 [CHF]`)
+  )
+
   ########################################################################
   # error handling
   # Verleiherrechnung vorhanden?
@@ -1399,7 +1386,8 @@ for (ii in 1:length(c_Date)) {
     )
     # Rechnungen vorhanden (wird im Bericht verwendet)
     l_keineRechnung[[ii]] <- tibble(Datum = l_abrechnung[[ii]]$Abrechnung$Datum ,
-                                    Filmtitel = l_abrechnung[[ii]]$Abrechnung$Filmtitel)
+                                    Filmtitel = l_abrechnung[[ii]]$Abrechnung$Filmtitel,
+                                    Suisanummmer = l_abrechnung[[ii]]$Abrechnung$`Suisa Nummer`)
     
   }
   ########################################################################
@@ -1415,7 +1403,7 @@ for (ii in 1:length(c_Date)) {
         select(-Datum)
     )
 }
-names(l_abrechnung) <- c_Date
+names(l_abrechnung) <- paste(df_mapping$Datum, df_mapping$Suisanummer)
 
 df_keine_Rechnung <- l_keineRechnung|>
   bind_rows()
@@ -1426,7 +1414,7 @@ df_keine_Rechnung
 # auf die gelinkten Filme aufteilen (Link im Excel file: .../Kinoklub/Input/Verleiherabgaben.xlsx ) 
 #########################################################################################################
 
-for (ii in 1:length(c_Date)) {
+for (ii in 1:nrow(df_mapping)) {
   ############
   # umsatz- und Netto3 Umsatz-Berechnung
   ############
@@ -1502,9 +1490,11 @@ for (ii in 1:length(c_Date)) {
   l_abrechnung[[ii]]$Eventeinnahmen <-
     Einnahmen_und_Ausgaben$Einnahmen|>
     filter(Kategorie == "Event",
-           Datum == c_Date[ii])|>
+           Datum == df_mapping$Datum[ii],
+           Suisanummer == df_mapping$Suisanummer[ii]
+           )|>
     mutate(Betrag = df_Verteilprodukt|>
-             filter(Datum %in% c(df_Verteilprodukt$Datum ,c_Date[ii]))|>
+             filter(Datum %in% c(df_Verteilprodukt$Datum ,df_mapping$Datum[ii]))|>
              select(Verteilprodukt)|>
              pull() * Betrag
            )
@@ -1516,9 +1506,10 @@ for (ii in 1:length(c_Date)) {
   l_abrechnung[[ii]]$Eventausgaben <-
     Einnahmen_und_Ausgaben$Ausgaben |>
     filter(Kategorie == "Event",
-           Spieldatum %in% c(df_Verteilprodukt$Datum ,c_Date[ii]))|>
+           Suisanummer == df_mapping$Suisanummer[ii],
+           Spieldatum %in% c(df_Verteilprodukt$Datum ,df_mapping$Datum[ii]))|>
     mutate(Betrag = df_Verteilprodukt|>
-             filter(Datum == c_Date[ii])|>
+             filter(Datum == df_mapping$Datum[ii])|>
              select(Verteilprodukt)|>
              pull() * Betrag
            )|>
@@ -1527,19 +1518,22 @@ for (ii in 1:length(c_Date)) {
   l_abrechnung[[ii]]$Eventausgaben
   
   ########################################################################
-  # Gewinn Kiosk (wird nie verteilt, da der Verkauf pro Datum erfolgt)
+  # Gewinn Kiosk (wird nie verteilt, da der Verkauf pro Datum und Suisanummer erfolgt)
   ########################################################################
   l_abrechnung[[ii]]$Kiosk <- 
     df_Kiosk|>
-    filter(Datum == c_Date[ii])|>
+    filter(Datum == df_mapping$Datum[ii],
+           Suisanummer == df_mapping$Suisanummer[ii],
+           )|>
     reframe(Kassiert = sum(Kassiert, na.rm = T),
             Gewinn = sum(Gewinn, na.rm = T))|>
-    mutate(Datum = c_Date[ii],
-           `Suisa Nummer` = c_suisa_nr[ii]
+    mutate(Datum = df_mapping$Datum[ii],
+           `Suisa Nummer` = df_mapping$Suisanummer[ii]
     )|>
     left_join(df_show|>
-                select(Datum, Filmtitel),
-              by = join_by(Datum)
+                filter(`Suisa Nummer` == df_mapping$Suisanummer[ii])|>
+                select(Datum, `Suisa Nummer`, Filmtitel),
+              by = join_by(Datum, `Suisa Nummer`)
               )|>
     select(Datum, `Suisa Nummer`, Filmtitel, Kassiert, Gewinn)
   l_abrechnung[[ii]]$Kiosk
@@ -1549,7 +1543,9 @@ for (ii in 1:length(c_Date)) {
   ########################################################################
   
   l_abrechnung[[ii]]$`Manko oder Überschuss [CHF]` <- df_manko_uerberschuss|>
-    filter(Datum == c_Date[ii])
+    filter(Datum == df_mapping$Datum[ii], 
+           Suisanummer == df_mapping$Suisanummer[ii]
+           )
 
   ########################################################################
   # Verteilen für gemeinsame Abrechnung
@@ -1571,17 +1567,17 @@ for (ii in 1:length(c_Date)) {
   ########################################################################
   if(nrow(l_abrechnung[[ii]]$Abrechnung) != 0){
     l_abrechnung[[ii]]$Abrechnung <- l_abrechnung[[ii]]$Abrechnung|>
-      filter(Datum == c_Date[ii])  
+      filter(Datum == df_mapping$Datum[ii],
+             `Suisa Nummer` == df_mapping$Suisanummer[ii]
+             )  
   }
 }
-class(l_abrechnung)
 
 
 ##############################################################################
 # Abrechnung Filmvorführung erstellen (für Berichte verwendet)
 # Runden aller [CHF]  Beträge
 ##############################################################################
-x <- l_abrechnung[[1]]
 df_Abrechnung <- bind_cols(
   l_abrechnung|>
     lapply(function(x){
@@ -1591,17 +1587,16 @@ df_Abrechnung <- bind_cols(
     bind_rows(),
   l_abrechnung|>
     lapply(function(x){
-      c_temp <- x$Abrechnung|>
-        select(ends_with("[CHF]"))|>
-        round5Rappen()
-      as.data.frame(c_temp)|>
-        t()|>
-        as_tibble()
+      x$Abrechnung|>
+        select(ends_with("[CHF]"))
     })|>
-    bind_rows()
-)|>
+    bind_rows()|>
+    apply(2, round5Rappen)|>
+    as_tibble()
+  )|>
   rename(`Umsatz [CHF]` = Umsatz)
 df_Abrechnung
+
 ##############################################################################
 # Abrechnung Tickets erstellen (für Berichte verwendet)
 ##############################################################################
@@ -1685,36 +1680,13 @@ list(`Werbung` = df_Besucherzahlen,
 # remove not used variables
 ########################################################################
 remove(c_file,
-       c_lenght,
        c_raw,
        c_select,
-       c_sheets,
-       c_test,
-       file_datum,
        c_names,
        ii,
        l_keineRechnung,
        c_filePath
        )
-
-# # Remove all functions in the global environment
-# rm(list = ls(envir = .GlobalEnv)[sapply(ls(envir = .GlobalEnv), function(x) is.function(get(x, envir = .GlobalEnv)))])
-
-# ########################################################################
-# # create list object for "GUI.R"
-# ########################################################################
-# 
-# # Create a list of all variables and their associated data in the global environment
-# l_data <- lapply(ls(), function(x) get(x))
-# # Set variable names
-# names(l_data) <- ls()[ls() != "l_data"]
-# # Delet all variables but the created list
-# rm(list = ls()[ls() != "l_data"])
-
-########################################################################
-# write data to file and load all to envirnonment
-########################################################################
-# save.image(file = "environment.RData")
 
 ########################################################################
 # user interaction

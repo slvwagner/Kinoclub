@@ -16,31 +16,21 @@ act_date <- paste0(day(act_date),".", month(act_date),".", year(act_date))
 Bericht wurde am `r act_date` erstellt.
 
 ```{r variablen, include=FALSE}
-ii <- 5
+ii <- 2
 ```
 
 ```{r echo=FALSE}
-df_mapping <- tibble(Datum = c_Date)|>
-  mutate(user_Datum = paste0(day(Datum),".", month(Datum),".", year(Datum)),
-         index = row_number())
-
-c_Datum <- c_Date[ii]
-
 c_verteilprodukt <- df_Abrechnung|>
-  filter(Datum == c_Date[ii])|>
+  filter(Datum == df_mapping$Datum[ii],
+         `Suisa Nummer` == df_mapping$Suisanummer[ii] )|>
   select(Verteilprodukt)|>
   pull()
 
  c_linkDatum <- df_Abrechnung|>
-  filter(Datum == c_Date[ii])|>
+  filter(Datum == df_mapping$Datum[ii],
+         `Suisa Nummer` == df_mapping$Suisanummer[ii] )|>
    select(`Link Datum`)|>
    pull()
-
-c_suisa <- df_show|>
-  filter(Datum == c_Date[ii])|>
-  select(`Suisa Nummer`)|>
-  pull()
-
 
 ```
 
@@ -48,7 +38,8 @@ c_suisa <- df_show|>
 
 ```{r echo=FALSE}
 df_temp <- df_show|>
-  filter(Datum == c_Datum & `Suisa Nummer` == c_suisa)|>
+  filter(Datum == df_mapping$Datum[ii] ,
+         `Suisa Nummer` == df_mapping$Suisanummer[ii])|>
   mutate(Anfang = paste0(lubridate::hour(Anfang),":", lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(SPC,"0")),
          Datum = paste0(day(Datum),".",month(Datum),".",year(Datum))
          )|>
@@ -65,7 +56,8 @@ df_temp|>
 if(r_is.defined(df_keine_Rechnung)){
   if(nrow(df_keine_Rechnung) > 0) {
     df_temp <- df_keine_Rechnung |>
-      filter(Datum == c_Date[ii])
+      filter(Datum == df_mapping$Datum[ii], 
+             )
     if (nrow(df_temp) > 0) {
       writeLines(
         "Achtung es gibt noch keine Verleiherabrechnung für diesen Film. Deshalb fehlen die Reklame- und Portokosten.\nDer Gewinn kann sich deshalb noch ändern."
@@ -85,7 +77,8 @@ if(r_is.defined(df_keine_Rechnung)){
 
 ```{r echo=FALSE}
 df_temp <- df_Eintritt|>
-  filter(Datum == c_Datum & `Suisa Nummer` == c_suisa)|>
+  filter(Datum == df_mapping$Datum[ii] ,
+         `Suisa Nummer` == df_mapping$Suisanummer[ii])|>
   select(Platzkategorie, Verkaufspreis, Anzahl, Umsatz)|>
   rename(`Umsatz [sFR]` = `Umsatz`)
 
@@ -106,7 +99,8 @@ Umsatz|>
 
 ```{r echo=FALSE}
 df_temp <- df_Eintritt|>
-  filter(Datum == c_Datum & `Suisa Nummer` == c_suisa)|>
+  filter(Datum == df_mapping$Datum[ii] ,
+         `Suisa Nummer` == df_mapping$Suisanummer[ii])|>
   group_by(Zahlend)|>
   reframe(Anzahl = sum(Anzahl, na.rm = T))|>
   mutate(Zahlend = if_else(Zahlend, "Zahlend", "Gratis"))
@@ -134,7 +128,8 @@ Für jeden gezeigten Film sind verschiedenen Abgaben und Gebühren zu entrichten
 if(r_is.defined(df_keine_Rechnung)){
   if(nrow(df_keine_Rechnung) > 0) {
     df_temp <- df_keine_Rechnung |>
-      filter(Datum == c_Date[ii])
+      filter(Datum == df_mapping$Datum[ii] ,
+             Suisanummmer == df_mapping$Suisanummer[ii])
   
     if (nrow(df_temp) > 0) {
       writeLines("Achtung es gibt noch keine Verleiherabrechnung für diesen Film.")
@@ -168,7 +163,8 @@ if(nrow(df_Abrechnung) == 1){
   mutate(`Total Abgaben [CHF]` = sum(`SUISA-Vorabzug [CHF]`,`Verleiherabzug [CHF]`,na.rm = T))
 }else{
   df_temp <- df_Abrechnung|>
-  filter(Datum %in% c(c_Datum) & `Suisa Nummer` == c_suisa)|>
+    filter(Datum == df_mapping$Datum[ii] ,
+           `Suisa Nummer` == df_mapping$Suisanummer[ii])|>
   mutate(`Total Abgaben [CHF]` = sum(`SUISA-Vorabzug [CHF]`,`Verleiherabzug [CHF]`,na.rm = T))
 }
 
@@ -376,8 +372,10 @@ Event|>
 #### Gewinn pro Artikel
 
 ```{r echo=FALSE}
+
 df_temp <- df_Kiosk|>
-  filter(Datum == c_Datum)|>
+  filter(Datum == df_mapping$Datum[ii],
+         `Suisanummer` == df_mapping$Suisanummer[ii] )|>
   select(-Datum)|>
   rename(`Kassiert [CHF]` = `Kassiert`,
          `Einkaufspreis [CHF]` =`Einkaufspreis`,
@@ -464,7 +462,9 @@ if(df_temp3|>nrow()){
     writeLines()
 
   df_temp <- Einnahmen_und_Ausgaben$Ausgaben|>
-  filter(Spieldatum == c_Datum, Kategorie == Einnahmen_und_Ausgaben$dropdown$dropdown[1])
+  filter(Spieldatum == df_mapping$Datum[ii], 
+         Suisanummer == df_mapping$Suisanummer[ii],
+         Kategorie == Einnahmen_und_Ausgaben$dropdown$dropdown[1])
   
   if(nrow(df_temp) == 0) {
     writeLines("\n Es sind keine Eventausgaben vorhanden mit denen die Spezialverkaufsartikel bezahlt wurden!")
@@ -479,10 +479,12 @@ if(df_temp3|>nrow()){
 Achtung!\
 Die Kioskkasse wird auch für dir Barauszahlung von stornierten Tickets genutzt.
 
+
 ```{r echo=FALSE}
 Manko <- df_manko_uerberschuss|>
-  filter(Datum == c_Datum)|>
-  select(-Datum)|>
+  filter(Datum == df_mapping$Datum[ii],
+         Suisanummer == df_mapping$Suisanummer[ii])|>
+  select(-Datum, -Suisanummer)|>
   rename(`Summe [CHF]` = `Überschuss / Manko`)
 ```
 
@@ -495,6 +497,8 @@ df_temp <- bind_cols(tibble(Bezeichnung = c("Gewinn pro Artikel", "Umsatz Spezia
 df_temp|>
   knitr::kable()
 ```
+
+
 
 ```{r echo=FALSE}
 Kiosk <- df_temp|>

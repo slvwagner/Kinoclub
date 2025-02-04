@@ -90,22 +90,22 @@ df_col_type <- tibble::tibble(
     "text",
     "date",
 
+    "text",
     "numeric",    
     "text",
     "text",
     "text",
     "date",
-    "text",
     
     "text",
     "text",
     "text",
     "text",
     "text",
+    "text",
+    
     "numeric",
-    
     "date",
-    "text",
     "numeric",
     "numeric",
     "numeric",
