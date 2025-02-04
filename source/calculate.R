@@ -881,6 +881,10 @@ Spezialpreisekiosk <-Spezialpreisekiosk[[1]]|>
   mutate(Datum = as.Date(Datum))
 
 # error handling
+if(is.na(Spezialpreisekiosk$Suisanummer)|>sum() > 0) stop("\nEs wurden nicht alle Suisanummern im file:\n .../Kinoklub/input/Spezialpreisekiosk.xlsx definiert")
+
+
+# error handling
 # Sind für alle Spezialpreise pro Datum definiert?  
 df_spez_preis_na <- df_Kiosk|>
   filter(str_detect(Verkaufsartikel, "Spez")) |>
