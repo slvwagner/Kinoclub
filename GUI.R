@@ -70,8 +70,9 @@ source("source/functions.R")
 ###############################################
 # Index pro Suisa-Nummer und Datum erstellen
 ###############################################
-mapping <- function(c_Datum) {
-  df_mapping <- tibble(Datum = c_Datum) |>
+mapping <- function(c_Datum, c_suisa) {
+  df_mapping <- tibble(Datum = c_Datum,
+                       Suisanummer = c_suisa) |>
     mutate(
       user_Datum = paste0(day(Datum), ".", month(Datum), ".", year(Datum)),
       index = row_number()
@@ -83,17 +84,19 @@ mapping <- function(c_Datum) {
   c_sheets
   
   df_verleiherabgaben <- readxl::read_excel(c_file, c_sheets[1]) |>
-    mutate(Datum = as.Date(Datum)) |>
+    mutate(Datum = as.Date(Datum))|>
     left_join(readxl::read_excel(c_file, c_sheets[2]), by = "Verleiher")
   
   df_mapping <- df_verleiherabgaben |>
-    select(Datum, `Kinoförderer gratis?`) |>
-    right_join(df_mapping, by = join_by(Datum)) |>
+    select(Datum, `Kinoförderer gratis?`, Suisanummer) |>
+    right_join(df_mapping, by = join_by(Datum, Suisanummer)) |>
     mutate(
       CreateReportVerleiherabrechnung = if_else(`Kinoförderer gratis?` == "ja", F, T),
       `Kinoförderer gratis?` = NULL
     ) |>
     arrange(index)
+  df_mapping <- df_mapping|>
+    distinct(Datum, Suisanummer, .keep_all = T)
   return(df_mapping)
 }
 
@@ -644,8 +647,8 @@ webserver <- function() {
 #######################################################
 # Erstellen der Abrechnung pro Filmvorführung
 #######################################################
-AbrechnungErstellen <- function(df_mapping__, df_Abrechnung, df_Render, toc) {
-  for (ii in df_mapping__$index) {
+AbrechnungErstellen <- function(mapping, df_Abrechnung, df_Render, toc) {
+  for (ii in mapping$index) {
     # Template der Abrechnung einlesen
     c_raw <- readLines("source/Abrechnung.Rmd")
     c_raw
@@ -657,7 +660,9 @@ AbrechnungErstellen <- function(df_mapping__, df_Abrechnung, df_Render, toc) {
     # Ändern des Templates Titel Filmname
     index <- (1:length(c_raw))[c_raw |> str_detect("Abrechnung Filmvorführung")]
     c_temp1 <- df_Abrechnung |>
-      filter(Datum == (df_mapping__ |> filter(index == ii) |> select(Datum) |> pull())) |>
+      filter(Datum == (mapping |> filter(index == ii) |> select(Datum) |> pull()),
+             `Suisa Nummer` == (mapping|> filter(index == ii) |>select(Suisanummer)|>pull())
+             ) |>
       mutate(
         Anfang = paste0(lubridate::hour(Anfang), ":", lubridate::minute(Anfang) |> as.character() |> formatC(format = "0", width = 2) |> str_replace(SPC, "0")),
         Datum = paste0(day(Datum), ".", month(Datum), ".", year(Datum))
@@ -689,20 +694,21 @@ AbrechnungErstellen <- function(df_mapping__, df_Abrechnung, df_Render, toc) {
     # Render
     rmarkdown::render(input = "source/temp.Rmd",
                       output_format = df_Render$Render,
-                      output_file = paste0("Abrechnung ",df_mapping__ |> filter(index == ii) |> select(user_Datum) |> pull(),df_Render$fileExt),
+                      output_file = paste0("Abrechnung ",mapping |> filter(index == ii) |> select(Suisanummer) |> pull()," ",
+                                           mapping |> filter(index == ii) |> select(user_Datum) |> pull(),df_Render$fileExt),
                       output_dir = "output",
                       envir = data_env
     )
 
     # user interaction
     print(clc)
-    paste("Bericht: \nFilmabrechnung vom", df_mapping__ |> filter(index == ii) |> select(user_Datum) |> pull(), "erstellt") |>
+    paste("Bericht: \nFilmabrechnung vom", mapping |> filter(index == ii) |> select(user_Datum) |> pull(), "erstellt") |>
       writeLines()
     
     ####################
     # Muss eine Verleiherrechnung erstellt werden?
     ####################
-    if (df_mapping__ |> filter(index == ii) |> select(CreateReportVerleiherabrechnung) |> pull()) {
+    if (mapping |> filter(index == ii) |> select(CreateReportVerleiherabrechnung) |> pull()) {
       # Einlesen template der Verleiherabrechnung
       c_raw <- readLines("source/Verleiherabrechnung.Rmd")
       c_raw
@@ -718,7 +724,8 @@ AbrechnungErstellen <- function(df_mapping__, df_Abrechnung, df_Render, toc) {
       # Render
       rmarkdown::render(
         input = "Verleiherabrechnung.Rmd",
-        output_file = paste0("Verleiherabrechnung ", df_mapping__ |> filter(index == ii) |> select(user_Datum) |> pull(), df_Render$fileExt),
+        output_file = paste0("Verleiherabrechnung ",mapping |> filter(index == ii) |> select(Suisanummer) |> pull()," ",
+                             mapping |> filter(index == ii) |> select(user_Datum) |> pull(), df_Render$fileExt),
         output_format = df_Render()$Render,
         output_dir = paste0(getwd(), "/output"),
         envir = data_env
@@ -727,7 +734,7 @@ AbrechnungErstellen <- function(df_mapping__, df_Abrechnung, df_Render, toc) {
       
       # user interaction
       print(clc)
-      paste("Bericht: \nVerleiherabrechnung vom", df_mapping__ |> filter(index == ii) |> select(user_Datum) |> pull(), "erstellt") |>
+      paste("Bericht: \nVerleiherabrechnung vom", mapping |> filter(index == ii) |> select(user_Datum) |> pull(), "erstellt") |>
         writeLines()
       
       # remove file
@@ -888,7 +895,8 @@ server <- function(input, output, session) {
       ##############################################
       # Filmabrechnungen erstellen mit dateRange user input
       tryCatch({
-        df_mapping__ <- mapping(data_env$c_Date) |>
+        df_mapping__ <- mapping(data_env$df_mapping$Datum, data_env$df_mapping$Suisanummer) 
+        df_mapping__ <- df_mapping__|>
           filter(between(Datum, start_datum, end_datum))
         AbrechnungErstellen(df_mapping__, get("df_Abrechnung", envir = data_env), df_Render = df_Render(), toc = toc())
         webserver()
@@ -1018,7 +1026,7 @@ server <- function(input, output, session) {
         writeLines()
 
       # Bericht(e) Abrechnung pro Filmforführung erstellen
-      df_mapping__ <- mapping(data_env$c_Date)
+      df_mapping__ <- mapping(data_env$df_mapping$Datum, data_env$df_mapping$Suisanummer)
       AbrechnungErstellen(df_mapping__, get("df_Abrechnung", envir = data_env), df_Render = df_Render(), toc = toc())
 
       print(clc)

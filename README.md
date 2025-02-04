@@ -1,4 +1,4 @@
-Script Version: 2025 V2.00
+Script Version: 2025 V2.01
  
 ## Kinoklub 
 
@@ -128,6 +128,10 @@ Die Einkaufspreise für die Kioskverkäufe müssen gepflegt werden. Ändern sich
 #### Spezialpreise Kiosk
 
 In der Datei **Spezialpreisekiosk.xlsx** müssen die Sonderangebote (Spez-Verkaufsartikel) definiert werden.\
+
+-   Für jeden gezeigten Film muss ein Datum definiert sein.
+-   Für jeden gezeigzen Film muss eine Suisanummer definiert sein.
+
 Diese Datei wird benötigt um die Spezialpreise
 
 -   Spez 1
@@ -142,6 +146,7 @@ nach zuschlagen.
 Die Verleiherabgaben müssen in der Datei **.../Kinoklub/input/Verleiherabgaben.xlsx** definiert werden.\
 
 -   Für jeden gezeigten Film muss ein Datum definiert sein.
+-   Für jeden gezeigzen Film muss eine Suisanummer definiert sein.
 -   Mit dem "Link Datum" ist es möglich Kosten und Einnahme auf die beiden Daten zu verteilen. Die Verteilung wird prozentual auf den Ticketumsatz vorgenommen. Nun werden die Eventeinnahmen und Ausgaben sowie die Verleiherabgaben respektive die Verleiherrechnung auf beide Daten verteilt . 
 -   Im **Tab Verleiherabgaben** muss der **"minimal Abzug"** sowie **"Abzug %"** oder nur der **"Abzug fix [CHF]"** definiert werden. Beide Einträge sind nicht erlaubt.
 -   Im **Tab Kinoförderer gratis** muss für jeden Verleiher definiert werden, ob gewisse Platzkategorien (z.B.Kinoförderer Tickets) als gratis abgerechnet werden dürfen.\
@@ -176,6 +181,8 @@ Ja nach **Ausgabentyp** muss eine **Kategorie, (Buchhaltungskonto)** verwendet w
             Allgemeine Werbekosten oder Einnahmen die nicht auf eine Filmvorführung abgewälzt werden können 
     -   **Spieldatum** \
         Wird die Kategorie Event oder Verleiher ausgewählt muss hier das Spieldatum des Films eingetragen werden, damit die Ausgaben/Einnahmen für dieses Datum auf der Abrechnung pro Film ausgewiesen werden kann. Bei Ausgaben/Einnahmen die sich nicht auf ein spezifisches Datum beziehen, kann dieses Feld leer gelassen werden. WICHTIG: Das Datumsformat DD.MM.YYYY muss beibehalten werden.
+    -   **Suisanummer** \ 
+        Für jeden gezeigzen Film muss eine Suisanummer definiert sein.
     -   **Bezeichnung** \
         Umschreibung der Buchung
     -   **Datum** \
@@ -477,6 +484,7 @@ zusätzlich werden alle Fimvorschläge als Excel ausgegeben
 2024 V1.14 GUI Graphical user interface   \
 2024 V1.15 Fake Suisa Nummer von Advanced Tickets kann nun auch verarbeitet werden   \
 2024 V1.16 Introduction of envirnonments to run GUI  \
-2025 V1.17 Data type for excel files are definded by column type database   \
-
+2025 V1.17 Data type for excel files are definded by column type database 
+2025 V2.00 Fist fully tested Version
+2025 V2.01 New Feature: More than one Film per day can be handled
 

@@ -24,13 +24,14 @@
 # 2024 V1.16 Introduction of envirnonments to run GUI
 # 2025 V1.17 Data type for excel files are definded by column type database 
 # 2025 V2.00 Fist fully tested Version
+# 2025 V2.01 New Feature: More than one Film per day can be handled
 
 #############################################################################################################################################
 # Vorbereiten / Installieren
 #############################################################################################################################################
 rm(list = ls())
 source("source/functions.R")
-c_script_version <- "2025 V2.00"
+c_script_version <- "2025 V2.01"
 
 #############################################################################################################################################
 # Packages loading
@@ -38,7 +39,7 @@ c_script_version <- "2025 V2.00"
 
 packages <- c("rmarkdown", "rebus", "openxlsx", "lubridate", "DT", "magick", "webshot", "xml2", "tidyverse")
 invisible(lapply(packages, library, character.only = TRUE))
-remove(packages, installed_packages)
+remove(packages)
 
 #############################################################################################################################################
 # Benutzereinstellungen 
@@ -180,3 +181,4 @@ list.files(pattern = "temp", recursive = TRUE)|>
   file.remove()
 
 
+writeLines("script run done: user_settings.R")
