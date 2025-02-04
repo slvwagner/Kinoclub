@@ -142,6 +142,10 @@ Die Einkaufspreise für die Kioskverkäufe müssen gepflegt werden. Ändern sich
 #### Spezialpreise Kiosk
 
 In der Datei **Spezialpreisekiosk.xlsx** müssen die Sonderangebote (Spez-Verkaufsartikel) definiert werden.\
+
+-   Für jeden gezeigten Film muss ein Datum definiert sein.
+-   Für jeden gezeigzen Film muss eine Suisanummer definiert sein.
+
 Diese Datei wird benötigt um die Spezialpreise
 
 -   Spez 1
