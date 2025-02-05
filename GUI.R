@@ -1123,7 +1123,10 @@ server <- function(input, output, session) {
       paste0("Die Datei \"",file_name, "\" wurde eingelesen und im Verzeichniss \n.../Kinoklub", 
              save_path, " abgespeichert")|>
         ausgabe_text()
-      return(list(type = "xlsx", data = col_env$get_excel_data(file_path)[[1]]))
+      
+      # Read all sheet names
+      sheet_names <- openxlsx::getSheetNames(save_path)
+      return(list(type = "xlsx", path = save_path, sheets = sheet_names))
 
     } else if (file_ext == "txt") {
       # Define save path
@@ -1151,13 +1154,6 @@ server <- function(input, output, session) {
     }
   })
   
-  # xlsx file rendering
-  output$table_output <- shiny::renderTable({
-    shiny::req(file_data()$type == "xlsx")
-    file_data()$data
-
-  })
-  
   # txt file rendering
   output$text_output <- shiny::renderPrint({
     shiny::req(file_data()$type %in% c("txt", "csv"))
@@ -1165,28 +1161,22 @@ server <- function(input, output, session) {
       writeLines()
   })
   
-  # Dynamically update the output panel content
-  output$dynamicContent_output_panel <- shiny::renderUI({
-    shiny::tagList(
-      if (file_exists()) {
-        shiny::tags$h4("Webserver:")
-      },
-      if (file_exists()) {
-        shiny::tags$a(href = "reports/index.html",
-                      "Site-map",
-                      target = "_blank",
-                      style = "font-size: 24px;")
-      },
-      shiny::tags$h4("Filme in der gewählten Periode"),
-      shiny::tableOutput("dateTable"),
-      shiny::tags$h4("System Rückmeldungen"),
-      shiny::verbatimTextOutput("ausgabe"),
-      shiny::tags$hr(),
-      shiny::tags$h4("Inhalt der hochgeladen Datei:"),  
-      shiny::tableOutput("table_output"),
-      shiny::verbatimTextOutput("text_output")
-    )
-    
+  # Render dynamic sheet selection UI
+  output$sheet_selector <- shiny::renderUI({
+    shiny::req(file_data())
+    shiny::selectInput("selected_sheet", "Excel Blatt auswählen:", choices = file_data()$sheets)
+  })
+  
+  # Read selected sheet data
+  selected_data <- shiny::reactive({
+    shiny::req(file_data(), input$selected_sheet)
+    col_env$get_excel_data(file_data()$path)[[input$selected_sheet]]
+  })
+  
+  # Render selected sheet contents
+  output$table_output <- shiny::renderTable({
+    shiny::req(selected_data())
+    selected_data()
   })
 
   # Dynamically update the input panel content
@@ -1198,6 +1188,8 @@ server <- function(input, output, session) {
                        accept = c(".xlsx", ".txt"), 
                        multiple = FALSE, 
                        placeholder = "Drag & drop or browse a file"),
+      
+      shiny::uiOutput("sheet_selector"),  # Dynamic sheet selector
       
       # Button Daten Einlesen
       actionButton("DatenEinlesen", "Daten nochmals Einlesen"),
@@ -1296,6 +1288,30 @@ server <- function(input, output, session) {
         trigger = "hover"
       ),
     )
+  })
+  
+  # Dynamically update the output panel content
+  output$dynamicContent_output_panel <- shiny::renderUI({
+    shiny::tagList(
+      if (file_exists()) {
+        shiny::tags$h4("Webserver:")
+      },
+      if (file_exists()) {
+        shiny::tags$a(href = "reports/index.html",
+                      "Site-map",
+                      target = "_blank",
+                      style = "font-size: 24px;")
+      },
+      shiny::tags$h4("Filme in der gewählten Periode"),
+      shiny::tableOutput("dateTable"),
+      shiny::tags$h4("System Rückmeldungen"),
+      shiny::verbatimTextOutput("ausgabe"),
+      shiny::tags$hr(),
+      shiny::tags$h4("Inhalt der hochgeladen Datei:"),  
+      shiny::tableOutput("table_output"),
+      shiny::verbatimTextOutput("text_output")
+    )
+    
   })
 }
 
