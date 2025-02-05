@@ -725,9 +725,7 @@ my_template <-
   )
 
 
-
 # Errorhandling open excel files
-
 c_openfiles <- list.files(paste0("Input/"),"~")
 if(length(c_openfiles) > 0) stop(paste0("\nFile: ", c_openfiles ," ist geöffnet und muss geschlossen werden!"))
 remove(c_openfiles)
