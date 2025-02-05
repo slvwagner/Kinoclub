@@ -263,7 +263,7 @@ KioskEinnahmen <- df_Kiosk|>
   filter(Verkaufsartikel != "Keine Kioskverkäufe")
 
 KioskEinnahmen|>
-  knitr::kable()
+  knitr::kable(digits = 2)
 ```
 
 ```{r}
@@ -326,16 +326,16 @@ Die Kioskkasse wird auch für Barauszahlung von stornierten Tickets genutzt.
 
 ```{r}
 df_temp <- df_manko_uerberschuss|>
-  left_join(df_show, by = "Datum"
+  left_join(df_show, by = c("Datum", "Suisanummer" = "Suisa Nummer")
             ) |>
   arrange(Datum)|>
-  select(Datum, Filmtitel, `Überschuss / Manko`) |>
+  select(Datum, Suisanummer, Filmtitel, `Überschuss / Manko`) |>
   rename(`Überschuss / Manko [CHF]` = `Überschuss / Manko`) |>
   arrange((Datum))|>
   mutate(Datum_display = paste0(day(Datum),".",month(Datum),".",year(Datum)))
 
 df_temp <- df_temp|>
-  select(Datum, Datum_display, Filmtitel, `Überschuss / Manko [CHF]`)
+  select(Datum, Datum_display, Suisanummer, Filmtitel, `Überschuss / Manko [CHF]`)
 ```
 
 ```{r}
@@ -400,7 +400,8 @@ df_temp <- atelierkino_abo|>
     )|>
   mutate(url = paste0('<a href="', url, '" target="_blank">', url, '</a>'),
          `Anzahl Tickets` = 6-count_use,
-         `Noch nicht eingelöster Betrag [CHF]` = (6 - count_use)*13)
+         `Noch nicht eingelöster Betrag [CHF]` = (6 - count_use)*13)|>
+  select(-first_use)
 ```
 
 ```{r}
@@ -434,7 +435,7 @@ df_temp <- atelierkino_gutschein|>
        )|>
   mutate(url = paste0('<a href="', url, '" target="_blank">', url, '</a>'))|>
   rename(`Betrag [CHF]` = amount)|>
-  select(-first_use, -last_use, -count_use)
+  select(-first_use, -count_use)
 ```
 
 ```{r}
@@ -456,8 +457,8 @@ df_gutschein|>
 
 ```{r}
 df_temp <- atelierkino_foerderer|>
-  filter(expiration > as.Date(paste0(Abrechungsjahr,"-12-31")),
-         count_use < 2
+  filter(expiration > Sys.Date(), # Anzeigen wenn gültig (Datum)
+         count_use < 2            # Aneiten wenn nicht bereits gebraucht
          )|>
   mutate(id = paste0("https://www.advance-ticket.ch/badge/", id))|>
   rename(url = id)|>
@@ -467,7 +468,7 @@ df_temp <- atelierkino_foerderer|>
        expiration = paste0(day(expiration),".", month(expiration), ".", year(expiration))
        )|>
     mutate(url = paste0('<a href="', url, '" target="_blank">', url, '</a>'))|>
-  select(-first_use, -last_use)
+  select(-first_use)
 ```
 
 
