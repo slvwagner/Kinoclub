@@ -1,4 +1,3 @@
-
 # read and caluclate all input data
 library(tidyverse)
 library(rebus)
@@ -14,10 +13,7 @@ col_env <- new.env()
 load("col_env.RData", envir = col_env)
 
 
-
 # Functions
-###################################################################################################################################
-
 # spez. Round for Swiss currency "CHF"
 round5Rappen <- function(zahl) {
   result <- lapply(zahl, function(zahl){
