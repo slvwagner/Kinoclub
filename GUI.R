@@ -1199,7 +1199,7 @@ server <- function(input, output, session) {
       shiny::uiOutput("sheet_selector"),  # Dynamic sheet selector
       
       # Button Daten Einlesen
-      actionButton("DatenEinlesen", "Daten nochmals Einlesen"),
+      actionButton("DatenEinlesen", "Neue, Hochgeladenen Dateien Einlesen"),
       
       shiny::tags$hr(),
       # Add tooltips using shinyBS
