@@ -1,11 +1,9 @@
-#############################################################################################################################################
+
 # Graphical user interface für den Kinoklub
 # Diese App kann mit Run App in Rstudio gestartet werden.
-#############################################################################################################################################
 
-#############################################################################################################################################
+
 # Vorbereiten / Installieren
-#############################################################################################################################################
 source("user_settings.R")
 rm(list = ls())
 
@@ -21,15 +19,13 @@ packages <- c("rmarkdown", "rebus", "openxlsx", "lubridate", "DT", "magick", "we
 invisible(lapply(packages, library, character.only = TRUE))
 remove(packages, installed_packages)
 
-#############################################################################################################################################
+
 # Load excel column definition database
-#############################################################################################################################################
 col_env <- new.env()
 load("col_env.RData", envir = col_env)
 
-#############################################################################################################################################
+
 # Benutzereinstellungen importieren aus "user_settings.R"
-#############################################################################################################################################
 # Import c_script_version and Abrechnungsjahr
 c_raw <- readLines("user_settings.R")
 c_script_version <- c_raw[c_raw |> str_detect("c_script_version <-")] |>
@@ -62,14 +58,11 @@ df_P_kat_verechnen <- tibble(
   Verkaufspreis = c(13, 13)
 )
 
-#############################################################################################################################################
+
 # Functions
-#############################################################################################################################################
 source("source/functions.R")
 
-###############################################
 # Index pro Suisa-Nummer und Datum erstellen
-###############################################
 mapping <- function(c_Datum, c_suisa) {
   df_mapping <- tibble(Datum = c_Datum,
                        Suisanummer = c_suisa) |>
@@ -100,9 +93,7 @@ mapping <- function(c_Datum, c_suisa) {
   return(df_mapping)
 }
 
-###############################################
 # Statistik-Bericht erstellen
-###############################################
 StatistikErstellen <- function(toc, df_Render) {
   # Einlesen
   c_raw <- readLines("source/Statistik.Rmd")
@@ -126,9 +117,8 @@ StatistikErstellen <- function(toc, df_Render) {
     writeLines()
 }
 
-###############################################
+
 # Jahresrechnung-Bericht erstellen
-###############################################
 JahresrechnungErstellen <- function(toc, df_Render) {
   # Einlesen
   c_raw <- readLines("source/Jahresrechnung.Rmd")
@@ -152,9 +142,8 @@ JahresrechnungErstellen <- function(toc, df_Render) {
     writeLines()
 }
 
-#######################################################
+
 # function to edit Site-Map: insert pictures
-#######################################################
 instert_picts <- function(raw_rmd, output_dir, index, fileNames, url) {
   # create link to pict and link to file
   if (length(raw_rmd) == index) {
@@ -194,9 +183,8 @@ instert_picts <- function(raw_rmd, output_dir, index, fileNames, url) {
   return(raw_rmd)
 }
 
-#######################################################
+
 # Create Site-Map and webserver data
-#######################################################
 webserver <- function() {
   # Alle Bilder löschen die nicht als html vorhanden sind
   if(dir.exists("output/pict")){
@@ -373,10 +361,8 @@ webserver <- function() {
     mutate(Datum = paste0(day(Datum), ".", month(Datum), ".", year(Datum)))
   m_Film
   
-  #############################################################################################################################################
+
   # create site map
-  #############################################################################################################################################
-  
   if(TRUE){
     # Was für Berichte typen sind vorhanden
     c_typ_Berichte <- m_Film$FileName|>
@@ -487,9 +473,8 @@ webserver <- function() {
   }
   
   
-  #############################################################################################################################################
+
   # Data for Webserver
-  #############################################################################################################################################
   
   #copy data from .../output to .../output/webserver
   c_path <- "output/webserver"
@@ -595,9 +580,9 @@ webserver <- function() {
     
   }
   
-  #############################################################################################################################################
+
   # edit html
-  #############################################################################################################################################
+
   # Package names
   packages <- c("xml2")
   # Install packages not yet installed
@@ -644,9 +629,8 @@ webserver <- function() {
   
 }
 
-#######################################################
+
 # Erstellen der Abrechnung pro Filmvorführung
-#######################################################
 AbrechnungErstellen <- function(mapping, df_Abrechnung, df_Render, toc) {
   for (ii in mapping$index) {
     # Template der Abrechnung einlesen
@@ -705,9 +689,8 @@ AbrechnungErstellen <- function(mapping, df_Abrechnung, df_Render, toc) {
     paste("Bericht: \nFilmabrechnung vom", mapping |> filter(index == ii) |> select(user_Datum) |> pull(), "erstellt") |>
       writeLines()
     
-    ####################
+
     # Muss eine Verleiherrechnung erstellt werden?
-    ####################
     if (mapping |> filter(index == ii) |> select(CreateReportVerleiherabrechnung) |> pull()) {
       # Einlesen template der Verleiherabrechnung
       c_raw <- readLines("source/Verleiherabrechnung.Rmd")
@@ -744,9 +727,8 @@ AbrechnungErstellen <- function(mapping, df_Abrechnung, df_Render, toc) {
 }
 
 
-#############################################################################################################################################
+
 # Daten einlesen
-#############################################################################################################################################
 # Envirnoment for Data read in
 calculate_warnings <- ""
 ausgabe_text <- "Daten wurden eingelesen."
@@ -771,9 +753,9 @@ tryCatch({
 })
 
 
-#############################################################################################################################################
+
 # Shiny reactive variables
-#############################################################################################################################################
+
 
 # Sollen Inhaltsverzeichnisse erstellt werden
 toc <- shiny::reactiveVal(TRUE)
@@ -817,9 +799,8 @@ if(!dir.exists("output/webserver")) {
 shiny::addResourcePath("reports", "output/webserver")
 
 
-#############################################################################################################################################
+
 # UI-Definition
-#############################################################################################################################################
 ui <- shiny::fluidPage(
   shiny::tags$head(
     shiny::tags$link(rel = "stylesheet", type = "text/css", href = "custom_styles/Kinoklub_dark_gui.css")
@@ -829,21 +810,20 @@ ui <- shiny::fluidPage(
   shiny::sidebarLayout(
     # Render the side panel
     shiny::sidebarPanel(
-      shiny::uiOutput("dynamicContent_side_panel")
+      shiny::uiOutput("dynamicContent_input_panel")
     ),
     # Render the main panel
     shiny::mainPanel(
-      shiny::uiOutput("dynamicContent_main_panel")
+      shiny::uiOutput("dynamicContent_output_panel")
     )
   )
 )
 
 
-#############################################################################################################################################
+
 # Server-Logik
-#############################################################################################################################################
 server <- function(input, output, session) {
-  
+
   # Überwachung Button Daten Einlesen
   shiny::observeEvent(input$DatenEinlesen, {
     print(clc)
@@ -892,7 +872,6 @@ server <- function(input, output, session) {
         paste0("\n", getwd(), "/output")
       ))
       
-      ##############################################
       # Filmabrechnungen erstellen mit dateRange user input
       tryCatch({
         df_mapping__ <- mapping(data_env$df_mapping$Datum, data_env$df_mapping$Suisanummer) 
@@ -914,9 +893,7 @@ server <- function(input, output, session) {
     file_exists(file.exists("output/webserver/index.html"))
   })
 
-  ######################################
   # Überwachung Button Statistik
-  ######################################
   shiny::observeEvent(input$Statistik, {
     print(clc)
     # User feedback
@@ -937,9 +914,7 @@ server <- function(input, output, session) {
     file_exists(file.exists("output/webserver/index.html"))
   })
 
-  ######################################
   # Überwachung Button Jahresrechnung
-  ######################################
   shiny::observeEvent(input$Jahresrechnung, {
     print(clc)
     # User feedback
@@ -961,9 +936,7 @@ server <- function(input, output, session) {
     file_exists(file.exists("output/webserver/index.html"))
   })
 
-  ######################################
   # Überwachung Button Wordpress
-  ######################################
   shiny::observeEvent(input$wordpress, {
     print(clc)
 
@@ -986,9 +959,7 @@ server <- function(input, output, session) {
     file_exists(file.exists("output/webserver/index.html"))
   })
 
-  ######################################
   # Überwachung Button Erstelle Abrechnung (source("user_settings.R"))
-  ######################################
   shiny::observeEvent(input$ErstelleAbrechnung, {
     print(clc)
     # User interaction
@@ -1045,9 +1016,7 @@ server <- function(input, output, session) {
     file_exists(file.exists("output/webserver/index.html"))
   })
 
-  ######################################
   # Überwachung Inhaltsverzeichniss
-  ######################################
   shiny::observeEvent(input$Inhaltsverzeichnis, {
     print(clc)
     toc(input$Inhaltsverzeichnis)
@@ -1055,9 +1024,7 @@ server <- function(input, output, session) {
     file_exists(file.exists("output/webserver/index.html"))
   })
 
-  ######################################
   # Überwachung Ausgabeformat
-  ######################################
   shiny::observeEvent(input$render_option, {
     print(clc)
 
@@ -1097,16 +1064,7 @@ server <- function(input, output, session) {
     file_exists(file.exists("output/webserver/index.html"))
   })
 
-  ######################################
-  # Systemrückmeldungen aktualisieren
-  ######################################
-  output$ausgabe <- renderText({
-    ausgabe_text()
-  })
-
-  ######################################
   # Download Handler Werbung
-  ######################################
   output$downloadExcel <- downloadHandler(
     filename = function() {
       "Werbung.xlsx"
@@ -1116,9 +1074,7 @@ server <- function(input, output, session) {
     }
   )
 
-  ######################################
   # Download Handler Wordpress
-  ######################################
   output$downloadWordPress <- downloadHandler(
     filename = function() {
       "Filmvorschläge.xlsx"
@@ -1133,10 +1089,13 @@ server <- function(input, output, session) {
       }
     }
   )
-
-  ######################################
+  
+  # Systemrückmeldungen aktualisieren
+  output$ausgabe <- renderText({
+    ausgabe_text()
+  })
+  
   # Update table with all the dates in the selected range
-  ######################################
   output$dateTable <- shiny::renderTable({
     if (exists("data_env")){
       start_datum <- input$dateRange |> min()
@@ -1150,40 +1109,72 @@ server <- function(input, output, session) {
         select(Datum, Zeit, Filmtitel, `Suisa Nummer`)
     }
   })
+  
+  # file upload handler
+  file_data <- shiny::reactive({
+    shiny::req(input$file)
+    file_path <- input$file$datapath
+    file_ext <- tools::file_ext(input$file$name)  # Get file extension
+    
+    if (file_ext == "xlsx") {
+      return(list(type = "xlsx", data = openxlsx::read.xlsx(file_path, sheet = 1)))
+    } else if (file_ext == "txt") {
+      return(list(type = "txt", data = readLines(file_path))) 
+    } else {
+      return(NULL)
+    }
+  })
+  
+  # xlsx file rendering
+  output$table_output <- shiny::renderTable({
+    shiny::req(file_data()$type == "xlsx")
+    file_data()$data
 
-  ######################################
-  # Dynamically update the main panel content
-  ######################################
-  output$dynamicContent_main_panel <- shiny::renderUI({
-    # Example: Change content based on the action button clicks
+  })
+  
+  # txt file rendering
+  output$text_output <- shiny::renderPrint({
+    shiny::req(file_data()$type == "txt")
+    file_data()$data
+
+  })
+  
+  # Dynamically update the output panel content
+  output$dynamicContent_output_panel <- shiny::renderUI({
     shiny::tagList(
       if (file_exists()) {
         shiny::tags$h4("Webserver:")
       },
       if (file_exists()) {
-        shiny::tags$h4("Webserver:")
-        shiny::tags$a(
-          href = "reports/index.html",
-          "Site-map",
-          target = "_blank",
-          style = "font-size: 24px;"
-        )
+        shiny::tags$a(href = "reports/index.html",
+                      "Site-map",
+                      target = "_blank",
+                      style = "font-size: 24px;")
       },
       shiny::tags$h4("Filme in der gewählten Periode"),
       shiny::tableOutput("dateTable"),
       shiny::tags$h4("System Rückmeldungen"),
-      shiny::verbatimTextOutput("ausgabe")
+      shiny::verbatimTextOutput("ausgabe"),
+      shiny::tags$hr(),
+      shiny::tags$h4("Inhalt der hochgeladen Datei:"),  
+      shiny::tableOutput("table_output"),
+      shiny::verbatimTextOutput("text_output")
     )
+    
   })
 
-  ######################################
-  # Dynamically update the side panel content
-  ######################################
-  output$dynamicContent_side_panel <- shiny::renderUI({
+  # Dynamically update the input panel content
+  output$dynamicContent_input_panel <- shiny::renderUI({
     shiny::tagList(
-      #############################
+      
+      # File input handler
+      shiny::fileInput("file", "Datei hochladen:", 
+                       accept = c(".xlsx", ".txt"), 
+                       multiple = FALSE, 
+                       placeholder = "Drag & drop or browse a file"),
+      shiny::tags$hr(),
+      
       # Button Daten Einlesen
-      #############################
       actionButton("DatenEinlesen", "Daten nochmals Einlesen"),
       # Add tooltips using shinyBS
       shinyBS::bsTooltip(
@@ -1192,11 +1183,8 @@ server <- function(input, output, session) {
         placement = "right",
         trigger = "hover"
       ),
-      shiny::tags$hr(),
       
-      #############################
       # Datumsbereich auswählen für die Abrechnung Filmvorführungen
-      #############################
       shiny::dateRangeInput(
         inputId = "dateRange",
         label = "Wählen Sie einen Datumsbereich aus:",
@@ -1208,9 +1196,7 @@ server <- function(input, output, session) {
         separator = " bis " # Separator for the two dates in German
       ),
 
-      #############################
       # Button zum Ausführen von Code Filmabrechnunge(n) erstellen
-      #############################
       shiny::actionButton("Abrechnung", "Filmabrechnunge(n) erstellen"),
       # Add tooltips using shinyBS
       shinyBS::bsTooltip(
@@ -1221,39 +1207,26 @@ server <- function(input, output, session) {
       ),
       shiny::tags$hr(),
 
-      #############################
+
       # Button zum Ausführen von Code Statistik erstellen
-      #############################
       shiny::actionButton("Statistik", "Statistik erstellen"),
 
-      #############################
       # Button zum Ausführen von Code Jahresrechnung erstellen
-      #############################
       shiny::actionButton("Jahresrechnung", "Jahresrechnung erstellen"),
       shiny::tags$hr(),
 
-      # #############################
-      # # Button zum Ausführen von Code Update Site-Map
-      # #############################
-      # shiny::actionButton("webserver", "Update Site-Map"),
-      # shiny::tags$hr(),
 
-      #############################
       # Button zum Download der Werbung
-      #############################
       shiny::downloadButton("downloadExcel", "Download Werbung"),
       shiny::tags$hr(),
 
-      #############################
       # Button zum Ausführen von Code Filmumfrage Wordpress auswerten
-      #############################
       shiny::actionButton("wordpress", "Filmumfrage Wordpress auswerten"),
       shiny::downloadButton("downloadWordPress", "Download Filmvorschläge"),
       shiny::tags$hr(),
 
-      #############################
+
       # Button zum Ausführen von Code Alles erstellen mit Webserver
-      #############################
       shiny::actionButton("ErstelleAbrechnung", "Alles erstellen mit Webserver"),
       # Add tooltips using shinyBS
       shinyBS::bsTooltip(
@@ -1264,9 +1237,8 @@ server <- function(input, output, session) {
       ),
       shiny::tags$h5("**********************"),
 
-      #############################
+
       # Inhaltsverzeichnis
-      #############################
       shiny::selectInput(
         inputId = "Inhaltsverzeichnis",
         label = "Inhaltsverzeichnis erstellen?",
@@ -1277,9 +1249,8 @@ server <- function(input, output, session) {
         selected = TRUE # Default value
       ),
 
-      #############################
+
       # Ausgabeformat
-      #############################
       shiny::selectInput(
         inputId = "render_option",
         label = "Ausgabeformat wählen:",
