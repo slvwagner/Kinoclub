@@ -1233,14 +1233,12 @@ server <- function(input, output, session) {
       ),
       shiny::tags$hr(),
 
-
       # Button zum Ausführen von Code Statistik erstellen
       shiny::actionButton("Statistik", "Statistik erstellen"),
 
       # Button zum Ausführen von Code Jahresrechnung erstellen
       shiny::actionButton("Jahresrechnung", "Jahresrechnung erstellen"),
       shiny::tags$hr(),
-
 
       # Button zum Download der Werbung
       shiny::downloadButton("downloadExcel", "Download Werbung"),
@@ -1263,7 +1261,6 @@ server <- function(input, output, session) {
       ),
       shiny::tags$h5("**********************"),
 
-
       # Inhaltsverzeichnis
       shiny::selectInput(
         inputId = "Inhaltsverzeichnis",
@@ -1274,7 +1271,6 @@ server <- function(input, output, session) {
         ),
         selected = TRUE # Default value
       ),
-
 
       # Ausgabeformat
       shiny::selectInput(
