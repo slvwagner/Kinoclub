@@ -120,6 +120,8 @@ Abo typ wählen: **atelierkino/abo**  und den Button suchen wählen. \
 Nun können die Daten exportiert werden. Bitte speichern unter .../Kinoklub/Input/advance tickets/**atelierkino_gutschein.txt** \
 ![Shows](doc/picts/atelierkino_gutschein.png)
 
+### Filmvorschläge aus WordPress
+Mit dem Backend von "Wordpress" können die Erfassten Filvorschläge von der Kinoklub-Hompage <https://kinoklub.ch/kkTeam/> exportiert werden. Die "csv" Datei kann nun über das GUI hochgeladen werden und wird automatisch im Verzeichniss ".../Kinoklub/Input/WordPress" abgespeichert. 
 
 ### Excel Dateien
 
