@@ -1114,11 +1114,29 @@ server <- function(input, output, session) {
   file_data <- shiny::reactive({
     shiny::req(input$file)
     file_path <- input$file$datapath
+    file_name <- input$file$name                  # Get file name
     file_ext <- tools::file_ext(input$file$name)  # Get file extension
     
     if (file_ext == "xlsx") {
+      # Define save path
+      save_path <- paste0("Input/", file_name)
+      # Save the file to the specified directory
+      file.copy(from = file_path, to = save_path, overwrite = TRUE)
+      
+      paste0("Die Datei \"",file_name, "\" wurde eingelesen und im Verzeichniss \n.../Kinoklub", 
+             save_path, " abgespeichert")|>
+        ausgabe_text()
+      
       return(list(type = "xlsx", data = openxlsx::read.xlsx(file_path, sheet = 1)))
     } else if (file_ext == "txt") {
+      # Define save path
+      save_path <- paste0("Input/advance tickets/", file_name)
+      # Save the file to the specified directory
+      file.copy(from = file_path, to = save_path, overwrite = TRUE)
+      
+      paste0("Die Datei \"",file_name, "\" wurde eingelesen und im Verzeichniss \n.../Kinoklub", 
+             save_path, " abgespeichert")|>
+        ausgabe_text()
       return(list(type = "txt", data = readLines(file_path))) 
     } else {
       return(NULL)
