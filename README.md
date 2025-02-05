@@ -68,6 +68,13 @@ Git Passwort gibt es seit 2021 nicht mehr. Um sich bei Git anzumelden, muss man 
 ![](doc/picts/PAT.png)
 
 ## Datensätze
+### Upload von neuen Dateine
+Neue Dateien können mittels "Drag & Drop" oder Auswahl einer Datei hochgeladen werden. \
+Dateien werden automatisch im korrekten Verzeichniss anhand der Dateierweiterung gespeichert. \
+
+-   "xlsx" Dateien werden im Verzeichniss ".../Kinoklub/Input/" gespeichert.
+-   "txt" Dateien werden im Verzeichniss ".../Kinoklub/Input/advance tickets/" gespeichert.
+-   "csv" Dateien werden im Verzeichniss ".../Kinoklub/Input/Wordpress" gespeichert.
 
 ### Advance-Tickets 
 
@@ -485,7 +492,9 @@ zusätzlich werden alle Fimvorschläge als Excel ausgegeben
 2024 V1.14 GUI Graphical user interface   \
 2024 V1.15 Fake Suisa Nummer von Advanced Tickets kann nun auch verarbeitet werden   \
 2024 V1.16 Introduction of envirnonments to run GUI  \
-2025 V1.17 Data type for excel files are definded by column type database \
-2025 V2.00 Fist fully tested Version \
-2025 V2.01 New Feature: More than one Film per day can be handled \
-2025 V2.02 New Feature: Files can be upload via GUI \
+2025 V1.17 Data type for excel files are definded by column type database   \
+2025 V2.00 Fist fully tested Version  \
+2025 V2.01 New Feature: More than one Film per day can be handled  \
+2025 V2.02 New Feature: Files can be uploade via GUI  \
+
+
