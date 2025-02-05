@@ -1122,7 +1122,7 @@ server <- function(input, output, session) {
       save_path <- paste0("Input/", file_name)
       # Save the file to the specified directory
       file.copy(from = file_path, to = save_path, overwrite = TRUE)
-      
+      # user interaction
       paste0("Die Datei \"",file_name, "\" wurde eingelesen und im Verzeichniss \n.../Kinoklub", 
              save_path, " abgespeichert")|>
         ausgabe_text()
@@ -1133,7 +1133,7 @@ server <- function(input, output, session) {
       save_path <- paste0("Input/advance tickets/", file_name)
       # Save the file to the specified directory
       file.copy(from = file_path, to = save_path, overwrite = TRUE)
-      
+      # user interaction
       paste0("Die Datei \"",file_name, "\" wurde eingelesen und im Verzeichniss \n.../Kinoklub", 
              save_path, " abgespeichert")|>
         ausgabe_text()
