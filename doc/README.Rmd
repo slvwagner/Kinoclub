@@ -96,17 +96,17 @@ Die Datensätze können von <https://www.advance-ticket.ch/admin> heruntergelade
 
 #### Eintritte
 **Eintritte Suisanummer Datum.txt**  \
-Copy paste von html für jede Vorführung und bitte speichern unter "input/advance tickets/Eintritt xxxx.xxx xx.xx.xx.txt" Es muss die Kalenderwoche sowie der Film ausgewählt werden.\
+Copy paste von html für jede Vorführung und Suisanummer:  Bitte speichern unter "input/advance tickets/Eintritt xxxx.xxx xx.xx.xx.txt" oder über GUI hochladen. Es muss die Kalenderwoche sowie der Film ausgewählt werden.\
 ![Eintritt](doc/picts/eintritt.png) \
-Alles mit "ctrl a" markieren und kopieren "crtl c" und entsprechend abspeichern("input/advance tickets/Eintritt xxxx.xxx xx.xx.xx.txt").
+Alles mit "ctrl a" markieren und kopieren "crtl c" und entsprechend abspeichern("input/advance tickets/Eintritt xxxx.xxx xx.xx.xx.txt") oder über GUI hochladen.
 
 #### Kiosk
 **Kiosk Suisanummer Datum.txt**  \
-Copy paste von html für jede Vorführung und Speichern unter "input/advance tickets/Kiosk xxxx.xxx xx.xx.xx.txt".\
+Copy paste von html für jede Vorführung und Suisanummer: Bitte speichern unter "input/advance tickets/Kiosk xxxx.xxx xx.xx.xx.txt". oder über GUI hochladen\
 Im Menu auf "DecompteCaisse" <https://www.advance-ticket.ch/decomptecaisse?lang=de> navigieren.\
 Spalte 1 Das Datum muss gewählt werden, Spalte 2 "reinach", Splate 3 "Atelierkino Kasse" und Spalte 4 "..." eingestellt werden.\
 ![Kiosk](doc/picts/Kiosk.png) \
-Alles mit "ctrl a" markieren und kopieren "crtl c" und entsprechend abspeichern("input/advance tickets/Kiosk xx.xx.xx.txt").
+Alles mit "ctrl a" markieren und kopieren "crtl c" und entsprechend abspeichern("input/advance tickets/Kiosk xx.xx.xx.txt") oder über GUI hochladen.
 
 #### Shows
 **Shows.txt**  \
