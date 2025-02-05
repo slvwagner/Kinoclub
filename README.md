@@ -10,7 +10,8 @@ source("GUI.R")
 ```
 
 \
-Bei Fehlern kann ein "Issue" in Github erfasst werden.\
+Bei Fehlern kann ein "Issue" in Github erfasst werden. \
+<https://github.com/slvwagner/Kinoklub/issues>
 \
 Die Datei "README.md" und die Dokumentation wird automatisch erstellt.
 
