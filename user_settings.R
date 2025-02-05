@@ -25,13 +25,14 @@
 # 2025 V1.17 Data type for excel files are definded by column type database 
 # 2025 V2.00 Fist fully tested Version
 # 2025 V2.01 New Feature: More than one Film per day can be handled
+# 2025 V2.02 New Feature: Files can be uploade via GUI
 
 #############################################################################################################################################
 # Vorbereiten / Installieren
 #############################################################################################################################################
 rm(list = ls())
 source("source/functions.R")
-c_script_version <- "2025 V2.01"
+c_script_version <- "2025 V2.02"
 
 #############################################################################################################################################
 # Packages loading
@@ -150,7 +151,7 @@ if(c_raw[c_index+1] != c_script_version){
   
   ######################################
   # Scrip Versionshistorie ermitteln  
-  c_raw <- readLines("Erstelle Abrechnung.R")
+  c_raw <- readLines("user_settings.R")
   p <- "#"%R%SPC%R%one_or_more(DGT)%R%SPC%R%"V"%R%one_or_more(DGT)%R%DOT%R%one_or_more(DGT)
   c_Version_hist <- c_raw[str_detect(c_raw, p)]|>
     str_remove("# ")|>
