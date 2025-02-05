@@ -1628,7 +1628,3 @@ remove(c_file,
 
 # user interaction
 writeLines("Berechnungen erfolgt")
-
-
-
-
