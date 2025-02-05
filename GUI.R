@@ -1198,10 +1198,11 @@ server <- function(input, output, session) {
                        accept = c(".xlsx", ".txt"), 
                        multiple = FALSE, 
                        placeholder = "Drag & drop or browse a file"),
-      shiny::tags$hr(),
       
       # Button Daten Einlesen
       actionButton("DatenEinlesen", "Daten nochmals Einlesen"),
+      
+      shiny::tags$hr(),
       # Add tooltips using shinyBS
       shinyBS::bsTooltip(
         id = "DatenEinlesen",
