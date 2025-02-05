@@ -270,13 +270,13 @@ Es wird eine Filmabrechnung pro Event (Datum) erstellt.
             Der Suisaabzug wird vom Umsatz berechnet. \
             In der Datei **".../Kinoklub/input/Verleiherabgaben.xlsx"** sind **Abzug %**, **Minimal Abzug** oder **Abzug fix [CHF]** definiert. \
             
-                1.    Fall: \
+              -   Fall 1: \
                       ("Netto3" x "Abzug") > "Minimal Abzug" \
                       Verleiherabzug: "Netto3" x "Abzug %"
-                2.    Fall: \
+              -   Fall 2: \
                       ("Netto3" x "Abzug %") < "Minimal Abzug" \
                       Verleiherabzug: Minimal Abzug
-                3.    Fall: \
+              -   Fall 3: \
                       "Abzug fix [CHF]" \
                       Verleiherabzug: "Abzug fix [CHF]"
                       
