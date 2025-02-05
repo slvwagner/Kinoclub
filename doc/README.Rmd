@@ -285,22 +285,22 @@ Es wird eine Filmabrechnung pro Event (Datum) erstellt.
             In der Datei **".../Kinoklub/input/Verleiherabgaben.xlsx"** sind **Abzug %**, **Minimal Abzug** oder **Abzug fix [CHF]** definiert. \
             
               -   Fall 1: \
-                      ("Netto3" x "Abzug") > "Minimal Abzug" \
-                      Verleiherabzug: "Netto3" x "Abzug %"
+                      $(N_{etto3} \cdot \frac {A_{bzug}}{100}) > M_{inimalAbzug}$ \
+                      Verleiherabzug:  $N_{etto3}\cdot \frac{A_{bzug}}{100}$
               -   Fall 2: \
-                      ("Netto3" x "Abzug %") < "Minimal Abzug" \
-                      Verleiherabzug: Minimal Abzug
+                      $(N_{etto3} \cdot \frac {A_{bzug}}{100}) < M_{inimalAbzug}$ \
+                      Verleiherabzug: $M_{inimalAbzug}$
               -   Fall 3: \
                       "Abzug fix [CHF]" \
-                      Verleiherabzug: "Abzug fix [CHF]"
+                      Verleiherabzug: $A_{bzugFix}$
                       
         -   Reklamematerial und Porto \
             Das **Reklamematerial und Porto** werden aus der Differenz der **Verleiherrechnung** und den **Prozentualle Abgaben** berechnet.
         -   MWST auf Verleiherrechnung \
-            1.  Fall: Vereiherrechnung vorhanden \
-                MWST wird mit der Verleiherrechnung berechnet.
-            2.  Fall: Vereiherrechnung nicht vorhanden \
-                MWST wird aus dem Umsatz berechnet.
+            -   Fall 1: \
+                Vereiherrechnung vorhanden: MWST wird mit der Verleiherrechnung berechnet.
+            -   Fall 2: \
+                Vereiherrechnung nicht vorhanden: MWST wird aus dem Umsatz berechnet.
     -   Gewinn / Verlust aus Tickerverkauf\
         Der Gewinn/Verlust wird aus **Umsatz** - (**Suisa-Abzug**+**Verleiherabzug**+**MWST**+**Reklamematerial und Porto**)
 -   Event
