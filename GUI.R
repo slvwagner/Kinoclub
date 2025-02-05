@@ -1140,10 +1140,17 @@ server <- function(input, output, session) {
       return(list(type = "txt", data = readLines(file_path))) 
       
     } else if (file_ext == "csv"){
+      
+      # Define save path
+      save_path <- paste0("Input/WordPress/")
+      # remove file 
+      list.files(save_path, full.names = TRUE)|>
+        file.remove()
+      
       # Define save path
       save_path <- paste0("Input/WordPress/", file_name)
       # Save the file to the specified directory
-      file.copy(from = file_path, to = save_path, overwrite = TRUE)
+      file.copy(from = file_path, to = save_path)
       # user interaction
       paste0("Die Datei \"",file_name, "\" wurde eingelesen und im Verzeichniss \n.../Kinoklub", 
              save_path, " abgespeichert")|>
