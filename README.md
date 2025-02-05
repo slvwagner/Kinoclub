@@ -6,7 +6,7 @@ Script zur Abrechnung für den Kinoklub TaB. Um die Abrechnung für den Kinoklub
 Dieser Skrip kann mit folgendem Befehl ausgeführt werden:
 
 ```         
-source("Erstelle Abrechnung.R")
+source("GUI.R")
 ```
 
 \
