@@ -756,7 +756,6 @@ tryCatch({
 
 # Shiny reactive variables
 
-
 # Sollen Inhaltsverzeichnisse erstellt werden
 toc <- shiny::reactiveVal(TRUE)
 
@@ -799,7 +798,6 @@ if(!dir.exists("output/webserver")) {
 shiny::addResourcePath("reports", "output/webserver")
 
 
-
 # UI-Definition
 ui <- shiny::fluidPage(
   shiny::tags$head(
@@ -818,7 +816,6 @@ ui <- shiny::fluidPage(
     )
   )
 )
-
 
 
 # Server-Logik
@@ -1126,8 +1123,8 @@ server <- function(input, output, session) {
       paste0("Die Datei \"",file_name, "\" wurde eingelesen und im Verzeichniss \n.../Kinoklub", 
              save_path, " abgespeichert")|>
         ausgabe_text()
-      
-      return(list(type = "xlsx", data = openxlsx::read.xlsx(file_path, sheet = 1)))
+      return(list(type = "xlsx", data = col_env$get_excel_data(file_path)[[1]]))
+
     } else if (file_ext == "txt") {
       # Define save path
       save_path <- paste0("Input/advance tickets/", file_name)
@@ -1138,6 +1135,17 @@ server <- function(input, output, session) {
              save_path, " abgespeichert")|>
         ausgabe_text()
       return(list(type = "txt", data = readLines(file_path))) 
+      
+    } else if (file_ext == "csv"){
+      # Define save path
+      save_path <- paste0("Input/WordPress/", file_name)
+      # Save the file to the specified directory
+      file.copy(from = file_path, to = save_path, overwrite = TRUE)
+      # user interaction
+      paste0("Die Datei \"",file_name, "\" wurde eingelesen und im Verzeichniss \n.../Kinoklub", 
+             save_path, " abgespeichert")|>
+        ausgabe_text()
+      return(list(type = "csv", data = readLines(file_path))) 
     } else {
       return(NULL)
     }
@@ -1152,9 +1160,9 @@ server <- function(input, output, session) {
   
   # txt file rendering
   output$text_output <- shiny::renderPrint({
-    shiny::req(file_data()$type == "txt")
-    file_data()$data
-
+    shiny::req(file_data()$type %in% c("txt", "csv"))
+    file_data()$data|>
+      writeLines()
   })
   
   # Dynamically update the output panel content
