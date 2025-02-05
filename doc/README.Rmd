@@ -84,7 +84,7 @@ Git Passwort gibt es seit 2021 nicht mehr. Um sich bei Git anzumelden, muss man 
 ## Datensätze
 ### Upload von neuen Dateine
 Neue Dateien können mittels "Drag & Drop" oder Auswahl einer Datei hochgeladen werden. \
-Dateien werden automatisch im korrekten Verzeichniss anhand der Dateierweiterung gespeichert. \
+Dateien werden automatisch im korrekten Verzeichniss anhand der Dateierweiterung gespeichert. 
 
 -   "xlsx" Dateien werden im Verzeichniss ".../Kinoklub/Input/" gespeichert.
 -   "txt" Dateien werden im Verzeichniss ".../Kinoklub/Input/advance tickets/" gespeichert.
@@ -95,14 +95,14 @@ Dateien werden automatisch im korrekten Verzeichniss anhand der Dateierweiterung
 Die Datensätze können von <https://www.advance-ticket.ch/admin> heruntergeladen werden und sind unter dem Verzeichnis **.../Kinoklub/input/advance tickets/** abzuspeichern.
 
 #### Eintritte
-**Eintritte 02.12.23.txt**  \
-Copy paste von html für jede Vorführung und bitte speichern unter "input/advance tickets/Eintritt xx.xx.xx.txt" Es muss die Kalenderwoche sowie der Film ausgewählt werden.\
+**Eintritte Suisanummer Datum.txt**  \
+Copy paste von html für jede Vorführung und bitte speichern unter "input/advance tickets/Eintritt xxxx.xxx xx.xx.xx.txt" Es muss die Kalenderwoche sowie der Film ausgewählt werden.\
 ![Eintritt](doc/picts/eintritt.png) \
-Alles mit "ctrl a" markieren und kopieren "crtl c" und entsprechend abspeichern("input/advance tickets/Eintritt xx.xx.xx.txt").
+Alles mit "ctrl a" markieren und kopieren "crtl c" und entsprechend abspeichern("input/advance tickets/Eintritt xxxx.xxx xx.xx.xx.txt").
 
 #### Kiosk
-**Kiosk 02.12.23.txt**  \
-Copy paste von html für jede Vorführung und Speichern unter "input/advance tickets/Kiosk xx.xx.xx.txt".\
+**Kiosk Suisanummer Datum.txt**  \
+Copy paste von html für jede Vorführung und Speichern unter "input/advance tickets/Kiosk xxxx.xxx xx.xx.xx.txt".\
 Im Menu auf "DecompteCaisse" <https://www.advance-ticket.ch/decomptecaisse?lang=de> navigieren.\
 Spalte 1 Das Datum muss gewählt werden, Spalte 2 "reinach", Splate 3 "Atelierkino Kasse" und Spalte 4 "..." eingestellt werden.\
 ![Kiosk](doc/picts/Kiosk.png) \
