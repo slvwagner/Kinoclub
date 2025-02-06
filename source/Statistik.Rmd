@@ -846,8 +846,9 @@ df_temp|>
 ```
 
 ```{r }
-df_temp|>
-  reframe(`Durchschnittlicher Umsatz pro Gast [CHF]` = sum(`Umsatz [CHF]`, na.rm = T)/sum(Besucher, na.rm = T))|>
+df_temp1 <- df_temp|>
+  reframe(`Durchschnittlicher Umsatz pro Gast [CHF]` = sum(`Umsatz [CHF]`, na.rm = T)/sum(Besucher, na.rm = T))
+df_temp1|>
   knitr::kable(digits = 2)
 ```
 
@@ -971,8 +972,9 @@ df_temp|>
 ```
 
 ```{r }
-df_temp|>
-  reframe(`Durchschnittlicher Umsatz pro Gast [CHF]` = sum(`Umsatz [CHF]`, na.rm = T)/sum(Besucher, na.rm = T))|>
+df_temp1 <- df_temp|>
+  reframe(`Durchschnittlicher Umsatz pro Gast [CHF]` = sum(`Umsatz [CHF]`, na.rm = T)/sum(Besucher, na.rm = T))
+df_temp1|>
   knitr::kable(digits = 2)
 ```
 
