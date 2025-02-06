@@ -294,7 +294,7 @@ Einnahmen_und_Ausgaben <- paste0("input/",c_file)|>
   col_env$get_excel_data()
 
 # error handling
-# Spieldatum und Suisanummer vorhanden für Kategorie Verleiher / Event in den Ausgaben
+# Suisanummer vorhanden für Kategorie Verleiher / Event in den Ausgaben
 df_temp <- Einnahmen_und_Ausgaben[["Ausgaben"]]|>
   filter(Kategorie %in% c("Event","Verleiher"))|>
   mutate(error = is.na(Suisanummer))|>
@@ -311,7 +311,7 @@ if(nrow(df_temp)>0) {
   }
 }
 
-# Spieldatum und Suisanummer vorhanden für Kategorie Verleiher / Event in den Ausgaben
+# Spieldatum  vorhanden für Kategorie Verleiher / Event in den Ausgaben
 df_temp <- Einnahmen_und_Ausgaben[["Ausgaben"]]|>
   filter(Kategorie %in% c("Event","Verleiher"))|>
   mutate(error = is.na(Spieldatum))|>
@@ -328,9 +328,7 @@ if(nrow(df_temp)>0) {
   }
 }
 
-
-# error handling
-# Datum und Suisanummer vorhanden für Kategorie Verleiher / Event in den Ausgaben
+# Datum  vorhanden für Kategorie Verleiher / Event in den Ausgaben
 df_temp <- Einnahmen_und_Ausgaben[["Einnahmen"]]|>
   filter(Kategorie %in% c("Event"))|>
   mutate(error = is.na(Datum))|>
@@ -347,8 +345,7 @@ if(nrow(df_temp)>0) {
   }
 }
 
-# error handling
-# Datum und Suisanummer vorhanden für Kategorie Verleiher / Event in den Ausgaben
+# Suisanummer vorhanden für Kategorie Verleiher / Event in den Ausgaben
 df_temp <- Einnahmen_und_Ausgaben[["Einnahmen"]]|>
   filter(Kategorie %in% c("Event"))|>
   mutate(error = is.na(Suisanummer))|>
@@ -386,7 +383,6 @@ df_Eintritt <- l_Eintritt|>
          Datum_ = lubridate::dmy(Datum_)
   )
 
-
 # error handling: check file datum in file name vs in file datum found in the file
 df_temp <- df_Eintritt|>
   filter(!Datum%in%Datum_)|>
@@ -412,7 +408,6 @@ df_Eintritt <- l_Eintritt|>
 
 
 # Filmvorführungen
-
 df_Flimvorfuerungen <- l_Eintritt|>
   lapply( function(x){ 
     distinct(x, Datum_,`Suisa Nummer`)
@@ -426,13 +421,10 @@ df_mapping <- tibble(Datum = df_Flimvorfuerungen$Datum,
                      Suisanummer = df_Flimvorfuerungen$`Suisa Nummer`)|>
   mutate(user_Datum = paste0(day(Datum),".", month(Datum),".", year(Datum)),
          index = row_number())
-
-
 remove(df_Flimvorfuerungen)
 
 
 # Kioskabrechnungen
-
 # Einkaufspreise
 c_file <- list.files(pattern = "Einkauf Kiosk", recursive = T)
 c_file
