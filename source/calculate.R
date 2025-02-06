@@ -6,8 +6,6 @@ library(lubridate)
 
 writeLines("Daten werden einlesen und berechnet...")
 
-file.remove("error.log")|>suppressWarnings()
-
 # Load excel column definition database
 col_env <- new.env()
 load("col_env.RData", envir = col_env)
@@ -597,14 +595,15 @@ if(n_kiosk|>nrow() > n_Film|>nrow()){
 
 # show times
 # error handling file not found
-try(c_raw <- list.files(pattern = "Shows", recursive = T)|>
-      readLines()|>
-      suppressWarnings(),
-    outFile = "error.log"
-)
-if(length(list.files(pattern = "error.log"))>0) {
-  stop("Es sind nicht alle shows vorhanden: \nDatei \".../Kinoklub/input/advance tickets/Shows.txt\" nicht gefunden. \nBitte herunterladen und abspeichern: https://www.advance-ticket.ch/shows?lang=de")
-}
+c_file <- "Input/advance tickets/shows.txt"
+c_raw <- paste0("Die Datei \"shows.txt\" konnte nicht gefunden werden:",
+                "\nBitte die Datei über GUI hochladen oder abspeichern unter \".../Kinoklub/input/advance tickets/Shows.txt\".",
+                "\nBitte herunterladen von https://www.advance-ticket.ch/shows?lang=de")
+if(!file.exists(c_file)) stop(c_raw)
+
+# read file
+c_raw <- readLines(c_file)|>
+  suppressWarnings()
 
 c_select <- tibble(found = str_detect(c_raw, "Tag"))|>
   mutate(index = row_number(),
