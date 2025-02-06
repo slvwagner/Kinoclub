@@ -1275,12 +1275,10 @@ server <- function(input, output, session) {
   })
 }
 
-# # Run the app
-# shiny::runApp(
-#   shinyApp(ui = ui, server = server),
-#   port = 8080, # Replace 8080 with your desired port
-#   launch.browser = TRUE # Automatically open in the system's default browser
-# )
+# Run the app
+shiny::runApp(
+  shinyApp(ui = ui, server = server),
+  port = 8080, # Replace 8080 with your desired port
+  launch.browser = TRUE # Automatically open in the system's default browser
+)
 
-# Run the application 
-shinyApp(ui = ui, server = server)
