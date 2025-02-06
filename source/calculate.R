@@ -294,18 +294,24 @@ Einnahmen_und_Ausgaben <- paste0("input/",c_file)|>
   col_env$get_excel_data()
 
 # error handling
-# Datachecking 
+# Spieldatum vorhanden für Kategorie Verleiher / Event in den Ausgaben
 df_temp <- Einnahmen_und_Ausgaben[["Ausgaben"]]|>
   filter(Kategorie %in% c("Event","Verleiher"))|>
-  mutate(error = is.na(Spieldatum))|>
+  mutate(error = is.na(Spieldatum),
+         error = is.na(Suisanummer))|>
   filter(error)
 
 if(nrow(df_temp)>0) { 
   for (ii in 1:nrow(df_temp)) {
-    warning((paste("\nFür die Kategorie \"Event\" oder \"Verleiher\" muss in der Datei \"Einnahmen und Ausgaben.xlsx\" ein Eventdatum definiert werden.",
-                   "\n\nKategorie\tSpieldatum\tBezeichnung\n",df_temp$Kategorie[ii],"\t\t", df_temp$Spieldatum[ii], "\t\t", df_temp$Bezeichnung[ii])))
+    warning((paste("\nFür die Kategorie \"Event\" oder \"Verleiher\" muss in der Datei \"Einnahmen und Ausgaben.xlsx\" \nein Spieldatum und einen Suisanummer definiert werden.",
+                   "\n\nKategorie\t\tSpieldatum\t\tSuisanummer\t\tBezeichnung",
+                   "\n",df_temp$Kategorie[ii],
+                   "\t\t", df_temp$Spieldatum[ii], 
+                   "\t\t", df_temp$Suisanummer[ii], 
+                   "\t\t", df_temp$Bezeichnung[ii])))
   }
 }
+
 
 
 # Eintritt aus Advanced Tickets
