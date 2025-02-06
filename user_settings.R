@@ -72,6 +72,28 @@ df_P_kat_verechnen <- tibble(Kinoförderer = c("Kinoförderer","Kinofördererkar
 # 7 = html, docx and pdf (Achtung für pdf install Latex for Windows (Miktex) for Mac (MacTex))
 c_render_option <- "1" 
 
+# Vorlage für Diagramme (Bei einer Änderung soll auch das css (".../source/Kinokulub_dark.css") geändert werden)
+my_template <-
+  theme_bw() +
+  theme(
+    panel.background = element_rect(
+      fill = "#322f3b",
+      colour = "#322f3b",
+      linewidth = 0.5,
+      linetype = "solid"
+    ),
+    plot.background = element_rect(fill = "#322f3b"),
+    axis.title = element_text(colour = "#f4cccc", size = 15),
+    axis.text = element_text(colour = "#f4cccc"),
+    legend.justification = c("right", "top"),
+    legend.box.just = "right",
+    legend.margin = margin(6, 6, 6, 6),
+    legend.background = element_rect(fill = "#322f3b", color = "black"),
+    legend.text = element_text(color = "#f4cccc"),
+    legend.title = element_text(size = 12),
+    title = element_text(color = "#f4cccc", size = 22)
+  )
+
 #############################################################################################################################################
 # Versionskontrolle
 #############################################################################################################################################
@@ -181,5 +203,6 @@ if(c_raw[c_index+1] != c_script_version){
 list.files(pattern = "temp", recursive = TRUE)|>
   file.remove()
 
+remove(c_raw, c_index)
 
 writeLines("script run done: user_settings.R")
