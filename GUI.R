@@ -83,7 +83,6 @@ StatistikErstellen <- function(toc, df_Render) {
     writeLines()
 }
 
-
 # Jahresrechnung-Bericht erstellen
 JahresrechnungErstellen <- function(toc, df_Render) {
   # Einlesen
@@ -107,7 +106,6 @@ JahresrechnungErstellen <- function(toc, df_Render) {
   paste("Bericht: \nJahresrechnung erstellt")|>
     writeLines()
 }
-
 
 # function to edit Site-Map: insert pictures
 instert_picts <- function(raw_rmd, output_dir, index, fileNames, url) {
@@ -148,7 +146,6 @@ instert_picts <- function(raw_rmd, output_dir, index, fileNames, url) {
   }
   return(raw_rmd)
 }
-
 
 # Create Site-Map and webserver data
 webserver <- function() {
@@ -595,7 +592,6 @@ webserver <- function() {
   
 }
 
-
 # Erstellen der Abrechnung pro Filmvorführung
 AbrechnungErstellen <- function(mapping, df_Abrechnung, df_Render, toc) {
   for (ii in mapping$index) {
@@ -692,8 +688,6 @@ AbrechnungErstellen <- function(mapping, df_Abrechnung, df_Render, toc) {
   }
 }
 
-
-
 # Daten einlesen
 # Envirnoment for Data read in
 calculate_warnings <- ""
@@ -718,10 +712,7 @@ tryCatch({
   stop(ausgabe_text)
 })
 
-
-
 # Shiny reactive variables
-
 # Sollen Inhaltsverzeichnisse erstellt werden
 toc <- shiny::reactiveVal(TRUE)
 
@@ -741,7 +732,6 @@ if(exists("df_show",envir = data_env))  {
 
 # Variable, um Status zu speichern
 ausgabe_text <- shiny::reactiveVal(ausgabe_text)
-
 calculate_warnings <- shiny::reactiveVal(calculate_warnings)
 
 # Filmtabelle anzeigen
@@ -763,7 +753,6 @@ if(!dir.exists("output/webserver")) {
 }
 shiny::addResourcePath("reports", "output/webserver")
 
-
 # UI-Definition
 ui <- shiny::fluidPage(
   shiny::tags$head(
@@ -783,10 +772,8 @@ ui <- shiny::fluidPage(
   )
 )
 
-
 # Server-Logik
 server <- function(input, output, session) {
-
   # Überwachung Button Daten Einlesen
   shiny::observeEvent(input$DatenEinlesen, {
     print(clc)
