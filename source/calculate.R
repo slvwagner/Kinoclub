@@ -130,6 +130,7 @@ convert_data_Film_txt <- function(fileName) {
   return(l_Eintritt)
 }
 
+
 # Extrakt Verkäufe  und Überschuss / Manko
 convert_data_kiosk_txt <- function(c_files) {
   
@@ -278,66 +279,6 @@ convert_data_kiosk_txt <- function(c_files) {
   return(l_return)
 }
 
-# 
-# # Benutzereinstellungen importieren aus "user_settings.R"
-# 
-# # Import c_script_version and Abrechnungsjahr
-# c_raw <- readLines("user_settings.R")
-# c_script_version <- c_raw[c_raw |> str_detect("c_script_version <-")] |>
-#   str_split(pattern = "\"") |>
-#   unlist()
-# Abrechungsjahr <- c_script_version[2]|>
-#   str_split(SPC)|>
-#   unlist()
-# Abrechungsjahr <- Abrechungsjahr[1]|>
-#   as.integer()
-# c_script_version <- c_script_version[2]
-# 
-# # import sommerpause
-# c_raw[str_detect(c_raw, "sommerpause")] |>
-#   str_split("=", simplify = T) -> sommerpause
-# sommerpause[, 2] |>
-#   str_trim() |>
-#   str_split(SPC, simplify = T) -> sommerpause
-# sommerpause <- sommerpause[, 1] |> as.integer() # Tage
-# 
-# # import c_MWST
-# c_raw[str_detect(c_raw, "c_MWST")] |>
-#   str_split("=", simplify = T) -> c_MWST
-# c_MWST <- str_extract(c_MWST, one_or_more(DGT) %R% DOT %R% optional(DGT)) |>
-#   as.numeric()
-
-# # Platzkategorien die für gewisse Verleiherabgerechnet werden müssen
-# df_P_kat_verechnen <- tibble(
-#   Kinoförderer = c("Kinoförderer", "Kinofördererkarte"),
-#   Verkaufspreis = c(13, 13)
-# )
-
-
-# # System Variablen und Vorlagen
-# 
-# # Vorlage für Diagramme (Bei einer Änderung soll auch das css (".../source/Kinokulub_dark.css") geändert werden)
-# my_template <-
-#   theme_bw() +
-#   theme(
-#     panel.background = element_rect(
-#       fill = "#322f3b",
-#       colour = "#322f3b",
-#       linewidth = 0.5,
-#       linetype = "solid"
-#     ),
-#     plot.background = element_rect(fill = "#322f3b"),
-#     axis.title = element_text(colour = "#f4cccc", size = 15),
-#     axis.text = element_text(colour = "#f4cccc"),
-#     legend.justification = c("right", "top"),
-#     legend.box.just = "right",
-#     legend.margin = margin(6, 6, 6, 6),
-#     legend.background = element_rect(fill = "#322f3b", color = "black"),
-#     legend.text = element_text(color = "#f4cccc"),
-#     legend.title = element_text(size = 12),
-#     title = element_text(color = "#f4cccc", size = 22)
-#   )
-
 
 # Errorhandling open excel files
 c_openfiles <- list.files(paste0("Input/"),"~")
@@ -346,7 +287,6 @@ remove(c_openfiles)
 
 
 # Einnahmen und Ausgaben einlesen aus Excel 
-
 c_file <- "Einnahmen und Ausgaben.xlsx"
 
 # error handling
@@ -370,10 +310,7 @@ if(nrow(df_temp)>0) {
 }
 
 
-
-
 # Eintritt aus Advanced Tickets
-
 # files to read in
 c_files <- list.files(pattern = "Eintritte", recursive = T)
 
@@ -515,16 +452,12 @@ if(nrow(df_spez_preis_na) > 0) {
 
 
 # join Spezpreise mit Verkaufsartikel
-
-ii <- 1
-
 df_Kiosk <- df_Kiosk|>
   left_join(Spezialpreisekiosk, 
             by = c(Datum ="Datum", Verkaufsartikel = "Spezialpreis", Suisanummer = "Suisanummer")
   )|>
   mutate(Verkaufsartikel = if_else(is.na(Artikelname), Verkaufsartikel, Artikelname))|>
   select(-Artikelname, -Verkaufspreis)
-
 
 
 # Kiosk Einkaufspreise 
@@ -588,10 +521,6 @@ if(nrow(df_Mapping_Einkaufspreise) == 1){
 }
 df_Mapping_Einkaufspreise <- tibble(Einkaufspreise = df_Mapping_Einkaufspreise|>as.Date(),
        Datum = names(df_Mapping_Einkaufspreise)|>as.Date())
-
-
-df_Mapping_Einkaufspreise
-
 
 
 # Join Einkaufspreise 
@@ -896,9 +825,7 @@ if(nrow(df_temp)>0) {
   )
   )  
 }
-
 remove(m, df_temp, n_Film, n_kiosk)
-
 
 
 # Je nach Verleiher müssen die Kinoförderer als Umsatz abgerechnet werden. 
@@ -1041,9 +968,6 @@ for (ii in 1:nrow(df_mapping)) {
                                                     ) 
            )
 
-  
-  
-
   # Extract Verteilprodukt
   df_Verteilprodukt <- l_abrechnung[[ii]]$Abrechnung|>
     select(Datum, Verteilprodukt)
@@ -1131,7 +1055,6 @@ for (ii in 1:nrow(df_mapping)) {
 }
 
 
-
 # Abrechnung Filmvorführung erstellen (für Berichte verwendet)
 # Runden aller [CHF]  Beträge
 df_Abrechnung <- bind_cols(
@@ -1165,8 +1088,8 @@ df_Abrechnung_tickes <- l_abrechnung|>
          )|>
   left_join(df_show|>
               select(`Suisa Nummer`, Datum, Anfang, Ende),
-            by = join_by(Datum, `Suisa Nummer`))
-
+            by = join_by(Datum, `Suisa Nummer`)
+            )
 df_Abrechnung_tickes
 
 
