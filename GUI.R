@@ -4,7 +4,6 @@
 
 
 # Vorbereiten / Installieren
-source("user_settings.R")
 rm(list = ls())
 
 # Define libraries to be installed
@@ -19,45 +18,12 @@ packages <- c("rmarkdown", "rebus", "openxlsx", "lubridate", "DT", "magick", "we
 invisible(lapply(packages, library, character.only = TRUE))
 remove(packages, installed_packages)
 
+# load user settings 
+source("user_settings.R")
 
 # Load excel column definition database
 col_env <- new.env()
 load("col_env.RData", envir = col_env)
-
-
-# Benutzereinstellungen importieren aus "user_settings.R"
-# Import c_script_version and Abrechnungsjahr
-c_raw <- readLines("user_settings.R")
-c_script_version <- c_raw[c_raw |> str_detect("c_script_version <-")] |>
-  str_split(pattern = "\"") |>
-  unlist()
-Abrechungsjahr <- c_script_version[2]|>
-  str_split(SPC)|>
-  unlist()
-Abrechungsjahr <- Abrechungsjahr[1]|>
-  as.integer()
-c_script_version <- c_script_version[2]
-
-# import sommerpause
-c_raw[str_detect(c_raw, "sommerpause")] |>
-  str_split("=", simplify = T) -> sommerpause
-sommerpause[, 2] |>
-  str_trim() |>
-  str_split(SPC, simplify = T) -> sommerpause
-sommerpause <- sommerpause[, 1] |> as.integer() # Tage
-
-# import c_MWST
-c_raw[str_detect(c_raw, "c_MWST")] |>
-  str_split("=", simplify = T) -> c_MWST
-c_MWST <- str_extract(c_MWST, one_or_more(DGT) %R% DOT %R% optional(DGT)) |>
-  as.numeric()
-
-# Platzkategorien die für gewisse Verleiherabgerechnet werden müssen
-df_P_kat_verechnen <- tibble(
-  Kinoförderer = c("Kinoförderer", "Kinofördererkarte"),
-  Verkaufspreis = c(13, 13)
-)
-
 
 # Functions
 source("source/functions.R")

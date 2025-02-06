@@ -230,7 +230,7 @@ Auf der Kinoklub.ch Hompage können alle erfassten Filmvorschläge exportiert we
 
 ## Benutzereinstellungen
 
-Die Datei **"user_settings.R"** enthält am Anfang die folgenden Definition die abgeändert werden können um das Verhalten des Scripts zu beeinflussen.
+Die Datei **"user_settings.R"** enthält die Benutzereinstellungen. 
 
 ### Sommerpause
 Wiel lange dauer die Sommerpause? \
@@ -274,14 +274,14 @@ Die Variable `df_P_kat_verechnen` definiert welche Platzkategorien ohne Umsatz z
 
 Alle Dateien die erzeugt wurden finden sich im **.../Kinoklub/output/** Verzeichniss.
 
--   Für jede Filmvorführung respektive Datum wird ein Abrechnung erstellt.
+-   Für jede Filmvorführung respektive Datum und Suisanummer wird ein Abrechnung erstellt.
 -   Es wird eine Jahresbarechnung und eine detalierte Jahresabrechnung erstellt.
 -   Es wird eine Statistik mit Porgnosen erstellt.
 -   Alle verwendeten Datensätze werden in ein Excelfile abgespeichert.
 
 ### Abrechnung Filmvorführung
 
-Es wird eine Filmabrechnung pro Event (Datum) erstellt.
+Es wird eine Filmabrechnung pro Event (Datum, Suisanummer) erstellt.
 
 -   Übericht
 -   Filmvorführung
