@@ -644,9 +644,9 @@ if(n_kiosk|>nrow() > n_Film|>nrow()){
 
 # show times
 # error handling file not found
-c_file <- "Input/advance tickets/shows.txt"
-c_raw <- paste0("Die Datei \"shows.txt\" konnte nicht gefunden werden:",
-                "\nBitte die Datei über GUI hochladen oder abspeichern unter \".../Kinoklub/input/advance tickets/Shows.txt\".",
+c_file <- "Input/advance tickets/Shows.txt"
+c_raw <- paste0("Die Datei \"Shows.txt\" konnte nicht gefunden werden:",
+                "\nBitte die Datei über GUI hochladen oder abspeichern unter \".../Kinoklub/",c_file, "\".",
                 "\nBitte herunterladen von https://www.advance-ticket.ch/shows?lang=de")
 if(!file.exists(c_file)) stop(c_raw)
 
@@ -749,7 +749,7 @@ atelierkino_gutschein <- read_delim("Input/advance tickets/atelierkino_gutschein
 
 
 # Verleiherabgaben einlesen
-c_file <- "input/Verleiherabgaben.xlsx"
+c_file <- "Input/Verleiherabgaben.xlsx"
 
 # error handling
 if(!file.exists(c_file)) stop(paste0("\nDie Datei: \".../", c_file, "\" konnte nicht gefunden werden"))
@@ -1196,7 +1196,7 @@ list(`Werbung` = df_Besucherzahlen,
      `Überschuss Manko` = df_manko_uerberschuss,
      `Filmvorführung` = df_Abrechnung
        )|>
-  write.xlsx(file="output/Data/Auswertung.xlsx", asTable = TRUE, overwrite = TRUE)
+  write.xlsx(file="output/data/Auswertung.xlsx", asTable = TRUE, overwrite = TRUE)
 
 
 # remove not used variables

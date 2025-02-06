@@ -113,7 +113,7 @@ Filmvorschlaege_wordpress_export|>
   coord_flip()|>
   suppressMessages()
 
-c_fileName <- "output/Data/Filmvorschläge.jpg"
+c_fileName <- "output/data/Filmvorschläge.jpg"
 
 ggplot2::ggsave(c_fileName, width = 25, height = 3 + nrow(Filmvorschlaege_wordpress_export) * 0.35, units = "cm")
 

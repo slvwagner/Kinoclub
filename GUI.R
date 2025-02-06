@@ -38,7 +38,7 @@ mapping <- function(c_Datum, c_suisa) {
     )
   
   # Soll die Verleiherabrechnung erzeugt werden?
-  c_file <- "input/Verleiherabgaben.xlsx"
+  c_file <- "Input/Verleiherabgaben.xlsx"
   c_sheets <- readxl::excel_sheets(c_file)
   c_sheets
   
@@ -1275,9 +1275,12 @@ server <- function(input, output, session) {
   })
 }
 
-# Run the app
-shiny::runApp(
-  shinyApp(ui = ui, server = server),
-  port = 8080, # Replace 8080 with your desired port
-  launch.browser = TRUE # Automatically open in the system's default browser
-)
+# # Run the app
+# shiny::runApp(
+#   shinyApp(ui = ui, server = server),
+#   port = 8080, # Replace 8080 with your desired port
+#   launch.browser = TRUE # Automatically open in the system's default browser
+# )
+
+# Run the application 
+shinyApp(ui = ui, server = server)
