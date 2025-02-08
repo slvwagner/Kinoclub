@@ -13,8 +13,7 @@ tryCatch(
   }
 )
 
-
-# read in csv export from wordpress homepage 
+# Error handling
 c_path <- "Input/WordPress/"
 c_filePath <- list.files(c_path,full.names = T)
 
@@ -27,6 +26,7 @@ if(length(c_filePath) > 1)   {
     )
   }
 
+# read in csv export from wordpress homepage 
 Filmvorschlaege_wordpress_export <- Filmvorschlaege_wordpress_export <-
   read_csv(
     c_filePath,
@@ -67,7 +67,6 @@ Filmvorschlaege_wordpress_export <- Filmvorschlaege_wordpress_export <-
 Filmvorschlaege_wordpress_export <- Filmvorschlaege_wordpress_export|>
   select(-starts_with("Author"),
          -ends_with("Status"))
-
 
 # clean up Content column
 p <- or("<"%R%one_or_more(WRD)%R%">",
