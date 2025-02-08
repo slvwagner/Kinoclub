@@ -353,7 +353,7 @@ webserver <- function() {
   
 
   # create site map
-  if(TRUE){
+
     # Was für Berichte typen sind vorhanden
     c_typ_Berichte <- m_Film$FileName|>
       str_extract(START%R%one_or_more(WRD))|>
@@ -459,7 +459,6 @@ webserver <- function() {
                       )
     # Remove file
     file.remove("Site-Map.Rmd")
-    
   }
   
   
