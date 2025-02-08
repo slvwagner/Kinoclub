@@ -97,7 +97,6 @@ df_Procinema <-
          Besucherzahl = TotAdm,
          Besucherzahlen_ch = TotBox)|>
   mutate(ration_from_total_box = (Besucherzahl / Besucherzahlen_ch) * 100)
-
 df_Procinema
 
 s_df_Procinema <- df_Procinema|>
@@ -112,16 +111,5 @@ s_df_Procinema <- df_Procinema|>
             by = join_by(Suisanummer)
             )
 s_df_Procinema
-
-
-df_Procinema|>
-  ggplot(aes(Datum, Besucherzahl))+
-  geom_col()
-
-s_df_Procinema|>
-  filter(!is.nan(ration_from_total_box))|>
-  ggplot(aes(Filmtitel, ration_from_total_box))+
-  geom_col()+
-  coord_flip()
  
  
