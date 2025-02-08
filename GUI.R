@@ -897,6 +897,7 @@ server <- function(input, output, session) {
     ) |>
       ausgabe_text()
 
+    # read WordPress and procinema data and create excel file for Kinoprogramm
     tryCatch(
       {
         print(clc)

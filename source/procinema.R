@@ -1,4 +1,3 @@
-
 library(rebus)
 library(readr)
 library(tidyverse)
@@ -26,10 +25,15 @@ Get_suisa <- function(c_suisa) {
   return(paste0(first_DGT,".",last_DGT))
 }
 
+# error handling
+c_file <- "Input/Procinema/Procinema.txt"
+if(!file.exists(c_file)) stop(paste0("\nDie Datei \"", c_file, " konnte nicht gefunden werden.",
+                                     "\nBitte herunterladen und abspeichern oder über GUI hochladen."))
+
 # read in data and convert
 df_Procinema <- 
   read_delim(
-    "Input/Procinema/Procinema.txt", 
+    c_file, 
     delim = "\t", escape_double = FALSE, 
     col_types =  cols(
       YearWeek = col_character(),
@@ -113,4 +117,5 @@ s_df_Procinema <- df_Procinema|>
             )
 s_df_Procinema
  
+remove(c_file)
  
