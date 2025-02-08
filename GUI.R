@@ -351,9 +351,9 @@ webserver <- function() {
     mutate(Datum = paste0(day(Datum), ".", month(Datum), ".", year(Datum)))
   m_Film
   
-
+  
   # create site map
-
+  if(TRUE){
     # Was für Berichte typen sind vorhanden
     c_typ_Berichte <- m_Film$FileName|>
       str_extract(START%R%one_or_more(WRD))|>
@@ -456,11 +456,11 @@ webserver <- function() {
     # Render
     rmarkdown::render(input = "Site-Map.Rmd", 
                       envir = data_env
-                      )
+    )
     # Remove file
     file.remove("Site-Map.Rmd")
+    
   }
-  
   
 
   # Data for Webserver
@@ -918,8 +918,9 @@ server <- function(input, output, session) {
 
     paste0(
       "Bericht:\nFilmumfrage auswertung ausgeführt",
-      "\nFinde die Berechneten daten im Verzeichnis:",
-      "\n", getwd(), "/output/data/Filmvorschläge.xlsx"
+      "\nDie Exceldatei kann jetzt heruntergeladen werden, oder finde die Dateien im hier:",
+      "\n", getwd(), "/output/data/Filmvorschläge.xlsx",
+      "\n", getwd(), "/output/Filmvorschlag.html"
     ) |>
       ausgabe_text()
 
@@ -943,6 +944,8 @@ server <- function(input, output, session) {
         ausgabe_text(paste("Filmvorschläge, Fehler beim Bericht erstellen:\n", e$message))
       }
     )
+    paste0(getwd(), "/output/Filmvorschlag.html")|>
+      browseURL()
     
     
     file_exists(file.exists("output/webserver/index.html"))
