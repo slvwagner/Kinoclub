@@ -119,3 +119,4 @@ s_df_Procinema
  
 remove(c_file)
  
+writeLines("Procinema daten eingelesen")

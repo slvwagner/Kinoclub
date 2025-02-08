@@ -111,11 +111,18 @@ for (ii in 1:nrow(Filmvorschlaege_wordpress_export)) {
   }
 }
 
+# Join Procinema data 
+Filmvorschlaege_wordpress_export <- Filmvorschlaege_wordpress_export|>
+  rename(Filmtitel = Title, 
+         Suisanummer = suisa)|>
+  left_join(s_df_Procinema,
+            by = join_by(Filmtitel, Suisanummer))|>
+  arrange((Filmtitel))
 
-# Auswertung 
+# Auswertung Plot 
 Filmvorschlaege_wordpress_export|>
   mutate(`Durchschnittliche-\nbewertung` = factor(rmp_avg_rating))|>
-  ggplot(aes(Title, (rmp_vote_count), fill = `Durchschnittliche-\nbewertung`))+ 
+  ggplot(aes(Filmtitel, (rmp_vote_count), fill = `Durchschnittliche-\nbewertung`))+ 
   scale_y_continuous(breaks = 0:max(Filmvorschlaege_wordpress_export$rmp_vote_count, na.rm = T))+
   geom_col(na.rm = TRUE)+
   labs(y = "Anzahl Bewertungen",

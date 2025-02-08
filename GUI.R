@@ -25,6 +25,9 @@ source("user_settings.R")
 col_env <- new.env()
 load("col_env.RData", envir = col_env)
 
+# create environment to run WordPress scripts
+WordPress_env <- new.env()
+
 # Functions
 source("source/functions.R")
 
@@ -80,6 +83,30 @@ StatistikErstellen <- function(toc, df_Render) {
                     envir = data_env
   )
   paste("Bericht: \nStatistik erstellt")|>
+    writeLines()
+}
+
+# Statistik-Bericht erstellen
+FilmvorschlagErstellen <- function(toc, df_Render) {
+  # Einlesen
+  c_raw <- readLines("source/Filmvorschläge.Rmd")
+  # Inhaltsverzeichnis
+  if(toc|>as.logical()){# neues file schreiben mit toc
+    c_raw|>
+      r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis")|>
+      writeLines(paste0("source/temp.Rmd"))
+  }else {# neues file schreiben ohne toc
+    c_raw|>
+      writeLines(paste0("source/temp.Rmd"))
+  }
+  # Render
+  rmarkdown::render(input = paste0("source/temp.Rmd"),
+                    output_format  = df_Render$Render,
+                    output_file = paste0("Filmvorschlag",df_Render$fileExt),
+                    output_dir = paste0(getwd(), "/output"),
+                    envir = WordPress_env
+  )
+  paste("Bericht: \nFilmvorschläge erstellt")|>
     writeLines()
 }
 
@@ -900,13 +927,25 @@ server <- function(input, output, session) {
     # read WordPress and procinema data and create excel file for Kinoprogramm
     tryCatch(
       {
+        source("source/read_and_convert_wordPress.R", local = WordPress_env)
+      },
+      error = function(e) {
+        ausgabe_text(paste("Filmvorschläge, Fehler beim Einlesen:\n", e$message))
+      }
+    )
+    
+    # read WordPress and procinema data and create excel file for Kinoprogramm
+    tryCatch(
+      {
         print(clc)
-        source("source/read_and_convert_wordPress.R")
+        FilmvorschlagErstellen(toc(),df_Render())
       },
       error = function(e) {
         ausgabe_text(paste("Filmvorschläge, Fehler beim Bericht erstellen:\n", e$message))
       }
     )
+    
+    
     file_exists(file.exists("output/webserver/index.html"))
   })
 
