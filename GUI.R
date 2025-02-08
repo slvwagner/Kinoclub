@@ -1082,16 +1082,30 @@ server <- function(input, output, session) {
       return(list(type = "xlsx", path = save_path, sheets = sheet_names))
 
     } else if (file_ext == "txt") {
-      # Define save path
-      save_path <- paste0("Input/advance tickets/", file_name)
-      # Save the file to the specified directory
-      file.copy(from = file_path, to = save_path, overwrite = TRUE)
-      # user interaction
-      paste0("Die Datei \"",file_name, "\" wurde eingelesen und im Verzeichniss \n.../Kinoklub", 
-             save_path, " abgespeichert")|>
-        ausgabe_text()
-      return(list(type = "txt", data = readLines(file_path))) 
-      
+      if(file_name == "Procinema.txt"){
+        # Define save path
+        save_path <- paste0("Input/Procinema/", file_name)
+        # remove file 
+        list.files(save_path, full.names = TRUE)|>
+          file.remove()
+        # Save the file to the specified directory
+        file.copy(from = file_path, to = save_path, overwrite = TRUE)
+        # user interaction
+        paste0("Die Datei \"",file_name, "\" wurde eingelesen und im Verzeichniss \n.../Kinoklub", 
+               save_path, " abgespeichert")|>
+          ausgabe_text()
+        return(list(type = "txt", data = readLines(file_path))) 
+      }else{
+        # Define save path
+        save_path <- paste0("Input/advance tickets/", file_name)
+        # Save the file to the specified directory
+        file.copy(from = file_path, to = save_path, overwrite = TRUE)
+        # user interaction
+        paste0("Die Datei \"",file_name, "\" wurde eingelesen und im Verzeichniss \n.../Kinoklub", 
+               save_path, " abgespeichert")|>
+          ausgabe_text()
+        return(list(type = "txt", data = readLines(file_path))) 
+      }
     } else if (file_ext == "csv"){
       
       # Define save path
@@ -1110,6 +1124,9 @@ server <- function(input, output, session) {
         ausgabe_text()
       return(list(type = "csv", data = readLines(file_path))) 
     } else {
+      paste0("Dateierweiterung: ", file_ext, " ist nicht bekannt und wird von diesem Script nicht verwendet.",
+             "\nDatei wurde \"", file_name, "\" wurde nicht gespeichert.")|>
+        ausgabe_text()
       return(NULL)
     }
   })
