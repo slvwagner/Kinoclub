@@ -1067,7 +1067,7 @@ server <- function(input, output, session) {
     file_name <- input$file$name                  # Get file name
     file_ext <- tools::file_ext(input$file$name)  # Get file extension
     
-    if (file_ext == "xlsx") {
+    if (file_ext == "xlsx") { # save xlsx files 
       # Define save path
       save_path <- paste0("Input/", file_name)
       # Save the file to the specified directory
@@ -1081,13 +1081,15 @@ server <- function(input, output, session) {
       sheet_names <- openxlsx::getSheetNames(save_path)
       return(list(type = "xlsx", path = save_path, sheets = sheet_names))
 
-    } else if (file_ext == "txt") {
-      if(file_name == "Procinema.txt"){
+    } else if (file_ext == "txt") { # save txt files
+      if(file_name == "Procinema.txt" | file_name == "procinema.txt"){ # save Procinema.txt file
         # Define save path
-        save_path <- paste0("Input/Procinema/", file_name)
+        save_path <- paste0("Input/Procinema/")
         # remove file 
         list.files(save_path, full.names = TRUE)|>
           file.remove()
+        # Define save path
+        save_path <- paste0("Input/Procinema/", tolower(file_name))
         # Save the file to the specified directory
         file.copy(from = file_path, to = save_path, overwrite = TRUE)
         # user interaction
@@ -1095,7 +1097,7 @@ server <- function(input, output, session) {
                save_path, " abgespeichert")|>
           ausgabe_text()
         return(list(type = "txt", data = readLines(file_path))) 
-      }else{
+      }else{ # save all other txt files
         # Define save path
         save_path <- paste0("Input/advance tickets/", file_name)
         # Save the file to the specified directory
@@ -1106,14 +1108,12 @@ server <- function(input, output, session) {
           ausgabe_text()
         return(list(type = "txt", data = readLines(file_path))) 
       }
-    } else if (file_ext == "csv"){
-      
+    } else if (file_ext == "csv"){ # save csv files (WordPress input)
       # Define save path
       save_path <- paste0("Input/WordPress/")
       # remove file 
       list.files(save_path, full.names = TRUE)|>
         file.remove()
-      
       # Define save path
       save_path <- paste0("Input/WordPress/", file_name)
       # Save the file to the specified directory

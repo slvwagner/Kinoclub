@@ -26,7 +26,7 @@ Get_suisa <- function(c_suisa) {
   return(paste0(first_DGT,".",last_DGT))
 }
 
-# read in data
+# read in data and convert
 df_Procinema <- 
   read_delim(
     "Input/Procinema/Procinema.txt", 
@@ -99,6 +99,7 @@ df_Procinema <-
   mutate(ration_from_total_box = (Besucherzahl / Besucherzahlen_ch) * 100)
 df_Procinema
 
+# 
 s_df_Procinema <- df_Procinema|>
   distinct(Suisanummer, .keep_all = T)|>
   select(Suisanummer, Filmtitel, Distr)|>
