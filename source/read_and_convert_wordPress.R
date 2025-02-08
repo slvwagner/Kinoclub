@@ -1,18 +1,32 @@
 library(rebus)
 library(tidyverse)
-# library(readr)
 
-##########################################################################################
-# read in csv export from wordpress homepage 
+# read Procinema data (Statistik)
+tryCatch(
+  {
+    print(clc)
+    source("source/procinema.R")
+  },
+  error = function(e) {
+    error = paste("Procinema daten konnten nicht eingelesen werden:\n", e$message)
+    stop(error)
+  }
+)
 
+# Error handling
 c_path <- "Input/WordPress/"
 c_filePath <- list.files(c_path,full.names = T)
 
 if(length(c_filePath) > 1)   {
   warning(paste0("\nIm ordner: \n\".../", c_path, "\" darf nur eine Datei abgespeichert werden! Es sind aber diese: ", c_filePath))
-} else if (length(c_filePath) < 1)  {
-    stop(paste0("\nIm ordner: \n\".../", c_path, "\" muss eine Datei abgespeichert werden! Bitte auf der kinoklub Homepage herunterladen.", c_filePath))}
+  } else if (length(c_filePath) < 1)  {
+    stop(paste0("\nIm ordner: \".../", c_path, "\" ist keine Datei vorhanden!",
+                "\nBitte auf dem Wordpress backend für die Kinoklub Homepage",
+                "\nherunterladen und abspeicher oder über GUI hochladen.", c_filePath)
+    )
+  }
 
+# read in csv export from wordpress homepage 
 Filmvorschlaege_wordpress_export <- Filmvorschlaege_wordpress_export <-
   read_csv(
     c_filePath,
@@ -54,9 +68,7 @@ Filmvorschlaege_wordpress_export <- Filmvorschlaege_wordpress_export|>
   select(-starts_with("Author"),
          -ends_with("Status"))
 
-##########################################################################################
 # clean up Content column
-
 p <- or("<"%R%one_or_more(WRD)%R%">",
         "</"%R%one_or_more(WRD)%R%">",
         "<"%R%one_or_more(WRD)%R%one_or_more(DGT)%R%">",
@@ -99,12 +111,18 @@ for (ii in 1:nrow(Filmvorschlaege_wordpress_export)) {
   }
 }
 
-##########################################################################################
-# Auswertung 
+# Join Procinema data 
+Filmvorschlaege_wordpress_export <- Filmvorschlaege_wordpress_export|>
+  rename(Filmtitel = Title, 
+         Suisanummer = suisa)|>
+  left_join(s_df_Procinema,
+            by = join_by(Filmtitel, Suisanummer))|>
+  arrange((Filmtitel))
 
+# Auswertung Plot 
 Filmvorschlaege_wordpress_export|>
   mutate(`Durchschnittliche-\nbewertung` = factor(rmp_avg_rating))|>
-  ggplot(aes(Title, (rmp_vote_count), fill = `Durchschnittliche-\nbewertung`))+ 
+  ggplot(aes(Filmtitel, (rmp_vote_count), fill = `Durchschnittliche-\nbewertung`))+ 
   scale_y_continuous(breaks = 0:max(Filmvorschlaege_wordpress_export$rmp_vote_count, na.rm = T))+
   geom_col(na.rm = TRUE)+
   labs(y = "Anzahl Bewertungen",
@@ -117,9 +135,8 @@ c_fileName <- "output/data/Filmvorschläge.jpg"
 
 ggplot2::ggsave(c_fileName, width = 25, height = 3 + nrow(Filmvorschlaege_wordpress_export) * 0.35, units = "cm")
 
-##########################################################################################
-# Write xlsx
 
+# Write xlsx
 library(openxlsx)
 
 # Define the style for text wrapping
@@ -166,7 +183,6 @@ class(x) <- "hyperlink"
 writeData(wb_xlsx, c_sheet_name,, x = x, startRow = 2,startCol = 25)
 
 
-##########################################################################################
 # insert plots to work book
 addWorksheet(wb_xlsx, "Plot")
 
@@ -182,7 +198,7 @@ insertImage(
   m_pos
 )
 
-##########################################################################################
+
 # Save the workbook to a file
 saveWorkbook(wb_xlsx, file = "output/data/Filmvorschläge.xlsx", overwrite = TRUE )
 

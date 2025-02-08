@@ -25,6 +25,9 @@ source("user_settings.R")
 col_env <- new.env()
 load("col_env.RData", envir = col_env)
 
+# create environment to run WordPress scripts
+WordPress_env <- new.env()
+
 # Functions
 source("source/functions.R")
 
@@ -80,6 +83,30 @@ StatistikErstellen <- function(toc, df_Render) {
                     envir = data_env
   )
   paste("Bericht: \nStatistik erstellt")|>
+    writeLines()
+}
+
+# Statistik-Bericht erstellen
+FilmvorschlagErstellen <- function(toc, df_Render) {
+  # Einlesen
+  c_raw <- readLines("source/Filmvorschläge.Rmd")
+  # Inhaltsverzeichnis
+  if(toc|>as.logical()){# neues file schreiben mit toc
+    c_raw|>
+      r_toc_for_Rmd(toc_heading_string = "Inhaltsverzeichnis")|>
+      writeLines(paste0("source/temp.Rmd"))
+  }else {# neues file schreiben ohne toc
+    c_raw|>
+      writeLines(paste0("source/temp.Rmd"))
+  }
+  # Render
+  rmarkdown::render(input = paste0("source/temp.Rmd"),
+                    output_format  = df_Render$Render,
+                    output_file = paste0("Filmvorschlag",df_Render$fileExt),
+                    output_dir = paste0(getwd(), "/output"),
+                    envir = WordPress_env
+  )
+  paste("Bericht: \nFilmvorschläge erstellt")|>
     writeLines()
 }
 
@@ -324,7 +351,7 @@ webserver <- function() {
     mutate(Datum = paste0(day(Datum), ".", month(Datum), ".", year(Datum)))
   m_Film
   
-
+  
   # create site map
   if(TRUE){
     # Was für Berichte typen sind vorhanden
@@ -429,12 +456,11 @@ webserver <- function() {
     # Render
     rmarkdown::render(input = "Site-Map.Rmd", 
                       envir = data_env
-                      )
+    )
     # Remove file
     file.remove("Site-Map.Rmd")
     
   }
-  
   
 
   # Data for Webserver
@@ -892,20 +918,36 @@ server <- function(input, output, session) {
 
     paste0(
       "Bericht:\nFilmumfrage auswertung ausgeführt",
-      "\nFinde die Berechneten daten im Verzeichnis:",
-      "\n", getwd(), "/output/data/Filmvorschläge.xlsx"
+      "\nDie Exceldatei kann jetzt heruntergeladen werden, oder finde die Dateien im hier:",
+      "\n", getwd(), "/output/data/Filmvorschläge.xlsx",
+      "\n", getwd(), "/output/Filmvorschlag.html"
     ) |>
       ausgabe_text()
 
+    # read WordPress and procinema data and create excel file for Kinoprogramm
+    tryCatch(
+      {
+        source("source/read_and_convert_wordPress.R", local = WordPress_env)
+      },
+      error = function(e) {
+        ausgabe_text(paste("Filmvorschläge, Fehler beim Einlesen:\n", e$message))
+      }
+    )
+    
+    # read WordPress and procinema data and create excel file for Kinoprogramm
     tryCatch(
       {
         print(clc)
-        source("source/read_and_convert_wordPress.R")
+        FilmvorschlagErstellen(toc(),df_Render())
       },
       error = function(e) {
         ausgabe_text(paste("Filmvorschläge, Fehler beim Bericht erstellen:\n", e$message))
       }
     )
+    paste0(getwd(), "/output/Filmvorschlag.html")|>
+      browseURL()
+    
+    
     file_exists(file.exists("output/webserver/index.html"))
   })
 
@@ -1067,7 +1109,7 @@ server <- function(input, output, session) {
     file_name <- input$file$name                  # Get file name
     file_ext <- tools::file_ext(input$file$name)  # Get file extension
     
-    if (file_ext == "xlsx") {
+    if (file_ext == "xlsx") { # save xlsx files 
       # Define save path
       save_path <- paste0("Input/", file_name)
       # Save the file to the specified directory
@@ -1081,25 +1123,39 @@ server <- function(input, output, session) {
       sheet_names <- openxlsx::getSheetNames(save_path)
       return(list(type = "xlsx", path = save_path, sheets = sheet_names))
 
-    } else if (file_ext == "txt") {
-      # Define save path
-      save_path <- paste0("Input/advance tickets/", file_name)
-      # Save the file to the specified directory
-      file.copy(from = file_path, to = save_path, overwrite = TRUE)
-      # user interaction
-      paste0("Die Datei \"",file_name, "\" wurde eingelesen und im Verzeichniss \n.../Kinoklub", 
-             save_path, " abgespeichert")|>
-        ausgabe_text()
-      return(list(type = "txt", data = readLines(file_path))) 
-      
-    } else if (file_ext == "csv"){
-      
+    } else if (file_ext == "txt") { # save txt files
+      if(file_name == "Procinema.txt" | file_name == "procinema.txt"){ # save Procinema.txt file
+        # Define save path
+        save_path <- paste0("Input/Procinema/")
+        # remove file 
+        list.files(save_path, full.names = TRUE)|>
+          file.remove()
+        # Define save path
+        save_path <- paste0("Input/Procinema/", tolower(file_name))
+        # Save the file to the specified directory
+        file.copy(from = file_path, to = save_path, overwrite = TRUE)
+        # user interaction
+        paste0("Die Datei \"",file_name, "\" wurde eingelesen und im Verzeichniss \n.../Kinoklub", 
+               save_path, " abgespeichert")|>
+          ausgabe_text()
+        return(list(type = "txt", data = readLines(file_path))) 
+      }else{ # save all other txt files
+        # Define save path
+        save_path <- paste0("Input/advance tickets/", file_name)
+        # Save the file to the specified directory
+        file.copy(from = file_path, to = save_path, overwrite = TRUE)
+        # user interaction
+        paste0("Die Datei \"",file_name, "\" wurde eingelesen und im Verzeichniss \n.../Kinoklub", 
+               save_path, " abgespeichert")|>
+          ausgabe_text()
+        return(list(type = "txt", data = readLines(file_path))) 
+      }
+    } else if (file_ext == "csv"){ # save csv files (WordPress input)
       # Define save path
       save_path <- paste0("Input/WordPress/")
       # remove file 
       list.files(save_path, full.names = TRUE)|>
         file.remove()
-      
       # Define save path
       save_path <- paste0("Input/WordPress/", file_name)
       # Save the file to the specified directory
@@ -1110,6 +1166,9 @@ server <- function(input, output, session) {
         ausgabe_text()
       return(list(type = "csv", data = readLines(file_path))) 
     } else {
+      paste0("Dateierweiterung: ", file_ext, " ist nicht bekannt und wird von diesem Script nicht verwendet.",
+             "\nDatei wurde \"", file_name, "\" wurde nicht gespeichert.")|>
+        ausgabe_text()
       return(NULL)
     }
   })

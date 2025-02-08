@@ -1,0 +1,69 @@
+---
+title: "Filmvorschläge"
+output:
+  html_document:
+    css: Kinoklub_dark.css
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Filmvorschläge
+```{r }
+df_temp <- Filmvorschlaege_wordpress_export|>
+  select(-ID, -Date,-`Image URL`,-`Image Featured`,-trailerlink, -Blinkverleih, -verleih, -youtubeembed, -starts_with("rmp"),
+         -Suisanummer, -altersfreigabe, -`Post Modified Date`,-Sprache, -regie, -Schauspieler, -musik, -Produktionsland, -nameverleiher,-produktion,
+         -Distr, -Besucherzahlen_ch, -ration_from_total_box)|>
+  mutate(Permalink = paste0('<a href="', Permalink, '" target="_blank">', Permalink, '</a>'))|>
+  rename(url = Permalink)|>
+  arrange(Filmtitel)
+```
+
+
+
+```{r fig.width=10}
+df_temp |>
+  DT::datatable(
+    escape = FALSE,
+    options = list(
+      columnDefs = list(
+        list(width = "10%", targets = 1),
+        list(width = "30%", targets = 2),
+        list(width = "15%", targets = 3)
+      )
+    )
+  )
+```
+
+## Bereits gezeigte Filme im Atelierkino
+```{r}
+df_temp <- df_Procinema|>
+  arrange(desc(Datum)) |>
+  mutate(Datum_display = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)))|>
+  select(Datum, Datum_display, Suisanummer, Filmtitel, Spielwochen, Besucherzahl)
+  
+```
+
+```{r}
+# Create the datatable with a hidden Datum column and sort by it
+DT::datatable(df_temp, 
+          options = list(
+            columnDefs = list(
+              list(targets = 1, visible = FALSE),  # Hide the 'Datum' column
+              list(targets = 2, orderData = 0)    # Use the 'Datum' column for sorting 'Datum_display'
+            )
+          ),
+          colnames = c(Datum = "Datum_display")
+)
+```
+
+### Zusammenfassung nach Suisanummer
+```{r}
+DT::datatable(s_df_Procinema|>
+                mutate(ration_from_total_box = signif(ration_from_total_box, 3))
+              )
+  
+```
+
+

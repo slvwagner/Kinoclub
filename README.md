@@ -1,4 +1,4 @@
-Script Version: 2025 V2.03
+Script Version: 2025 V2.04
  
 ## Kinoklub 
 
@@ -499,5 +499,6 @@ zusätzlich werden alle Fimvorschläge als Excel ausgegeben
 2025 V2.01 New Feature: More than one Film per day can be handled  \
 2025 V2.02 New Feature: Files can be uploade via GUI  \
 2025 V2.03 Code clean up  \
+2025 V2.04 Procinema und Filmvorschläge auswerten  \
 
 
