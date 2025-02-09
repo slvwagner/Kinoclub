@@ -507,7 +507,6 @@ server <- function(input, output, session) {
     paste0(getwd(), "/output/Filmvorschlag.html")|>
       browseURL()
     
-    
     file_exists(file.exists("output/webserver/index.html"))
   })
 

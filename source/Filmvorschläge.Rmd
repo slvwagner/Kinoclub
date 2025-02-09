@@ -1,5 +1,5 @@
 ---
-title: "Filmvorschläge"
+title: "Procinema"
 output:
   html_document:
     css: Kinoklub_dark.css
@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo = FALSE)
 
 
 ## Bereits gezeigte Filme im Atelierkino
-### Archiv Procinema
+
 ```{r}
 df_temp <- df_Procinema|>
   arrange(desc(Datum)) |>
@@ -33,13 +33,4 @@ DT::datatable(df_temp,
 )
 ```
 
-
-### Zusammenfassung nach Suisanummer
-```{r}
-DT::datatable(s_df_Procinema|>
-                mutate(ration_from_total_box = signif(ration_from_total_box, 3))|>
-                select(-Spielwochen, -Besucherzahlen_ch, -ration_from_total_box)
-              )
-  
-```
 
