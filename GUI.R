@@ -940,20 +940,21 @@ server <- function(input, output, session) {
     ) |>
       ausgabe_text()
 
-    # read WordPress and procinema data and create excel file for Kinoprogramm
-    tryCatch(
-      {
-        source("source/read_and_convert_wordPress.R", local = WordPress_env)
-      },
-      error = function(e) {
-        ausgabe_text(paste("Filmvorschläge, Fehler beim Einlesen:\n", e$message))
-      }
-    )
+    # # read WordPress and procinema data and create excel file for Kinoprogramm
+    # tryCatch(
+    #   {
+    #     source("source/read_and_convert_wordPress.R", local = WordPress_env)
+    #   },
+    #   error = function(e) {
+    #     ausgabe_text(paste("Filmvorschläge, Fehler beim Einlesen:\n", e$message))
+    #   }
+    # )
     
     # read WordPress and procinema data and create excel file for Kinoprogramm
     tryCatch(
       {
         print(clc)
+        source("source/read_and_convert_wordPress.R", local = WordPress_env)
         FilmvorschlagErstellen(toc(),df_Render())
         webserver()
       },
