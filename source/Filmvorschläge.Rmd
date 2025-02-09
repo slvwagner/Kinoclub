@@ -9,34 +9,6 @@ output:
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
-<!-- ## Filmvorschläge -->
-<!-- ```{r } -->
-<!-- df_temp <- df_Filmvorschlag|> -->
-<!--   select(-trailerlink, -Blinkverleih, -verleih, -youtubeembed, -starts_with("rmp"), -->
-<!--          -Suisanummer, -altersfreigabe, -`Post Modified Date`,-Sprache, -regie, -Schauspieler, -musik, -Produktionsland, -nameverleiher,-produktion, -->
-<!--          -Distr)|> -->
-<!--   mutate(Permalink = paste0('<a href="', Permalink, '" target="_blank">', Permalink, '</a>'))|> -->
-<!--   rename(url = Permalink)|> -->
-<!--   arrange(Filmtitel) -->
-
-
-<!-- ``` -->
-
-
-
-<!-- ```{r fig.width=10} -->
-<!-- df_temp |> -->
-<!--   DT::datatable( -->
-<!--     escape = FALSE, -->
-<!--     options = list( -->
-<!--       columnDefs = list( -->
-<!--         list(width = "10%", targets = 1), -->
-<!--         list(width = "30%", targets = 2), -->
-<!--         list(width = "15%", targets = 3) -->
-<!--       ) -->
-<!--     ) -->
-<!--   ) -->
-<!-- ``` -->
 
 ## Bereits gezeigte Filme im Atelierkino
 ```{r}
@@ -63,7 +35,8 @@ DT::datatable(df_temp,
 ### Zusammenfassung nach Suisanummer
 ```{r}
 DT::datatable(s_df_Procinema|>
-                mutate(ration_from_total_box = signif(ration_from_total_box, 3))
+                mutate(ration_from_total_box = signif(ration_from_total_box, 3))|>
+                select(-Spielwochen, -Besucherzahlen_ch, -ration_from_total_box)
               )
   
 ```
