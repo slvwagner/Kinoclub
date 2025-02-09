@@ -14,7 +14,11 @@ knitr::opts_chunk$set(echo = FALSE)
 df_temp <- df_Procinema|>
   arrange(desc(Datum)) |>
   mutate(Datum_display = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)))|>
-  select(Datum, Datum_display, Suisanummer, Filmtitel, Spielwochen, Besucherzahl)
+  select(Datum, Datum_display, Suisanummer, Filmtitel, Spielwochen, Besucherzahl)|>
+  rename(
+    "Besucher Atelierkino" = Spielwochen,
+    "Besucher Schweiz" = Besucherzahl
+  )
   
 ```
 
