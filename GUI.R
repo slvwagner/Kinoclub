@@ -935,14 +935,13 @@ server <- function(input, output, session) {
       "Bericht:\nFilmumfrage auswertung ausgeführt",
       "\nDie Exceldatei kann jetzt heruntergeladen werden, oder finde die Dateien hier:",
       "\n", getwd(), "/output/data/Filmvorschläge.xlsx",
-      "\n", getwd(), "/output/Filmvorschlag.html"
+      "\n", getwd(), "/output/Archiv.html"
     ) |>
       ausgabe_text()
 
     # read WordPress and procinema data and create excel file for Kinoprogramm
     tryCatch(
       {
-        print(clc)
         source("source/read_and_convert_wordPress.R", local = WordPress_env)
         FilmvorschlagErstellen(toc(),df_Render())
         webserver()
@@ -970,6 +969,8 @@ server <- function(input, output, session) {
     # Delete all files prior to creating new files 
     list.files("output/", "html", full.names = TRUE)|>
       file.remove()
+    list.files("output/pict/", "html", full.names = TRUE)|>
+      file.remove()
 
     tryCatch({
       # erstellen von Verzeichnissen
@@ -981,24 +982,18 @@ server <- function(input, output, session) {
 
       # Statistik-Bericht erstellen
       StatistikErstellen(toc(), df_Render())
-      paste("Bericht: \nStatistik erstellt") |>
-        writeLines()
 
       # Jahresrechnung-Bericht erstellen
-      print(clc)
       JahresrechnungErstellen(toc(), df_Render())
-
-      paste("Bericht: \nJahresrechnung erstellt") |>
-        writeLines()
 
       # Bericht(e) Abrechnung pro Filmforführung erstellen
       df_mapping__ <- mapping(data_env$df_mapping$Datum, data_env$df_mapping$Suisanummer)
-      AbrechnungErstellen(df_mapping__, get("df_Abrechnung", envir = data_env), df_Render = df_Render(), toc = toc())
-
-      print(clc)
-
-      paste("Bericht: \nAlle Abrechnungen für Filmvorführungen wurden erstellt.") |>
-        writeLines()
+      AbrechnungErstellen(
+        df_mapping__, 
+        get("df_Abrechnung", envir = data_env), df_Render = df_Render(), toc = toc()
+        )
+      source("source/read_and_convert_wordPress.R", local = WordPress_env)
+      FilmvorschlagErstellen(toc(),df_Render())
 
       # Create webserver data
       webserver()
