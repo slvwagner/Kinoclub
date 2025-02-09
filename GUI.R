@@ -1098,6 +1098,7 @@ server <- function(input, output, session) {
     
       get("df_Abrechnung", envir = data_env) |>
         filter(between(Datum, start_datum, end_datum)) |>
+        arrange(desc(Datum), desc(Anfang))|>
         mutate(
           Datum = format(Datum, "%d.%m.%Y"),
           Zeit = format(Anfang, "%H%M")) |>
