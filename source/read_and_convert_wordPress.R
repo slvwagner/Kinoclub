@@ -27,7 +27,7 @@ if(length(c_filePath) > 1)   {
   }
 
 # read in csv export from wordpress homepage 
-Filmvorschlaege_wordpress_export <- Filmvorschlaege_wordpress_export <-
+df_Filmvorschlag <- df_Filmvorschlag <-
   read_csv(
     c_filePath,
     col_types = cols(
@@ -64,7 +64,7 @@ Filmvorschlaege_wordpress_export <- Filmvorschlaege_wordpress_export <-
     )
   )
 
-Filmvorschlaege_wordpress_export <- Filmvorschlaege_wordpress_export|>
+df_Filmvorschlag <- df_Filmvorschlag|>
   select(-starts_with("Author"),
          -ends_with("Status"))
 
@@ -77,20 +77,20 @@ p <- or("<"%R%one_or_more(WRD)%R%">",
         "\\n"
         )
 
-Filmvorschlaege_wordpress_export$Content <- Filmvorschlaege_wordpress_export$Content|>
+df_Filmvorschlag$Content <- df_Filmvorschlag$Content|>
   lapply(function(x){
     str_trim(x)|>
       str_remove_all(p)
   })|>
   unlist()
 
-Filmvorschlaege_wordpress_export$Content[6]
+df_Filmvorschlag$Content[6]
 
 p <- or("\"",
         "\\\"")
 
-for (ii in 1:nrow(Filmvorschlaege_wordpress_export)) {
-  x <- Filmvorschlaege_wordpress_export$Content[ii]|>
+for (ii in 1:nrow(df_Filmvorschlag)) {
+  x <- df_Filmvorschlag$Content[ii]|>
     str_remove_all(p)
   run <- TRUE
   while (run) {
@@ -105,25 +105,153 @@ for (ii in 1:nrow(Filmvorschlaege_wordpress_export)) {
       x <- x|>
         substring(m_pos[,"start"][2]+1,nchar(x))
     }else{
-      Filmvorschlaege_wordpress_export$Content[ii] <- x
+      df_Filmvorschlag$Content[ii] <- x
       break
     }
   }
 }
 
-# Join Procinema data 
-Filmvorschlaege_wordpress_export <- Filmvorschlaege_wordpress_export|>
-  rename(Filmtitel = Title, 
-         Suisanummer = suisa)|>
-  left_join(s_df_Procinema,
-            by = join_by(Filmtitel, Suisanummer))|>
-  arrange((Filmtitel))
+goggle_API_key <- "AIzaSyDT9UNqUEn6msvC3MnFoiKBIB3d7BSmMbc"
 
+# Matching column Filmtitle
+df_Filmvorschlag <- df_Filmvorschlag|>
+  mutate(Filmtitel = tolower(Title)|>str_squish(),
+         Filmtitel = str_remove(Filmtitel, OPEN_PAREN%R%one_or_more(WRD)%R%SPC%R%one_or_more(WRD)%R%SPC%R%"erhältlich"%R%CLOSE_PAREN),
+         Filmtitel = str_extract_all(Filmtitel,one_or_more(WRD))|>lapply(paste, collapse = " ")|>unlist()|>str_squish()
+  )|>
+  arrange(Filmtitel)
+
+# find the removed by distinct Films
+df_removed <- df_Filmvorschlag|>
+  select(ID, Title, Filmtitel)|>
+  anti_join(
+    df_Filmvorschlag|>
+      distinct(Filmtitel, .keep_all = T)|>
+      select(ID, Title, Filmtitel),
+    by = c("ID")
+    )
+df_removed
+
+# consolidate the multiple Films to single row
+df_temp <- df_Filmvorschlag|>
+  filter(Filmtitel %in% df_removed$Filmtitel)|>
+  distinct(Filmtitel)|>
+  pull()|>
+  lapply(function(ii){
+    df_Filmvorschlag|>
+      filter(Filmtitel == ii)|>
+      as.matrix()|>
+      apply(2, paste, collapse = ";")|>
+      t()|>
+      as_tibble()
+  })|>
+  bind_rows()|>
+  mutate(Filmtitel = df_removed$Filmtitel)
+df_temp
+
+# find affected rows (IDs)
+c_IDs <- df_temp$ID|>str_split(";")|>unlist()|>as.integer()
+
+# Filmvorschläge reduziert 
+df_Filmvorschläge_reduced <- bind_rows(
+  df_temp,
+  df_Filmvorschlag|>
+    filter(!(ID %in% c_IDs))|>
+    as.matrix()|>
+    as_tibble()
+)|>
+  apply(1, str_remove, pattern = "NA;NA")|>
+  apply(2, str_remove, pattern = "NA;")|>
+  apply(1, str_remove, pattern = ";NA")|>
+  apply(2, function(x){
+    ifelse(x == "", NA, x)
+  })|>
+  as_tibble()
+names(df_Filmvorschläge_reduced) <- names(df_Filmvorschlag)
+df_Filmvorschläge_reduced
+
+
+# Filmtitle anpassung
+s_df_Procinema <- s_df_Procinema|>
+  mutate(Filmtitel = tolower(Filmtitel)|>str_squish(),
+         Filmtitel = str_extract_all(Filmtitel,one_or_more(WRD))|>lapply(paste, collapse = " ")|>unlist()|>str_squish()
+         )
+s_df_Procinema
+
+df_temp <- df_Filmvorschläge_reduced|>
+  rename(Suisanummer = suisa)|>
+  select(ID, Title, Filmtitel, Suisanummer)|>
+  separate(Suisanummer, into = c("suisa1","suisa2"), sep = ";")|>
+  mutate(Suisanummer = if_else(is.na(suisa1), suisa2, suisa1))|>
+  select(-suisa1, -suisa2)|>
+  suppressWarnings()
+df_temp
+
+# join by Filmtitel
+df_temp <- df_temp|>
+  left_join(
+    s_df_Procinema,
+    by = join_by(Filmtitel)
+    )|>
+  rename(Suisanummer = Suisanummer.x)|>
+  select(-Suisanummer.y,-ration_from_total_box, -Besucherzahlen_ch)
+df_temp
+
+# join by Suisanummer
+df_temp <- df_temp|>
+  select(ID, Title, Filmtitel, Suisanummer)|>
+  left_join(
+    s_df_Procinema,
+    by = join_by(Suisanummer)
+  )|>
+  rename(Filmtitel = Filmtitel.x)|>
+  select(-Filmtitel.y,-ration_from_total_box, -Besucherzahlen_ch, -Title)|>
+  separate(ID, into = c("ID1","ID2"), sep = ";")|>
+  suppressWarnings()|>
+  rename(ID = ID1)|>
+  select(-ID2)|>
+  mutate(ID = as.integer(ID))
+df_temp
+
+# rename 
+df_Filmvorschläge_reduced <- df_Filmvorschläge_reduced|>
+  rename(Suisanummer = suisa)|>
+  separate(ID, into = c("ID1","ID2"), sep = ";")|>
+  suppressWarnings()|>
+  rename(ID = ID1)|>
+  select(-ID2)|>
+  mutate(ID = as.integer(ID))
+df_Filmvorschläge_reduced
+
+# jkllsjdf
+df_Filmvorschlag <- df_Filmvorschläge_reduced|>
+  filter(ID %in% df_temp$ID)|>
+  mutate(ID = as.integer(ID))|>
+  left_join(df_temp,
+            by = join_by(ID))|>
+  rename(
+    Filmtitel = Filmtitel.x,
+    Suisanummer = Suisanummer.x
+    )|>
+  select(-Filmtitel.y, -Suisanummer.y)|>
+  select("Suisanummer", "Filmtitel", "Content","Spielwochen", "Besucherzahl", 
+         "Date", "Permalink", "Image URL", "Image Featured", "Schlagwörter", 
+         "trailerlink", "altersfreigabe", "Sprache", "Produktionsland", "regie", 
+         "produktion", "Schauspieler", "musik", "rmp_vote_count", "rmp_rating_val_sum", 
+         "rmp_avg_rating", "youtubeembed", "autorname",  "releasedate", "verleih", 
+         "Blinkverleih","nameverleiher","filmserie", "Post Modified Date", "Distr"
+         )|>
+  arrange(desc(Besucherzahl))
+
+
+remove(df_removed, df_temp, df_Filmvorschläge_reduced)
+
+################################################################################################################################
 # Auswertung Plot 
-Filmvorschlaege_wordpress_export|>
+df_Filmvorschlag|>
   mutate(`Durchschnittliche-\nbewertung` = factor(rmp_avg_rating))|>
   ggplot(aes(Filmtitel, (rmp_vote_count), fill = `Durchschnittliche-\nbewertung`))+ 
-  scale_y_continuous(breaks = 0:max(Filmvorschlaege_wordpress_export$rmp_vote_count, na.rm = T))+
+  # scale_y_continuous(breaks = 0:max(df_Filmvorschlag$rmp_vote_count, na.rm = T))+
   geom_col(na.rm = TRUE)+
   labs(y = "Anzahl Bewertungen",
        x = "Filmtitel",
@@ -133,7 +261,7 @@ Filmvorschlaege_wordpress_export|>
 
 c_fileName <- "output/data/Filmvorschläge.jpg"
 
-ggplot2::ggsave(c_fileName, width = 25, height = 3 + nrow(Filmvorschlaege_wordpress_export) * 0.35, units = "cm")
+ggplot2::ggsave(c_fileName, width = 25, height = 3 + nrow(df_Filmvorschlag) * 0.35, units = "cm")
 
 
 # Write xlsx
@@ -145,12 +273,12 @@ wrap_text <- createStyle(
 )
 
 # Create the workbook and build it with the data
-wb_xlsx <- buildWorkbook(Filmvorschlaege_wordpress_export, asTable = T, tableStyle = "TableStyleMedium2")
+wb_xlsx <- buildWorkbook(df_Filmvorschlag, asTable = T, tableStyle = "TableStyleMedium2")
 c_sheet_name <- "Filmvorschläge"
 names(wb_xlsx) <- c_sheet_name
 
 # Add style to the desired cells
-addStyle(wb_xlsx, sheet = c_sheet_name, style = wrap_text, rows = 1:nrow(Filmvorschlaege_wordpress_export) + 1, cols = 3)
+addStyle(wb_xlsx, sheet = c_sheet_name, style = wrap_text, rows = 1:nrow(df_Filmvorschlag) + 1, cols = 3)
 setColWidths(wb_xlsx, sheet = c_sheet_name, cols = 2, widths = 28)
 setColWidths(wb_xlsx, sheet = c_sheet_name, cols = 3, widths = 80)
 setColWidths(wb_xlsx, sheet = c_sheet_name, cols = 4, widths = 21)
@@ -158,27 +286,27 @@ setColWidths(wb_xlsx, sheet = c_sheet_name, cols = 28, widths = 26)
 setColWidths(wb_xlsx, sheet = c_sheet_name, cols = 33, widths = 21)
 
 ## External Hyperlink
-x <- Filmvorschlaege_wordpress_export$Permalink
-class(x) <- "hyperlink"
-writeData(wb_xlsx, c_sheet_name,, x = x, startRow = 2,startCol = 5)
-
-x <- Filmvorschlaege_wordpress_export$`Image URL`
-class(x) <- "hyperlink"
-writeData(wb_xlsx, c_sheet_name,, x = x, startRow = 2,startCol = 6)
-
-x <- Filmvorschlaege_wordpress_export$`Image Featured`
+x <- df_Filmvorschlag$Permalink
 class(x) <- "hyperlink"
 writeData(wb_xlsx, c_sheet_name,, x = x, startRow = 2,startCol = 7)
 
-x <- Filmvorschlaege_wordpress_export$trailerlink
+x <- df_Filmvorschlag$`Image URL`
+class(x) <- "hyperlink"
+writeData(wb_xlsx, c_sheet_name,, x = x, startRow = 2,startCol = 8)
+
+x <- df_Filmvorschlag$`Image Featured`
 class(x) <- "hyperlink"
 writeData(wb_xlsx, c_sheet_name,, x = x, startRow = 2,startCol = 9)
 
-x <- Filmvorschlaege_wordpress_export$youtubeembed
+x <- df_Filmvorschlag$trailerlink
+class(x) <- "hyperlink"
+writeData(wb_xlsx, c_sheet_name,, x = x, startRow = 2,startCol = 11)
+
+x <- df_Filmvorschlag$youtubeembed
 class(x) <- "hyperlink"
 writeData(wb_xlsx, c_sheet_name,, x = x, startRow = 2,startCol = 21)
 
-x <- Filmvorschlaege_wordpress_export$Blinkverleih
+x <- df_Filmvorschlag$Blinkverleih
 class(x) <- "hyperlink"
 writeData(wb_xlsx, c_sheet_name,, x = x, startRow = 2,startCol = 25)
 
@@ -193,11 +321,10 @@ insertImage(
   startRow = 1,
   startCol = 1,
   width = 25,
-  height = 3 + nrow(Filmvorschlaege_wordpress_export) * 0.35,
+  height = 3 + nrow(df_Filmvorschlag) * 0.35,
   units = "cm",
   m_pos
 )
-
 
 # Save the workbook to a file
 saveWorkbook(wb_xlsx, file = "output/data/Filmvorschläge.xlsx", overwrite = TRUE )

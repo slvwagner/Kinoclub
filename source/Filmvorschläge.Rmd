@@ -11,13 +11,15 @@ knitr::opts_chunk$set(echo = FALSE)
 
 ## Filmvorschläge
 ```{r }
-df_temp <- Filmvorschlaege_wordpress_export|>
-  select(-ID, -Date,-`Image URL`,-`Image Featured`,-trailerlink, -Blinkverleih, -verleih, -youtubeembed, -starts_with("rmp"),
+df_temp <- df_Filmvorschlag|>
+  select(-trailerlink, -Blinkverleih, -verleih, -youtubeembed, -starts_with("rmp"),
          -Suisanummer, -altersfreigabe, -`Post Modified Date`,-Sprache, -regie, -Schauspieler, -musik, -Produktionsland, -nameverleiher,-produktion,
-         -Distr, -Besucherzahlen_ch, -ration_from_total_box)|>
+         -Distr)|>
   mutate(Permalink = paste0('<a href="', Permalink, '" target="_blank">', Permalink, '</a>'))|>
   rename(url = Permalink)|>
   arrange(Filmtitel)
+
+
 ```
 
 
