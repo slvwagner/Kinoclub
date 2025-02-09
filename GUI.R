@@ -89,7 +89,7 @@ StatistikErstellen <- function(toc, df_Render) {
 # Statistik-Bericht erstellen
 FilmvorschlagErstellen <- function(toc, df_Render) {
   # Einlesen
-  c_raw <- readLines("source/Filmvorschläge.Rmd")
+  c_raw <- readLines("source/Procinema.Rmd")
   # Inhaltsverzeichnis
   if(toc|>as.logical()){# neues file schreiben mit toc
     c_raw|>
