@@ -242,7 +242,7 @@ df_Filmvorschlag <- df_Filmvorschläge_reduced|>
          "Blinkverleih","nameverleiher","filmserie", "Post Modified Date", "Distr"
          )|>
   arrange(desc(Besucherzahl))
-
+df_Filmvorschlag
 
 remove(df_removed, df_temp, df_Filmvorschläge_reduced)
 
