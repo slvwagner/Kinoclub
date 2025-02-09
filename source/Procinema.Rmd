@@ -9,7 +9,6 @@ output:
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
-
 ## Bereits gezeigte Filme im Atelierkino
 ```{r}
 df_temp <- df_Procinema|>
