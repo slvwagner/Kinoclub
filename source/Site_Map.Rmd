@@ -34,10 +34,10 @@ a:hover {
 
 ## Statistik
 
-## Jahresrechnung
+## Procinema
 
 ## Abrechnung Filmvorführungen
 
 ## Verleiherabrechnung
 
-## Filmvorschlag
+## Jahresrechnung
