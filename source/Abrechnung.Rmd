@@ -135,7 +135,7 @@ if(r_is.defined(df_keine_Rechnung)){
       writeLines("Achtung es gibt noch keine Verleiherabrechnung für diesen Film.")
     } else{
       df_temp <- df_Abrechnung |>
-        filter(Datum %in% c(c_Date[ii]))
+        filter(Datum %in% c(df_mapping$Datum[ii]))
   
       if (!is.na(df_temp$`Link Datum`)) {
         paste(
