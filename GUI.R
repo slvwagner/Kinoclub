@@ -89,7 +89,7 @@ StatistikErstellen <- function(toc, df_Render) {
 # Statistik-Bericht erstellen
 FilmvorschlagErstellen <- function(toc, df_Render) {
   # Einlesen
-  c_raw <- readLines("source/Procinema.Rmd")
+  c_raw <- readLines("source/Archiv.Rmd")
   # Inhaltsverzeichnis
   if(toc|>as.logical()){# neues file schreiben mit toc
     c_raw|>
@@ -102,7 +102,7 @@ FilmvorschlagErstellen <- function(toc, df_Render) {
   # Render
   rmarkdown::render(input = paste0("source/temp.Rmd"),
                     output_format  = df_Render$Render,
-                    output_file = paste0("Procinema",df_Render$fileExt),
+                    output_file = paste0("Archiv",df_Render$fileExt),
                     output_dir = paste0(getwd(), "/output"),
                     envir = WordPress_env
   )
@@ -341,13 +341,13 @@ webserver <- function() {
         FileName = "Jahresrechnung.html"
       )
     },
-    if(file.exists("output/Procinema.html")){
+    if(file.exists("output/Archiv.html")){
       tibble(
         `Suisa-Nummer` = NA,
         Filmtitel = NA,
         Datum = NA,
-        typ = "Procinema",
-        FileName = "Procinema.html"
+        typ = "Archiv",
+        FileName = "Archiv.html"
       )
     },
   )
@@ -383,8 +383,7 @@ webserver <- function() {
       library(magick)
       writeLines("Site-Map previews werden erstellt, einen Moment bitte: ")
       
-      c_select <- !((m_Film$FileName|>str_remove(".html")) %in% (list.files("output/pict/")|>str_remove(".html.png"))
-      )
+      c_select <- !((m_Film$FileName|>str_remove(".html")) %in% (list.files("output/pict/")|>str_remove(".html.png")))
       c_select
       
       ii <- 1
@@ -454,7 +453,7 @@ webserver <- function() {
                    c_raw[(c_index + jj + 1):length(c_raw)])
       }
       # Linkliste einfügen
-      if(c_typ_Berichte[ii]=="Procinema"){
+      if(c_typ_Berichte[ii]=="Archiv"){
         for (jj in 1:length(m_Film$FileName[c_select])) {
           c_raw <- c(c_raw[1:(c_index)],
                      paste0("[",m_Film$FileName[c_select][jj],"](", c_url[c_select][jj],")  ",m_Film$Filmtitel[jj],"  \\"),
@@ -940,16 +939,6 @@ server <- function(input, output, session) {
     ) |>
       ausgabe_text()
 
-    # # read WordPress and procinema data and create excel file for Kinoprogramm
-    # tryCatch(
-    #   {
-    #     source("source/read_and_convert_wordPress.R", local = WordPress_env)
-    #   },
-    #   error = function(e) {
-    #     ausgabe_text(paste("Filmvorschläge, Fehler beim Einlesen:\n", e$message))
-    #   }
-    # )
-    
     # read WordPress and procinema data and create excel file for Kinoprogramm
     tryCatch(
       {
