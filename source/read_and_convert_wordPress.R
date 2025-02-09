@@ -235,21 +235,30 @@ df_Filmvorschlag <- df_Filmvorschläge_reduced|>
     )|>
   select(-Filmtitel.y, -Suisanummer.y)|>
   select("Suisanummer", "Filmtitel", "Content","Spielwochen", "Besucherzahl", 
-         "Date", "Permalink", "Image URL", "Image Featured", "Schlagwörter", 
-         "trailerlink", "altersfreigabe", "Sprache", "Produktionsland", "regie", 
-         "produktion", "Schauspieler", "musik", "rmp_vote_count", "rmp_rating_val_sum", 
-         "rmp_avg_rating", "youtubeembed", "autorname",  "releasedate", "verleih", 
-         "Blinkverleih","nameverleiher","filmserie", "Post Modified Date", "Distr"
+         "Schlagwörter", 
+         "trailerlink", 
+         "Schauspieler",   
+         "rmp_avg_rating", "rmp_vote_count",
+         "youtubeembed", "autorname",  "releasedate", "verleih", 
+         "nameverleiher","filmserie", "Post Modified Date" 
          )|>
-  arrange(desc(Besucherzahl))
-df_Filmvorschlag
+  arrange(desc(Besucherzahl))|>
+  mutate(Verleiher = if_else(is.na(verleih), nameverleiher,verleih),
+         trailerlink = if_else(is.na(trailerlink), trailerlink, youtubeembed)
+  )|>
+  select(-verleih, -nameverleiher)|>
+  rename(Kinoklubmitglied = autorname,
+         Rating = rmp_avg_rating,
+         Trailerlink = trailerlink
+  )
+
 
 remove(df_removed, df_temp, df_Filmvorschläge_reduced)
 
 ################################################################################################################################
 # Auswertung Plot 
 df_Filmvorschlag|>
-  mutate(`Durchschnittliche-\nbewertung` = factor(rmp_avg_rating))|>
+  mutate(`Durchschnittliche-\nbewertung` = factor(Rating))|>
   ggplot(aes(Filmtitel, (rmp_vote_count), fill = `Durchschnittliche-\nbewertung`))+ 
   # scale_y_continuous(breaks = 0:max(df_Filmvorschlag$rmp_vote_count, na.rm = T))+
   geom_col(na.rm = TRUE)+
@@ -264,6 +273,31 @@ c_fileName <- "output/data/Filmvorschläge.jpg"
 ggplot2::ggsave(c_fileName, width = 25, height = 3 + nrow(df_Filmvorschlag) * 0.35, units = "cm")
 
 
+################################################################################################################################
+df_Filmvorschlag <- df_Filmvorschlag|>
+  mutate(Besucherzahl = if_else(is.na(Besucherzahl), Trailerlink, youtubeembed)
+         )|>
+  select(-Trailerlink, -rmp_vote_count, -youtubeembed, -Spielwochen)|>
+  rename(Trailerlink = Besucherzahl)|>
+  mutate(Rating = as.integer(Rating))
+
+df_Filmvorschlag <- df_Filmvorschlag|>
+  mutate(filmserie = str_remove(filmserie, "keine"),
+         filmserie = str_remove(filmserie, ";keine"),
+         filmserie = if_else(filmserie == "",NA,filmserie)
+         )|>
+  separate(col = `Post Modified Date`, into = c("Date1","Date2"), sep = ";")|>
+  mutate(Date1 = if_else(Date1 < Date2, Date1 , Date2)
+         )|>
+  rename("Erscheinungsdatum" = Date1)|>
+  select(-Date2)|>
+  mutate(Datum = ymd(Erscheinungsdatum))|>
+  suppressWarnings()|>
+  mutate(Schauspieler = str_squish(Schauspieler))
+
+df_Filmvorschlag
+
+################################################################################################################################
 # Write xlsx
 library(openxlsx)
 
@@ -279,36 +313,25 @@ names(wb_xlsx) <- c_sheet_name
 
 # Add style to the desired cells
 addStyle(wb_xlsx, sheet = c_sheet_name, style = wrap_text, rows = 1:nrow(df_Filmvorschlag) + 1, cols = 3)
+addStyle(wb_xlsx, sheet = c_sheet_name, style = wrap_text, rows = 1:nrow(df_Filmvorschlag) + 1, cols = 4)
+addStyle(wb_xlsx, sheet = c_sheet_name, style = wrap_text, rows = 1:nrow(df_Filmvorschlag) + 1, cols = 5)
+addStyle(wb_xlsx, sheet = c_sheet_name, style = wrap_text, rows = 1:nrow(df_Filmvorschlag) + 1, cols = 6)
+addStyle(wb_xlsx, sheet = c_sheet_name, style = wrap_text, rows = 1:nrow(df_Filmvorschlag) + 1, cols = 7)
+addStyle(wb_xlsx, sheet = c_sheet_name, style = wrap_text, rows = 1:nrow(df_Filmvorschlag) + 1, cols = 8)
+addStyle(wb_xlsx, sheet = c_sheet_name, style = wrap_text, rows = 1:nrow(df_Filmvorschlag) + 1, cols = 9)
+addStyle(wb_xlsx, sheet = c_sheet_name, style = wrap_text, rows = 1:nrow(df_Filmvorschlag) + 1, cols = 10)
+addStyle(wb_xlsx, sheet = c_sheet_name, style = wrap_text, rows = 1:nrow(df_Filmvorschlag) + 1, cols = 11)
+addStyle(wb_xlsx, sheet = c_sheet_name, style = wrap_text, rows = 1:nrow(df_Filmvorschlag) + 1, cols = 12)
+addStyle(wb_xlsx, sheet = c_sheet_name, style = wrap_text, rows = 1:nrow(df_Filmvorschlag) + 1, cols = 13)
 setColWidths(wb_xlsx, sheet = c_sheet_name, cols = 2, widths = 28)
 setColWidths(wb_xlsx, sheet = c_sheet_name, cols = 3, widths = 80)
 setColWidths(wb_xlsx, sheet = c_sheet_name, cols = 4, widths = 21)
 setColWidths(wb_xlsx, sheet = c_sheet_name, cols = 28, widths = 26)
 setColWidths(wb_xlsx, sheet = c_sheet_name, cols = 33, widths = 21)
 
-## External Hyperlink
-x <- df_Filmvorschlag$Permalink
+x <- df_Filmvorschlag$Trailerlink
 class(x) <- "hyperlink"
-writeData(wb_xlsx, c_sheet_name,, x = x, startRow = 2,startCol = 7)
-
-x <- df_Filmvorschlag$`Image URL`
-class(x) <- "hyperlink"
-writeData(wb_xlsx, c_sheet_name,, x = x, startRow = 2,startCol = 8)
-
-x <- df_Filmvorschlag$`Image Featured`
-class(x) <- "hyperlink"
-writeData(wb_xlsx, c_sheet_name,, x = x, startRow = 2,startCol = 9)
-
-x <- df_Filmvorschlag$trailerlink
-class(x) <- "hyperlink"
-writeData(wb_xlsx, c_sheet_name,, x = x, startRow = 2,startCol = 11)
-
-x <- df_Filmvorschlag$youtubeembed
-class(x) <- "hyperlink"
-writeData(wb_xlsx, c_sheet_name,, x = x, startRow = 2,startCol = 21)
-
-x <- df_Filmvorschlag$Blinkverleih
-class(x) <- "hyperlink"
-writeData(wb_xlsx, c_sheet_name,, x = x, startRow = 2,startCol = 25)
+writeData(wb_xlsx, c_sheet_name,, x = x, startRow = 2,startCol = 4)
 
 
 # insert plots to work book
