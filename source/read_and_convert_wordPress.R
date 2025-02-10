@@ -350,12 +350,6 @@ df_Filmvorschlag <- df_Filmvorschlag|>
   select(Suisanummer, Filmtitel, Filmbeschrieb, Erscheinungsdatum, Verleiher,`Film bereits gezeigt?`, 
          Kinoklubmitglied, `Post Modified Date`, Schlagwörter, `Link zum Trailer`)
 
-df_Filmvorschlag <- df_Filmvorschlag|>
-  mutate(Erscheinungsdatum = as.Date(Erscheinungsdatum),
-         `Post Modified Date` = as.Date(`Post Modified Date`)
-         )
-df_Filmvorschlag
-
 # #######################################################################
 # df_Filmvorschlag$`Image Featured`
 # 
@@ -392,41 +386,50 @@ df_Filmvorschlag
 # df_Filmvorschlag
 
 
+df_Filmvorschlag <- df_Filmvorschlag|>
+  mutate(Erscheinungsdatum = as.Date(Erscheinungsdatum),
+         `Post Modified Date` = as.Date(`Post Modified Date`)
+         )
+df_Filmvorschlag
+
+
 ################################################################################################################################
-# Write xlsx
 library(openxlsx)
 
 # Define the style for text wrapping
-wrap_text <- createStyle(
-  wrapText = TRUE
-)
+wrap_text <- createStyle(wrapText = TRUE)
+
+# Define the style for date formatting
+date_style <- createStyle(numFmt = "dd.mm.yyyy")
 
 # Create the workbook and build it with the data
-wb_xlsx <- buildWorkbook(df_Filmvorschlag, asTable = T, tableStyle = "TableStyleMedium2")
+wb_xlsx <- buildWorkbook(df_Filmvorschlag, asTable = TRUE, tableStyle = "TableStyleMedium2")
 c_sheet_name <- "Filmvorschläge"
 names(wb_xlsx) <- c_sheet_name
 
-# Add style to the desired cells
-addStyle(wb_xlsx, sheet = c_sheet_name, style = wrap_text, rows = 1:nrow(df_Filmvorschlag) + 1, cols = 3)
-addStyle(wb_xlsx, sheet = c_sheet_name, style = wrap_text, rows = 1:nrow(df_Filmvorschlag) + 1, cols = 4)
-addStyle(wb_xlsx, sheet = c_sheet_name, style = wrap_text, rows = 1:nrow(df_Filmvorschlag) + 1, cols = 5)
-addStyle(wb_xlsx, sheet = c_sheet_name, style = wrap_text, rows = 1:nrow(df_Filmvorschlag) + 1, cols = 6)
-addStyle(wb_xlsx, sheet = c_sheet_name, style = wrap_text, rows = 1:nrow(df_Filmvorschlag) + 1, cols = 7)
-addStyle(wb_xlsx, sheet = c_sheet_name, style = wrap_text, rows = 1:nrow(df_Filmvorschlag) + 1, cols = 8)
-addStyle(wb_xlsx, sheet = c_sheet_name, style = wrap_text, rows = 1:nrow(df_Filmvorschlag) + 1, cols = 9)
-addStyle(wb_xlsx, sheet = c_sheet_name, style = wrap_text, rows = 1:nrow(df_Filmvorschlag) + 1, cols = 10)
-setColWidths(wb_xlsx, sheet = c_sheet_name, cols = 2, widths = 28)
-setColWidths(wb_xlsx, sheet = c_sheet_name, cols = 3, widths = 80)
-setColWidths(wb_xlsx, sheet = c_sheet_name, cols = 4, widths = 21)
-setColWidths(wb_xlsx, sheet = c_sheet_name, cols = 28, widths = 26)
-setColWidths(wb_xlsx, sheet = c_sheet_name, cols = 33, widths = 21)
+# Add style to the desired columnsg
+for (col in 3:10) {
+  addStyle(wb_xlsx, sheet = c_sheet_name, style = wrap_text, 
+           rows = 1:(nrow(df_Filmvorschlag) + 1), cols = col, gridExpand = TRUE)
+}
 
+# Apply date format to the desired columns
+for (ii in c(4,8)) {
+  addStyle(wb_xlsx, sheet = c_sheet_name, style = date_style, rows = 2:(nrow(df_Filmvorschlag) + 1), cols = ii, gridExpand = TRUE)
+}
+
+# Set column widths
+setColWidths(wb_xlsx, sheet = c_sheet_name, 
+             cols = c(2, 3, 4, 28, 33), 
+             widths = c(28, 80, 21, 26, 21)
+             )
+
+# Format column 10 as hyperlinks
 x <- df_Filmvorschlag$`Link zum Trailer`
 class(x) <- "hyperlink"
-writeData(wb_xlsx, c_sheet_name,, x = x, startRow = 2,startCol = 10)
+writeData(wb_xlsx, c_sheet_name, x = x, startRow = 2, startCol = 10)
 
-
-# insert plots to work book
+# Insert plots to the workbook
 addWorksheet(wb_xlsx, "Plot")
 
 insertImage(
@@ -437,11 +440,10 @@ insertImage(
   startCol = 1,
   width = 25,
   height = 3 + nrow(df_Filmvorschlag) * 0.35,
-  units = "cm",
-  m_pos
+  units = "cm"
 )
 
 # Save the workbook to a file
-saveWorkbook(wb_xlsx, file = "output/data/Filmvorschläge.xlsx", overwrite = TRUE )
+saveWorkbook(wb_xlsx, file = "output/data/Filmvorschläge.xlsx", overwrite = TRUE)
 
 writeLines("Wordpress daten ausgewertet")
