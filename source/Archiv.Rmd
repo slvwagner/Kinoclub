@@ -30,7 +30,7 @@ DT::datatable(
   options = list(
     pageLength = 100,
     columnDefs = list(
-      list(targets = 1, visible = FALSE), # Hide the 'Datum' column
+      list(targets = 1, visible = TRUE), # Hide the 'Datum' column
       list(targets = 2, orderData = 0)    # Use the 'Datum' column for sorting 'Datum_display'
       )
     ),
@@ -38,4 +38,46 @@ DT::datatable(
 )
 ```
 
+## Yes
+```{r}
+DT::datatable(
+  df_temp,
+  filter = "top",
+  options = list(
+    pageLength = 100,
+    columnDefs = list(
+      list(targets = 1, visible = FALSE), # Hide the 'Datum' column
+      list(targets = 2, orderData = 0)    # Use the 'Datum' column for sorting 'Datum_display'
+    )
+  ),
+  colnames = c(Datum = "Datum_display"),
+  callback = JS("
+    function(settings, json) {
+      // Add date range filter
+      var table = this.api();
+      
+      // Create date range inputs
+      $('#example_filter').append('<br><label>Start Date: <input type=\"date\" id=\"min-date\"></label>');
+      $('#example_filter').append('<label> End Date: <input type=\"date\" id=\"max-date\"></label>');
+      
+      // Custom filter function
+      $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
+        var min = $('#min-date').val();
+        var max = $('#max-date').val();
+        var date = data[0]; // Assuming the first column contains the date
+        
+        if (min && date < min) return false;
+        if (max && date > max) return false;
+        return true;
+      });
+
+      // Redraw table on date change
+      $('#min-date, #max-date').on('change', function() {
+        table.draw();
+      });
+    }
+  ")
+)
+
+```
 
