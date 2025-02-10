@@ -111,8 +111,6 @@ for (ii in 1:nrow(df_Filmvorschlag)) {
   }
 }
 
-goggle_API_key <- "AIzaSyDT9UNqUEn6msvC3MnFoiKBIB3d7BSmMbc"
-
 # Matching column Filmtitle
 df_Filmvorschlag <- df_Filmvorschlag|>
   mutate(Filmtitel = tolower(Title)|>str_squish(),
@@ -120,6 +118,8 @@ df_Filmvorschlag <- df_Filmvorschlag|>
          Filmtitel = str_extract_all(Filmtitel,one_or_more(WRD))|>lapply(paste, collapse = " ")|>unlist()|>str_squish()
   )|>
   arrange(Filmtitel)
+
+df_Filmvorschlag
 
 # find the removed by distinct Films
 df_removed <- df_Filmvorschlag|>
@@ -240,7 +240,7 @@ df_Filmvorschlag <- df_Filmvorschläge_reduced|>
          "Schauspieler",   
          "rmp_avg_rating", "rmp_vote_count",
          "youtubeembed", "autorname",  "releasedate", "verleih", 
-         "nameverleiher","filmserie", "Post Modified Date" 
+         "nameverleiher","filmserie", "Post Modified Date", `Image Featured` 
          )|>
   arrange(desc(Besucherzahl))|>
   mutate(Verleiher = if_else(is.na(verleih), nameverleiher,verleih),
@@ -252,6 +252,7 @@ df_Filmvorschlag <- df_Filmvorschläge_reduced|>
          Trailerlink = trailerlink
   )
 
+df_Filmvorschlag
 
 remove(df_removed, df_temp, df_Filmvorschläge_reduced)
 
@@ -273,29 +274,123 @@ c_fileName <- "output/data/Filmvorschläge.jpg"
 ggplot2::ggsave(c_fileName, width = 25, height = 3 + nrow(df_Filmvorschlag) * 0.35, units = "cm")
 
 
-################################################################################################################################
+library(lubridate)
+library(stringr)
+
+parse_dates <- function(date_vector) {
+  parsed_dates <- sapply(date_vector, function(date) {
+    if (is.na(date) || date == "") {
+      return(NA)
+    }
+    
+    # Handle multiple dates separated by ";"
+    date_parts <- unlist(strsplit(date, ";"))
+    parsed_part <- sapply(date_parts, function(part) {
+      part <- str_trim(part)
+      
+      # Check and parse different formats
+      if (str_detect(part, "^\\d{4}-\\d{2}-\\d{2}$")) {
+        return(as.Date(part))  # YYYY-MM-DD
+      } else if (str_detect(part, "^\\d{4}$")) {
+        return(as.Date(paste0(part, "-01-01")))  # YYYY assumed to be start of year
+      } else if (str_detect(part, "^\\d{2}\\.\\d{2}\\.\\d{4}$")) {
+        return(dmy(part))  # DD.MM.YYYY
+      } else if (str_detect(part, "^[A-Za-z]+, \\d{1,2} [A-Za-z]+, \\d{4}$")) {
+        return(dmy(str_remove(part, "^[A-Za-z]+, ")))  # "Day, DD Month, YYYY"
+      }
+      
+      return(NA)  # Return NA if format is unknown
+    })
+    
+    # Return the first valid parsed date (if multiple found)
+    return(parsed_part[!is.na(parsed_part)][1])
+  })
+  
+  return(as.Date(parsed_dates, origin = "1970-01-01"))
+}
+
 df_Filmvorschlag <- df_Filmvorschlag|>
-  mutate(Besucherzahl = if_else(is.na(Besucherzahl), Trailerlink, youtubeembed)
+  mutate(Trailerlink = if_else(is.na(Besucherzahl), Trailerlink, youtubeembed),
+         Besucherzahl = if_else(is.na(Besucherzahl), FALSE, TRUE)
          )|>
-  select(-Trailerlink, -rmp_vote_count, -youtubeembed, -Spielwochen)|>
-  rename(Trailerlink = Besucherzahl)|>
+  select(-rmp_vote_count, -youtubeembed, -Spielwochen, -Schauspieler)|>
+  mutate(filmserie = str_remove(filmserie, "keine"),
+         filmserie = str_remove(filmserie, ";keine"),
+         filmserie = if_else(filmserie == "",NA,filmserie),
+         filmserie = str_remove(filmserie, ";"%R%END)
+         )|>
+  rename("Link zum Trailer" = Trailerlink,
+         "Film bereits gezeigt?" = Besucherzahl,
+         Filmserie = filmserie
+         )|>
   mutate(Rating = as.integer(Rating))
 
 df_Filmvorschlag <- df_Filmvorschlag|>
-  mutate(filmserie = str_remove(filmserie, "keine"),
-         filmserie = str_remove(filmserie, ";keine"),
-         filmserie = if_else(filmserie == "",NA,filmserie)
-         )|>
-  separate(col = `Post Modified Date`, into = c("Date1","Date2"), sep = ";")|>
-  mutate(Date1 = if_else(Date1 < Date2, Date1 , Date2)
-         )|>
-  rename("Erscheinungsdatum" = Date1)|>
-  select(-Date2)|>
-  mutate(Datum = ymd(Erscheinungsdatum))|>
-  suppressWarnings()|>
-  mutate(Schauspieler = str_squish(Schauspieler))
+  separate(Suisanummer, c("Suisanummer", "suisa"), sep = ";")|>
+  mutate(Suisanummer = if_else(is.na(Suisanummer), suisa, Suisanummer))|>
+  select(-suisa)|>
+  suppressWarnings()
 
+
+df_Filmvorschlag <- df_Filmvorschlag|>
+  mutate(releasedate = parse_dates(releasedate))|>
+  separate(`Post Modified Date`,into = c("Post Modified Date","Post"), sep = ";")|>
+  mutate(`Post Modified Date` = parse_date(`Post Modified Date`),
+         Post = parse_date(Post),
+         `Post Modified Date` = if_else(`Post Modified Date` > Post, `Post Modified Date`, Post)
+         )|>
+  select(-Post)|>
+  suppressWarnings()
+
+
+df_Filmvorschlag <- df_Filmvorschlag|>
+  rename(Filmbeschrieb = Content,
+         Erscheinungsdatum = releasedate
+         )|>
+  select(Suisanummer, Filmtitel, Filmbeschrieb, Erscheinungsdatum, Verleiher,`Film bereits gezeigt?`, 
+         Kinoklubmitglied, `Post Modified Date`, Schlagwörter, `Link zum Trailer`)
+
+df_Filmvorschlag <- df_Filmvorschlag|>
+  mutate(Erscheinungsdatum = as.Date(Erscheinungsdatum),
+         `Post Modified Date` = as.Date(`Post Modified Date`)
+         )
 df_Filmvorschlag
+
+# #######################################################################
+# df_Filmvorschlag$`Image Featured`
+# 
+# download_picts <- function(image_urls, download_dir) {
+#   # Define download directory
+#   download_dir <- "output/data/pict"  # Change this to your desired folder
+#   dir.create(download_dir, showWarnings = FALSE)
+#   
+#   # Download each image
+#   for (url in image_urls) {
+#     file_name <- paste0(download_dir, "/", basename(url))  # Extract file name
+#     tryCatch({
+#       download.file(url, destfile = file_name, mode = "wb")
+#       message("Downloaded: ", file_name)
+#     }, error = function(e) {
+#       message("Failed to download: ", url)
+#     })
+#   }
+# }
+# c_path <- "output/data/pict"
+# 
+# # download picturs
+# df_Filmvorschlag$`Image Featured`|>
+#   download_picts(c_path)
+# 
+# 
+# df_Filmvorschlag$Image <- df_Filmvorschlag$`Image Featured`|>
+#   str_split("/")|>
+#   lapply(function(x){
+#     x[length(x)]
+#   })|>
+#   unlist()
+# 
+# df_Filmvorschlag
+
 
 ################################################################################################################################
 # Write xlsx
@@ -320,18 +415,15 @@ addStyle(wb_xlsx, sheet = c_sheet_name, style = wrap_text, rows = 1:nrow(df_Film
 addStyle(wb_xlsx, sheet = c_sheet_name, style = wrap_text, rows = 1:nrow(df_Filmvorschlag) + 1, cols = 8)
 addStyle(wb_xlsx, sheet = c_sheet_name, style = wrap_text, rows = 1:nrow(df_Filmvorschlag) + 1, cols = 9)
 addStyle(wb_xlsx, sheet = c_sheet_name, style = wrap_text, rows = 1:nrow(df_Filmvorschlag) + 1, cols = 10)
-addStyle(wb_xlsx, sheet = c_sheet_name, style = wrap_text, rows = 1:nrow(df_Filmvorschlag) + 1, cols = 11)
-addStyle(wb_xlsx, sheet = c_sheet_name, style = wrap_text, rows = 1:nrow(df_Filmvorschlag) + 1, cols = 12)
-addStyle(wb_xlsx, sheet = c_sheet_name, style = wrap_text, rows = 1:nrow(df_Filmvorschlag) + 1, cols = 13)
 setColWidths(wb_xlsx, sheet = c_sheet_name, cols = 2, widths = 28)
 setColWidths(wb_xlsx, sheet = c_sheet_name, cols = 3, widths = 80)
 setColWidths(wb_xlsx, sheet = c_sheet_name, cols = 4, widths = 21)
 setColWidths(wb_xlsx, sheet = c_sheet_name, cols = 28, widths = 26)
 setColWidths(wb_xlsx, sheet = c_sheet_name, cols = 33, widths = 21)
 
-x <- df_Filmvorschlag$Trailerlink
+x <- df_Filmvorschlag$`Link zum Trailer`
 class(x) <- "hyperlink"
-writeData(wb_xlsx, c_sheet_name,, x = x, startRow = 2,startCol = 4)
+writeData(wb_xlsx, c_sheet_name,, x = x, startRow = 2,startCol = 10)
 
 
 # insert plots to work book
