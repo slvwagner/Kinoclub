@@ -934,8 +934,7 @@ server <- function(input, output, session) {
     paste0(
       "Bericht:\nFilmumfrage auswertung ausgeführt",
       "\nDie Exceldatei kann jetzt heruntergeladen werden, oder finde die Dateien hier:",
-      "\n", getwd(), "/output/data/Filmvorschläge.xlsx",
-      "\n", getwd(), "/output/Archiv.html"
+      "\n", getwd(), "/output/data/Filmvorschläge.xlsx"
     ) |>
       ausgabe_text()
 
