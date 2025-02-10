@@ -815,6 +815,85 @@ ui <- shiny::fluidPage(
 
 # Server-Logik
 server <- function(input, output, session) {
+  
+  # open Einkauf Excel
+  observeEvent(input$open_einkauf, {
+    c_file <- list.files(path = "Input")
+    c_file <- c_file[str_detect(c_file, "Einkauf")]
+    
+    # take the latest date 
+    if(length(c_file) > 1) {
+      df_temp <- tibble(file = c_file,
+             date = dmy(c_file)
+             )|>
+        arrange(date)
+  
+      c_file <- df_temp$file[nrow(df_temp)]
+    }
+
+    file_path <- paste0(getwd(),"/Input/", c_file)  # Update this with your actual file path
+    if (file.exists(file_path)) {
+      shell.exec(file_path)  # Opens the file in Excel
+    } else {
+      showModal(modalDialog(
+        title = "Error",
+        "File not found! Check the file path.",
+        easyClose = TRUE
+      ))
+    }
+  })
+  
+  # open Spezeialpreise Excel
+  observeEvent(input$open_EinAus, {
+    c_file <- list.files(path = "Input")
+    c_file <- c_file[str_detect(c_file, "Einnahmen")]
+    
+    file_path <- paste0(getwd(),"/Input/", c_file)  
+    if (file.exists(file_path)) {
+      shell.exec(file_path)  # Opens the file in Excel
+    } else {
+      showModal(modalDialog(
+        title = "Error",
+        "File not found! Check the file path.",
+        easyClose = TRUE
+      ))
+    }
+  })
+  
+  # open Spezialpreise Excel
+  observeEvent(input$open_Spez, {
+    c_file <- list.files(path = "Input")
+    c_file <- c_file[str_detect(c_file, "Spezial")]
+    
+    file_path <- paste0(getwd(),"/Input/", c_file)  
+    if (file.exists(file_path)) {
+      shell.exec(file_path)  # Opens the file in Excel
+    } else {
+      showModal(modalDialog(
+        title = "Error",
+        "File not found! Check the file path.",
+        easyClose = TRUE
+      ))
+    }
+  })
+  
+  # open Verleiherabgaben Excel
+  observeEvent(input$open_Verleih, {
+    c_file <- list.files(path = "Input")
+    c_file <- c_file[str_detect(c_file, "Verleiher")]
+    
+    file_path <- paste0(getwd(),"/Input/", c_file)  
+    if (file.exists(file_path)) {
+      shell.exec(file_path)  # Opens the file in Excel
+    } else {
+      showModal(modalDialog(
+        title = "Error",
+        "File not found! Check the file path.",
+        easyClose = TRUE
+      ))
+    }
+  })
+  
   # Überwachung Button Daten Einlesen
   shiny::observeEvent(input$DatenEinlesen, {
     print(clc)
@@ -1310,6 +1389,10 @@ server <- function(input, output, session) {
   # Dynamically update the output panel content
   output$dynamicContent_output_panel <- shiny::renderUI({
     shiny::tagList(
+      actionButton("open_einkauf", "Einkauf Kiosk"),
+      actionButton("open_EinAus", "Einnahmen und Ausgaben"),
+      actionButton("open_Spez", "Spezialpreise"),
+      actionButton("open_Verleih", "Verleiherabgaben"),
       if (file_exists()) {
         shiny::tags$h4("Webserver:")
       },
