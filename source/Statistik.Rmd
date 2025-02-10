@@ -22,7 +22,7 @@ Bericht wurde am `r act_date` erstellt.
 ```{r}
 df_temp <- df_Abrechnung |>
   arrange(desc(Datum)) |>
-  mutate(Datum_display = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)),
+  mutate(Datum_display = format(Datum, "%d.%m.%Y"),
          Anfang = paste0(lubridate::hour(Anfang), ":", 
                          lubridate::minute(Anfang) |> as.character() |> formatC(width = 2, flag = "0")|>str_replace(SPC%R%"0", "00")
                          )
@@ -217,7 +217,7 @@ df_temp <- df_Abrechnung|>
   # select(Datum, Anfang, `Suisa Nummer`, Filmtitel, Brutto, )|>
   # rename(`Umsatz [CHF]` = Brutto)|>
   arrange(desc(Datum))|>
-  mutate(Datum_display = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)),
+  mutate(Datum_display = format(Datum, "%d.%m.%Y"),
          Anfang = paste0(lubridate::hour(Anfang), ":",
                          lubridate::minute(Anfang) |> as.character() |> formatC(width = 2, flag = "0")|>str_replace(SPC%R%"0", "00")
                          )
@@ -540,7 +540,7 @@ df_temp <- df_Abrechnung|>
 ```{r echo=FALSE}
 df_temp <- df_Abrechnung|>
   arrange(desc(Datum))|>
-  mutate(Datum_display = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)),
+  mutate(Datum_display = format(Datum, "%d.%m.%Y"),
          Anfang = paste0(lubridate::hour(Anfang),":", 
                          lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>str_replace(SPC,"0"))
          # `SUISA-Abzug [CHF]` = round(`SUISA-Vorabzug [CHF]`,2),
@@ -614,7 +614,7 @@ df_temp <- df_Abrechnung_kiosk|>
   arrange(desc(Datum))|> 
   rename(`Umsatz [CHF]` = `Kassiert [CHF]`,
          `Kiosk Gewinn [CHF]` = `Gewinn [CHF]`)|>
-  mutate(Datum_display = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)))|>
+  mutate(Datum_display = format(Datum, "%d.%m.%Y"))|>
   mutate(Anfang = paste0(lubridate::hour(Anfang),":", 
                          lubridate::minute(Anfang)|>as.character()|>formatC(format = "0", width = 2)|>
                            str_replace(SPC,"0"))
@@ -826,7 +826,7 @@ df_temp <- df_show |>
   select(-Ende, -Saal, -Version, -Alter)|>
   filter(!is.na(`Suisa Nummer`))|>
   rename(`Umsatz [CHF]`= Umsatz)|>
-  mutate(Datum_display = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)),
+  mutate(Datum_display = format(Datum, "%d.%m.%Y"),
          )
 
 ```
@@ -951,7 +951,7 @@ df_temp <- df_show |>
   select(-Ende, -Saal, -Version, -Alter)|>
   filter(!is.na(`Suisa Nummer`))|>
   rename(`Umsatz [CHF]`= Umsatz)|>
-  mutate(Datum_display = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)),
+  mutate(Datum_display = format(Datum, "%d.%m.%Y")
          )
 
 ```

@@ -62,13 +62,8 @@ if(nrow(df_temp2)>0){
 
 ```{r}
 df_temp2 |>
-  mutate(Datum = paste0(
-    lubridate::day(Datum),
-    ".",
-    lubridate::month(Datum),
-    ".",
-    lubridate::year(Datum)
-  )) |>
+  mutate(Datum = format(Datum, "%d.%m.%Y")
+         ) |>
   knitr::kable()
 
 ```
@@ -87,7 +82,7 @@ df_temp2|>
 ```{r}
 df_temp <- df_Abrechnung|>
   arrange(desc(Datum))|>
- mutate(Datum_display = paste0(lubridate::day(Datum),".", lubridate::month(Datum),".", lubridate::year(Datum)),
+ mutate(Datum_display = format(Datum, "%d.%m.%Y"),
         Anfang = paste0(lubridate::hour(Anfang), ":", 
                          lubridate::minute(Anfang) |> as.character() |> formatC(width = 2, flag = "0")|>str_replace(SPC%R%"0", "00")
                         )
@@ -332,7 +327,8 @@ df_temp <- df_manko_uerberschuss|>
   select(Datum, Suisanummer, Filmtitel, `Überschuss / Manko`) |>
   rename(`Überschuss / Manko [CHF]` = `Überschuss / Manko`) |>
   arrange((Datum))|>
-  mutate(Datum_display = paste0(day(Datum),".",month(Datum),".",year(Datum)))
+  mutate(Datum_display = format(Datum, "%d.%m.%Y")
+         )
 
 df_temp <- df_temp|>
   select(Datum, Datum_display, Suisanummer, Filmtitel, `Überschuss / Manko [CHF]`)
@@ -393,10 +389,10 @@ df_temp <- atelierkino_abo|>
   mutate(id = paste0("https://www.advance-ticket.ch/badge/", id))|>
   rename(url = id)|>
   mutate(
-    creation = paste0(day(creation),".", month(creation), ".", year(creation)),
-    first_use = paste0(day(first_use),".", month(first_use), ".", year(first_use)),
-    last_use = paste0(day(last_use),".", month(last_use), ".", year(last_use)),
-    expiration = paste0(day(expiration),".", month(expiration), ".", year(expiration))
+    creation = format(creation, "%d.%m.%Y"),
+    first_use = format(first_use, "%d.%m.%Y"),
+    last_use = format(last_use, "%d.%m.%Y"),
+    expiration = format(expiration, "%d.%m.%Y")
     )|>
   mutate(url = paste0('<a href="', url, '" target="_blank">', url, '</a>'),
          `Anzahl Tickets` = 6-count_use,
@@ -428,11 +424,12 @@ df_temp <- atelierkino_gutschein|>
   filter(expiration > as.Date(paste0(Abrechungsjahr,"-12-31")))|>
   mutate(id = paste0("https://www.advance-ticket.ch/badge/", id))|>
   rename(url = id)|>
-  mutate(creation = paste0(day(creation),".", month(creation), ".", year(creation)),
-       first_use = paste0(day(first_use),".", month(first_use), ".", year(first_use)),
-       last_use = paste0(day(last_use),".", month(last_use), ".", year(last_use)),
-       expiration = paste0(day(expiration),".", month(expiration), ".", year(expiration))
-       )|>
+  mutate(
+    creation = format(creation, "%d.%m.%Y"),
+    first_use = format(first_use, "%d.%m.%Y"),
+    last_use = format(last_use, "%d.%m.%Y"),
+    expiration = format(expiration, "%d.%m.%Y")
+    )|>
   mutate(url = paste0('<a href="', url, '" target="_blank">', url, '</a>'))|>
   rename(`Betrag [CHF]` = amount)|>
   select(-first_use, -count_use)
@@ -462,10 +459,10 @@ df_temp <- atelierkino_foerderer|>
          )|>
   mutate(id = paste0("https://www.advance-ticket.ch/badge/", id))|>
   rename(url = id)|>
-  mutate(creation = paste0(day(creation),".", month(creation), ".", year(creation)),
-       first_use = paste0(day(first_use),".", month(first_use), ".", year(first_use)),
-       last_use = paste0(day(last_use),".", month(last_use), ".", year(last_use)),
-       expiration = paste0(day(expiration),".", month(expiration), ".", year(expiration))
+  mutate(creation = format(creation, "%d.%m.%Y"),
+       first_use = format(first_use, "%d.%m.%Y"),
+       last_use = format(last_use, "%d.%m.%Y"),
+       expiration = format(expiration, "%d.%m.%Y")
        )|>
     mutate(url = paste0('<a href="', url, '" target="_blank">', url, '</a>'))|>
   select(-first_use)
