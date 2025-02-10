@@ -128,7 +128,6 @@ convert_data_Film_txt <- function(fileName) {
   return(l_Eintritt)
 }
 
-
 # Extrakt Verkäufe  und Überschuss / Manko
 convert_data_kiosk_txt <- function(c_files) {
   
@@ -277,12 +276,10 @@ convert_data_kiosk_txt <- function(c_files) {
   return(l_return)
 }
 
-
 # Errorhandling open excel files
 c_openfiles <- list.files(paste0("Input/"),"~")
 if(length(c_openfiles) > 0) stop(paste0("\nFile: ", c_openfiles ," ist geöffnet und muss geschlossen werden!"))
 remove(c_openfiles)
-
 
 # Einnahmen und Ausgaben einlesen aus Excel 
 c_file <- "Einnahmen und Ausgaben.xlsx"
@@ -290,10 +287,23 @@ c_file <- "Einnahmen und Ausgaben.xlsx"
 # error handling
 stopifnot(file.exists(paste0("input/",c_file)))
 
+# read in Excel data
 Einnahmen_und_Ausgaben <- paste0("input/",c_file)|>
   col_env$get_excel_data()
 
 # error handling
+# suisa nummer automatisch korrigieren 
+Einnahmen_und_Ausgaben$Ausgaben$Suisanummer <- Einnahmen_und_Ausgaben$Ausgaben$Suisanummer|>
+  str_squish()|>
+  str_extract(pattern = DGT%R%DGT%R%DGT%R%DGT%R%DOT%R%DGT%R%DGT%R%DGT) 
+Einnahmen_und_Ausgaben$Ausgaben$Suisanummer
+
+Einnahmen_und_Ausgaben$Einnahmen$Suisanummer <- Einnahmen_und_Ausgaben$Einnahmen$Suisanummer|>
+  str_squish()|>
+  str_extract(pattern = DGT%R%DGT%R%DGT%R%DGT%R%DOT%R%DGT%R%DGT%R%DGT) 
+Einnahmen_und_Ausgaben$Einnahmen$Suisanummer
+
+
 # Suisanummer vorhanden für Kategorie Verleiher / Event in den Ausgaben
 df_temp <- Einnahmen_und_Ausgaben[["Ausgaben"]]|>
   filter(Kategorie %in% c("Event","Verleiher"))|>
@@ -462,12 +472,21 @@ paste0("Input/", c_file)|>
   file.exists()|>
   stopifnot()
 
+# Spezialpreise einlesen
 Spezialpreisekiosk <-
   paste0("Input/", c_file)|>
   col_env$get_excel_data()
 
 Spezialpreisekiosk <-Spezialpreisekiosk[[1]]|>
   mutate(Datum = as.Date(Datum))
+
+
+# error handling
+# suisa nummer automatisch korrigieren 
+Spezialpreisekiosk$Suisanummer <-  Spezialpreisekiosk$Suisanummer|>
+  str_squish()|>
+  str_extract(pattern = DGT%R%DGT%R%DGT%R%DGT%R%DOT%R%DGT%R%DGT%R%DGT) 
+Spezialpreisekiosk$Suisanummer
 
 # error handling
 if(is.na(Spezialpreisekiosk$Suisanummer)|>sum() > 0) stop("\nEs wurden nicht alle Suisanummern im file:\n .../Kinoklub/input/Spezialpreisekiosk.xlsx definiert")
@@ -758,6 +777,11 @@ df_verleiherabgaben <- col_env$get_excel_data(c_file)[["Verleiherabgaben"]]|>
   mutate(Datum = as.Date(Datum),
          `Link Datum` = as.Date(`Link Datum`))|>
   left_join(col_env$get_excel_data(c_file)[["Kinoförderer gratis"]], by = "Verleiher")
+
+# Suisa automatisch korrigieren 
+df_verleiherabgaben$Suisanummer <- df_verleiherabgaben$Suisanummer|>
+  str_squish()|>
+  str_extract(pattern = DGT%R%DGT%R%DGT%R%DGT%R%DOT%R%DGT%R%DGT%R%DGT) 
 
 # error handling 
 df_temp <- df_verleiherabgaben|>
