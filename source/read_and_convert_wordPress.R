@@ -277,6 +277,7 @@ ggplot2::ggsave(c_fileName, width = 25, height = 3 + nrow(df_Filmvorschlag) * 0.
 library(lubridate)
 library(stringr)
 
+# function to extract date from string in different formats 
 parse_dates <- function(date_vector) {
   parsed_dates <- sapply(date_vector, function(date) {
     if (is.na(date) || date == "") {
@@ -298,7 +299,6 @@ parse_dates <- function(date_vector) {
       } else if (str_detect(part, "^[A-Za-z]+, \\d{1,2} [A-Za-z]+, \\d{4}$")) {
         return(dmy(str_remove(part, "^[A-Za-z]+, ")))  # "Day, DD Month, YYYY"
       }
-      
       return(NA)  # Return NA if format is unknown
     })
     
@@ -342,7 +342,61 @@ df_Filmvorschlag <- df_Filmvorschlag|>
   select(-Post)|>
   suppressWarnings()
 
+df_Filmvorschlag <- df_Filmvorschlag|>
+  separate(`Image Featured`, into = c("Image Featured","Image"), sep = ";")|>
+  suppressWarnings()|>
+  mutate(`Image Featured` = if_else(is.na(`Image Featured`), Image, `Image Featured`)
+         )|>
+  select(-Image)
 
+# ################################################################################################################################
+# # download pictures and insert it to excel output
+# download_picts <- function(image_urls, download_dir) {
+#   # Define download directory
+#   download_dir <- "output/data/pict"  # Change this to your desired folder
+#   dir.create(download_dir, showWarnings = FALSE)
+# 
+#   # Download each image
+#   for (url in image_urls) {
+#     if(!is.na(url)){
+#       file_name <- paste0(download_dir, "/", basename(url))  # Extract file name
+#       tryCatch({
+#         download.file(url, destfile = file_name, mode = "wb")
+#         message("Downloaded: ", file_name)
+#       }, error = function(e) {
+#         message("Failed to download: ", url)
+#       })
+#     }
+#   }
+# }
+# 
+# # get pictues 
+# c_path <- "output/data/pict"
+# if(dir.exists("output/data/pict")){
+#   # find or download picts
+#   c_picts <- df_Filmvorschlag$`Image Featured`|>
+#     str_split("/")|>
+#     lapply(function(x){
+#       x[length(x)]
+#     })|>
+#     unlist()
+# }else{
+#   # download picturs
+#   df_Filmvorschlag$`Image Featured`|>
+#     download_picts(c_path)
+#   
+#   # find or download picts
+#   c_picts <- df_Filmvorschlag$`Image Featured`|>
+#     str_split("/")|>
+#     lapply(function(x){
+#       x[length(x)]
+#     })|>
+#     unlist()
+# }
+# c_picts
+
+
+################################################################################################################################
 df_Filmvorschlag <- df_Filmvorschlag|>
   rename(Filmbeschrieb = Content,
          Erscheinungsdatum = releasedate
@@ -350,47 +404,13 @@ df_Filmvorschlag <- df_Filmvorschlag|>
   select(Suisanummer, Filmtitel, Filmbeschrieb, Erscheinungsdatum, Verleiher,`Film bereits gezeigt?`, 
          Kinoklubmitglied, `Post Modified Date`, Schlagwörter, `Link zum Trailer`)
 
-# #######################################################################
-# df_Filmvorschlag$`Image Featured`
-# 
-# download_picts <- function(image_urls, download_dir) {
-#   # Define download directory
-#   download_dir <- "output/data/pict"  # Change this to your desired folder
-#   dir.create(download_dir, showWarnings = FALSE)
-#   
-#   # Download each image
-#   for (url in image_urls) {
-#     file_name <- paste0(download_dir, "/", basename(url))  # Extract file name
-#     tryCatch({
-#       download.file(url, destfile = file_name, mode = "wb")
-#       message("Downloaded: ", file_name)
-#     }, error = function(e) {
-#       message("Failed to download: ", url)
-#     })
-#   }
-# }
-# c_path <- "output/data/pict"
-# 
-# # download picturs
-# df_Filmvorschlag$`Image Featured`|>
-#   download_picts(c_path)
-# 
-# 
-# df_Filmvorschlag$Image <- df_Filmvorschlag$`Image Featured`|>
-#   str_split("/")|>
-#   lapply(function(x){
-#     x[length(x)]
-#   })|>
-#   unlist()
-# 
-# df_Filmvorschlag
-
-
 df_Filmvorschlag <- df_Filmvorschlag|>
   mutate(Erscheinungsdatum = as.Date(Erscheinungsdatum),
          `Post Modified Date` = as.Date(`Post Modified Date`)
          )
-df_Filmvorschlag
+
+# used to insert pictures
+# df_Filmvorschlag$pict <- c_picts
 
 
 ################################################################################################################################
@@ -418,28 +438,44 @@ for (ii in c(4,8)) {
   addStyle(wb_xlsx, sheet = c_sheet_name, style = date_style, rows = 2:(nrow(df_Filmvorschlag) + 1), cols = ii, gridExpand = TRUE)
 }
 
-# Set column widths
-setColWidths(wb_xlsx, sheet = c_sheet_name, 
-             cols = c(2, 3, 4, 28, 33), 
-             widths = c(28, 80, 21, 26, 21)
-             )
-
 # Format column 10 as hyperlinks
 x <- df_Filmvorschlag$`Link zum Trailer`
 class(x) <- "hyperlink"
 writeData(wb_xlsx, c_sheet_name, x = x, startRow = 2, startCol = 10)
 
+# # Insert images in column 11, starting at row 2
+# c_path <- "output/data/pict"
+# image_files <- paste0(getwd(),"/",c_path, "/", c_picts)  # Assuming you have a column with image file paths
+# 
+# # Loop through each row and insert the corresponding image in column 11
+# for (ii in seq_along(image_files)) {
+#   if (!is.na(image_files[ii]) && file.exists(image_files[ii])) {
+#     insertImage(
+#       wb_xlsx,
+#       sheet = c_sheet_name,
+#       file = image_files[ii],
+#       startRow = ii + 1,  # Start from row 2 (since row 1 is the header)
+#       startCol = 11,      # Insert in column 11
+#       width = 8,          # Adjust width to fit inside a cell
+#       height = 6,         # Adjust height to fit inside a cell
+#       units = "cm"
+#     )
+#   }
+# }
+
+# Set column widths
+setColWidths(wb_xlsx, sheet = c_sheet_name, 
+             cols =   c( 1,  2,  3, 11), 
+             widths = c(15, 15, 80, 50)
+)
+
 # Insert plots to the workbook
 addWorksheet(wb_xlsx, "Plot")
 
 insertImage(
-  wb_xlsx,
-  sheet = "Plot",
-  file = c_fileName,
-  startRow = 1,
-  startCol = 1,
-  width = 25,
-  height = 3 + nrow(df_Filmvorschlag) * 0.35,
+  wb_xlsx,  sheet = "Plot",  file = c_fileName,
+  startRow = 1,  startCol = 1,
+  width = 25,  height = 3 + nrow(df_Filmvorschlag) * 0.35,
   units = "cm"
 )
 
