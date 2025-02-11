@@ -754,11 +754,6 @@ tryCatch({
 })
 
 # Shiny reactive variables
-
-# script running status
-c_script_running_status <- shiny::reactiveVal(0)
-c_script_running_time <- shiny::reactiveTimer(intervalMs = 500)
-
 # Sollen Inhaltsverzeichnisse erstellt werden
 toc <- shiny::reactiveVal(TRUE)
 
@@ -1052,6 +1047,7 @@ server <- function(input, output, session) {
       # read WordPress and procinema data and create excel file for Kinoprogramm
       tryCatch(
         {
+          source("source/procinema.R", local = WordPress_env)
           shiny::incProgress(1/5, detail = paste("Step", 2, "of 5"))
           source("source/read_and_convert_wordPress.R", local = WordPress_env)
           shiny::incProgress(1/5, detail = paste("Step", 3, "of 5"))

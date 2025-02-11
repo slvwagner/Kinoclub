@@ -1,18 +1,6 @@
 library(rebus)
 library(tidyverse)
 
-# read Procinema data (Statistik)
-tryCatch(
-  {
-    print(clc)
-    source("source/procinema.R")
-  },
-  error = function(e) {
-    error = paste("Procinema daten konnten nicht eingelesen werden:\n", e$message)
-    stop(error)
-  }
-)
-
 # Error handling
 c_path <- "Input/WordPress/"
 c_filePath <- list.files(c_path,full.names = T)
