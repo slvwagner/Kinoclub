@@ -754,6 +754,11 @@ tryCatch({
 })
 
 # Shiny reactive variables
+
+# script running status
+c_script_running_status <- shiny::reactiveVal(0)
+c_script_running_time <- shiny::reactiveTimer(intervalMs = 500)
+
 # Sollen Inhaltsverzeichnisse erstellt werden
 toc <- shiny::reactiveVal(TRUE)
 
@@ -816,8 +821,11 @@ ui <- shiny::fluidPage(
 # Server-Logik
 server <- function(input, output, session) {
   
-  # open Einkauf Excel
-  observeEvent(input$open_einkauf, {
+  # # Script running status update
+  # shiny::observeEvent()
+  
+  # open Excel Einkauf
+  shiny::observeEvent(input$open_einkauf, {
     c_file <- list.files(path = "Input")
     c_file <- c_file[str_detect(c_file, "Einkauf")]
     
@@ -843,8 +851,8 @@ server <- function(input, output, session) {
     }
   })
   
-  # open Spezeialpreise Excel
-  observeEvent(input$open_EinAus, {
+  # open Excel Einnahmen und Ausgaben
+  shiny::observeEvent(input$open_EinAus, {
     c_file <- list.files(path = "Input")
     c_file <- c_file[str_detect(c_file, "Einnahmen")]
     
@@ -860,8 +868,8 @@ server <- function(input, output, session) {
     }
   })
   
-  # open Spezialpreise Excel
-  observeEvent(input$open_Spez, {
+  # open Excel Spezialpreise
+  shiny::observeEvent(input$open_Spez, {
     c_file <- list.files(path = "Input")
     c_file <- c_file[str_detect(c_file, "Spezial")]
     
@@ -877,8 +885,8 @@ server <- function(input, output, session) {
     }
   })
   
-  # open Verleiherabgaben Excel
-  observeEvent(input$open_Verleih, {
+  # open Excel Verleiherabgaben Excel
+  shiny::observeEvent(input$open_Verleih, {
     c_file <- list.files(path = "Input")
     c_file <- c_file[str_detect(c_file, "Verleiher")]
     
