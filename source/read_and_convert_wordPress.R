@@ -154,7 +154,8 @@ df_Filmvorschläge_reduced <- bind_rows(
   apply(2, function(x){
     ifelse(x == "", NA, x)
   })|>
-  as_tibble()
+  as_tibble()|>
+  suppressWarnings()
 names(df_Filmvorschläge_reduced) <- names(df_Filmvorschlag)
 df_Filmvorschläge_reduced
 
