@@ -1,9 +1,9 @@
 #############################################################################################################################################
 # Bitte beachte das README.md und die Dokumentation im Verzeichniss ".../doc"
-# Diesen Script erstellt alle Berichte für den Kinoklub.
 # 
 # Autor: Florian Wagner
 # florian.wagner@wagnius.ch
+# slvwagner@gmail.com
 
 # 2024 V1.0 Go Live mit Stefan Jablonski, Nadia und Florian Wagner
 # 2024 V1.1 Verkauf von Abos und Gutscheinen wird in der Jahresabarechnung berücksichtigt  
@@ -29,13 +29,15 @@
 # 2025 V2.03 Code clean up
 # 2025 V2.04 Procinema und Filmvorschläge auswerten
 # 2025 V2.05 Bereits gezeigte Filme im Archiv
-# 
+# 2025 V2.06 Script running status bar
+
+
 #############################################################################################################################################
 # Vorbereiten / Installieren
 #############################################################################################################################################
 rm(list = ls())
 source("source/functions.R")
-c_script_version <- "2025 V2.05"
+c_script_version <- "2025 V2.06"
 
 #############################################################################################################################################
 # Packages loading

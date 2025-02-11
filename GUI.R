@@ -754,6 +754,11 @@ tryCatch({
 })
 
 # Shiny reactive variables
+
+# script running status
+c_script_running_status <- shiny::reactiveVal(0)
+c_script_running_time <- shiny::reactiveTimer(intervalMs = 500)
+
 # Sollen Inhaltsverzeichnisse erstellt werden
 toc <- shiny::reactiveVal(TRUE)
 
@@ -815,9 +820,9 @@ ui <- shiny::fluidPage(
 
 # Server-Logik
 server <- function(input, output, session) {
-  
-  # open Einkauf Excel
-  observeEvent(input$open_einkauf, {
+
+  # open Excel Einkauf
+  shiny::observeEvent(input$open_einkauf, {
     c_file <- list.files(path = "Input")
     c_file <- c_file[str_detect(c_file, "Einkauf")]
     
@@ -843,8 +848,8 @@ server <- function(input, output, session) {
     }
   })
   
-  # open Spezeialpreise Excel
-  observeEvent(input$open_EinAus, {
+  # open Excel Einnahmen und Ausgaben
+  shiny::observeEvent(input$open_EinAus, {
     c_file <- list.files(path = "Input")
     c_file <- c_file[str_detect(c_file, "Einnahmen")]
     
@@ -860,8 +865,8 @@ server <- function(input, output, session) {
     }
   })
   
-  # open Spezialpreise Excel
-  observeEvent(input$open_Spez, {
+  # open Excel Spezialpreise
+  shiny::observeEvent(input$open_Spez, {
     c_file <- list.files(path = "Input")
     c_file <- c_file[str_detect(c_file, "Spezial")]
     
@@ -877,8 +882,8 @@ server <- function(input, output, session) {
     }
   })
   
-  # open Verleiherabgaben Excel
-  observeEvent(input$open_Verleih, {
+  # open Excel Verleiherabgaben Excel
+  shiny::observeEvent(input$open_Verleih, {
     c_file <- list.files(path = "Input")
     c_file <- c_file[str_detect(c_file, "Verleiher")]
     
@@ -896,16 +901,18 @@ server <- function(input, output, session) {
   
   # Überwachung Button Daten Einlesen
   shiny::observeEvent(input$DatenEinlesen, {
-    print(clc)
-    ausgabe_text("")
-    calculate_warnings("")
-    # Daten berechnen und laden, Warnings für user interaction im GUI anzeigen
-    tryCatch({
-      # Warnings abfangen
-      capture.output({
-        source("source/calculate.R", local =  data_env)
-      }, type = "message")|>
-        calculate_warnings()
+    shiny::withProgress(message = "Running script...", value = 0, {
+      ausgabe_text("")
+      calculate_warnings("")
+      shiny::incProgress(1/5, detail = paste("Step", 1, "of 5"))
+      # Daten berechnen und laden, Warnings für user interaction im GUI anzeigen
+      tryCatch({
+        # Warnings abfangen
+        capture.output({
+          source("source/calculate.R", local =  data_env)
+          shiny::incProgress(1/5, detail = paste("Step", 2, "of 5"))
+        }, type = "message")|>
+          calculate_warnings()
       }, error = function(e) { # Fehler abfangen
         paste0("Fehler beim Ausführen von 'source/calculate.R':\n", e$message)|>
           ausgabe_text()
@@ -915,173 +922,215 @@ server <- function(input, output, session) {
                ausgabe_text())|>
           ausgabe_text()
       })
-    if(nchar(ausgabe_text()) == 0){
-      paste0("Daten einlesen mit den folgenden Warnmeldungen, Berichte können dennoch erstellt werden!\n\n",
-             paste0(calculate_warnings(),
-                    collapse = "\n")
-             )|>
-        ausgabe_text()
-    }
-    file_exists(file.exists("output/webserver/index.html"))
-    End_date_choose(Sys.Date() + ((max(data_env$df_Abrechnung$Datum) - Sys.Date()) |> as.integer()))
+      if(nchar(ausgabe_text()) == 0){
+        paste0("Daten einlesen mit den folgenden Warnmeldungen, Berichte können dennoch erstellt werden!\n\n",
+               paste0(calculate_warnings(),
+                      collapse = "\n")
+        )|>
+          ausgabe_text()
+      }
+      shiny::incProgress(1/5, detail = paste("Step", 3, "of 5"))
+      file_exists(file.exists("output/webserver/index.html"))
+      shiny::incProgress(1/5, detail = paste("Step", 4, "of 5"))
+      End_date_choose(Sys.Date() + ((max(data_env$df_Abrechnung$Datum) - Sys.Date()) |> as.integer()))
+      shiny::incProgress(1/5, detail = paste("Step", 5, "of 5"))
+    })
   })
-
+  
   # Überwachung Button Abrechnung erstellen über Datum-Range
   shiny::observeEvent(input$Abrechnung, {
-    ausgabe_text("")
-    start_datum <- input$dateRange |> min()
-    end_datum <- input$dateRange |> max()
-    
-    # Überprüfen, ob beide Daten gültig sind
-    if (start_datum <= end_datum) {
-      # Aktion ausführen
-      ausgabe_text(paste0(
-        "Die Filmabrechnungen für den Zeitraum \n",
-        format(start_datum, "%d.%m.%Y"), " bis ",
-        format(end_datum, "%d.%m.%Y"), " wurden erstellt",
-        paste0("\n", getwd(), "/output")
-      ))
+    shiny::withProgress(message = "Running script...", value = 0, {
+      shiny::incProgress(1/5, detail = paste("Step", 1, "of 5"))
+      ausgabe_text("")
+      start_datum <- input$dateRange |> min()
+      end_datum <- input$dateRange |> max()
       
-      # Filmabrechnungen erstellen mit dateRange user input
-      tryCatch({
-        df_mapping__ <- mapping(data_env$df_mapping$Datum, data_env$df_mapping$Suisanummer) 
-        df_mapping__ <- df_mapping__|>
-          filter(between(Datum, start_datum, end_datum))
-        AbrechnungErstellen(df_mapping__, get("df_Abrechnung", envir = data_env), df_Render = df_Render(), toc = toc())
-        webserver()
-      }, error = function(e) {
-        ausgabe_text(
-          paste0(
-            "Filmabrechnungen erstellen, Fehler beim Bericht erstellen:\n",
-            e$message
+      # Überprüfen, ob beide Daten gültig sind
+      if (start_datum <= end_datum) {
+        # Aktion ausführen
+        ausgabe_text(paste0(
+          "Die Filmabrechnungen für den Zeitraum \n",
+          format(start_datum, "%d.%m.%Y"), " bis ",
+          format(end_datum, "%d.%m.%Y"), " wurden erstellt",
+          paste0("\n", getwd(), "/output")
+        ))
+        shiny::incProgress(1/5, detail = paste("Step", 2, "of 5"))
+        # Filmabrechnungen erstellen mit dateRange user input
+        tryCatch({
+          df_mapping__ <- mapping(data_env$df_mapping$Datum, data_env$df_mapping$Suisanummer) 
+          df_mapping__ <- df_mapping__|>
+            filter(between(Datum, start_datum, end_datum))
+          AbrechnungErstellen(df_mapping__, get("df_Abrechnung", envir = data_env), df_Render = df_Render(), toc = toc())
+          shiny::incProgress(1/5, detail = paste("Step", 3, "of 5"))
+          webserver()
+          shiny::incProgress(1/5, detail = paste("Step", 4, "of 5"))
+        }, error = function(e) {
+          ausgabe_text(
+            paste0(
+              "Filmabrechnungen erstellen, Fehler beim Bericht erstellen:\n",
+              e$message
             )
           )
-      })
-    } else {
-      ausgabe_text("Das Enddatum darf nicht vor dem Startdatum liegen.")
-    }
-    file_exists(file.exists("output/webserver/index.html"))
+        })
+      } else {
+        ausgabe_text("Das Enddatum darf nicht vor dem Startdatum liegen.")
+      }
+      file_exists(file.exists("output/webserver/index.html"))
+      shiny::incProgress(1/5, detail = paste("Step", 5, "of 5"))
+    })
+
   })
 
   # Überwachung Button Statistik
   shiny::observeEvent(input$Statistik, {
-    print(clc)
-    # User feedback
-    ausgabe_text(paste0(
-      "Bericht: \nStatistik erstellt",
-      paste0("\n", getwd(), "/output")
-    ))
-    if (exists("data_env")) {
-      tryCatch({
-        StatistikErstellen(toc(), df_Render())
-        webserver()
-      }, error = function(e) {
-        ausgabe_text(paste("Statistik, Fehler beim Bericht erstellen:\n", e$message))
-      })
-    } else{
-      ausgabe_text("Statistik kann nicht erstellte werden.\nKeine Daten vorhanden bitte neu einlesen!!!!")
-    }
-    file_exists(file.exists("output/webserver/index.html"))
+    shiny::withProgress(message = "Running script...", value = 0, {
+      shiny::incProgress(1/5, detail = paste("Step", 1, "of 5"))
+      # User feedback
+      ausgabe_text(paste0(
+        "Bericht: \nStatistik erstellt",
+        paste0("\n", getwd(), "/output")
+      ))
+      if (exists("data_env")) {
+        tryCatch({
+          shiny::incProgress(1/5, detail = paste("Step", 2, "of 5"))
+          StatistikErstellen(toc(), df_Render())
+          shiny::incProgress(1/5, detail = paste("Step", 3, "of 5"))
+          webserver()
+          
+        }, error = function(e) {
+          ausgabe_text(paste("Statistik, Fehler beim Bericht erstellen:\n", e$message))
+        })
+      } else{
+        ausgabe_text("Statistik kann nicht erstellte werden.\nKeine Daten vorhanden bitte neu einlesen!!!!")
+      }
+      shiny::incProgress(1/5, detail = paste("Step", 4, "of 5"))
+      file_exists(file.exists("output/webserver/index.html"))
+      shiny::incProgress(1/5, detail = paste("Step", 5, "of 5"))
+    })
+    
   })
 
   # Überwachung Button Jahresrechnung
   shiny::observeEvent(input$Jahresrechnung, {
-    print(clc)
-    # User feedback
-    paste0(
-      "Bericht: \nJahresrechnung erstellt",
-      paste0("\n", getwd(), "/output")
-    ) |>
-      ausgabe_text()
-    if (exists("data_env")) {
-      tryCatch({
-        JahresrechnungErstellen(toc(), df_Render())
-        webserver()
-      }, error = function(e) {
-        ausgabe_text(paste("Jahresrechnung, Fehler beim Bericht erstellen:\n", e$message))
-      })
-    }else{
-      ausgabe_text("Jahresrechnung kann nicht erstellte werden.\nKeine Daten vorhanden bitte neu einlesen!!!!")
-    }
-    file_exists(file.exists("output/webserver/index.html"))
+    shiny::withProgress(message = "Running script...", value = 0, {
+      shiny::incProgress(1/5, detail = paste("Step", 1, "of 5"))
+      # User feedback
+      paste0(
+        "Bericht: \nJahresrechnung erstellt",
+        paste0("\n", getwd(), "/output")
+      ) |>
+        ausgabe_text()
+      if (exists("data_env")) {
+        tryCatch({
+          shiny::incProgress(1/5, detail = paste("Step", 2, "of 5"))
+          JahresrechnungErstellen(toc(), df_Render())
+          shiny::incProgress(1/5, detail = paste("Step", 3, "of 5"))
+          webserver()
+        }, error = function(e) {
+          ausgabe_text(paste("Jahresrechnung, Fehler beim Bericht erstellen:\n", e$message))
+        })
+      }else{
+        ausgabe_text("Jahresrechnung kann nicht erstellte werden.\nKeine Daten vorhanden bitte neu einlesen!!!!")
+      }
+      shiny::incProgress(1/5, detail = paste("Step", 4, "of 5"))
+      file_exists(file.exists("output/webserver/index.html"))
+      shiny::incProgress(1/5, detail = paste("Step", 5, "of 5"))
+    })
   })
 
   # Überwachung Button Wordpress
   shiny::observeEvent(input$wordpress, {
-    print(clc)
-
-    paste0(
-      "Bericht:\nFilmumfrage auswertung ausgeführt",
-      "\nDie Exceldatei kann jetzt heruntergeladen werden, oder finde die Dateien hier:",
-      "\n", getwd(), "/output/data/Filmvorschläge.xlsx"
-    ) |>
-      ausgabe_text()
-
-    # read WordPress and procinema data and create excel file for Kinoprogramm
-    tryCatch(
-      {
-        source("source/read_and_convert_wordPress.R", local = WordPress_env)
-        FilmvorschlagErstellen(toc(),df_Render())
-        webserver()
-      },
-      error = function(e) {
-        ausgabe_text(paste("Filmvorschläge, Fehler beim Bericht erstellen:\n", e$message))
-      }
-    )
-    file_exists(file.exists("output/webserver/index.html"))
+    shiny::withProgress(message = "Running script...", value = 0, {
+      shiny::incProgress(1/5, detail = paste("Step", 1, "of 5"))
+      paste0(
+        "Bericht:\nFilmumfrage auswertung ausgeführt",
+        "\nDie Exceldatei kann jetzt heruntergeladen werden, oder finde die Dateien hier:",
+        "\n", getwd(), "/output/data/Filmvorschläge.xlsx"
+      ) |>
+        ausgabe_text()
+      
+      # read WordPress and procinema data and create excel file for Kinoprogramm
+      tryCatch(
+        {
+          shiny::incProgress(1/5, detail = paste("Step", 2, "of 5"))
+          source("source/read_and_convert_wordPress.R", local = WordPress_env)
+          shiny::incProgress(1/5, detail = paste("Step", 3, "of 5"))
+          FilmvorschlagErstellen(toc(),df_Render())
+          shiny::incProgress(1/5, detail = paste("Step", 4, "of 5"))
+          webserver()
+        },
+        error = function(e) {
+          ausgabe_text(paste("Filmvorschläge, Fehler beim Bericht erstellen:\n", e$message))
+        }
+      )
+      shiny::incProgress(1/5, detail = paste("Step", 5, "of 5"))
+      file_exists(file.exists("output/webserver/index.html"))
+    })
   })
 
   # Überwachung Button Erstelle Abrechnung (source("user_settings.R"))
   shiny::observeEvent(input$ErstelleAbrechnung, {
-    print(clc)
-    # User interaction
-    paste0(
-      "Script wurde korrekt ausgeführt.",
-      "\nWebserver erstellt.",
-      paste0("\n", (paste0(getwd(), "/output/webserver/", "index.html")),
-             sep = ""
-             )
-      ) |>
-      ausgabe_text()
-    
-    # Delete all files prior to creating new files 
-    list.files("output/", "html", full.names = TRUE)|>
-      file.remove()
-    list.files("output/pict/", "html", full.names = TRUE)|>
-      file.remove()
-
-    tryCatch({
-      # erstellen von Verzeichnissen
-      dir.create("output/") |> suppressWarnings()
-      dir.create("output/data/") |> suppressWarnings()
-
-      # Daten einlesen und konvertieren
-      source("source/calculate.R", local =  data_env)
-
-      # Statistik-Bericht erstellen
-      StatistikErstellen(toc(), df_Render())
-
-      # Jahresrechnung-Bericht erstellen
-      JahresrechnungErstellen(toc(), df_Render())
-
-      # Bericht(e) Abrechnung pro Filmforführung erstellen
-      df_mapping__ <- mapping(data_env$df_mapping$Datum, data_env$df_mapping$Suisanummer)
-      AbrechnungErstellen(
-        df_mapping__, 
-        get("df_Abrechnung", envir = data_env), df_Render = df_Render(), toc = toc()
+    shiny::withProgress(message = "Running script...", value = 0, {
+      shiny::incProgress(1/10, detail = paste("Step", 1, "of 10"))
+      # User interaction
+      paste0(
+        "Script wurde korrekt ausgeführt.",
+        "\nWebserver erstellt.",
+        paste0("\n", (paste0(getwd(), "/output/webserver/", "index.html")),
+               sep = ""
         )
-      source("source/read_and_convert_wordPress.R", local = WordPress_env)
-      FilmvorschlagErstellen(toc(),df_Render())
-
-      # Create webserver data
-      webserver()
-    },
-    error = function(e) {
-      ausgabe_text(paste("Alles erstellen mit Webserver\nFehler beim Bericht erstellen:\n", e$message))
+      ) |>
+        ausgabe_text()
+      
+      # Delete all files prior to creating new files 
+      list.files("output/", "html", full.names = TRUE)|>
+        file.remove()
+      list.files("output/pict/", "html", full.names = TRUE)|>
+        file.remove()
+      
+      tryCatch({
+        # erstellen von Verzeichnissen
+        dir.create("output/") |> suppressWarnings()
+        dir.create("output/data/") |> suppressWarnings()
+        shiny::incProgress(1/10, detail = paste("Step", 2, "of 10"))
+        
+        # Daten einlesen und konvertieren
+        source("source/calculate.R", local =  data_env)
+        shiny::incProgress(1/10, detail = paste("Step", 3, "of 10"))
+        
+        # Statistik-Bericht erstellen
+        StatistikErstellen(toc(), df_Render())
+        shiny::incProgress(1/10, detail = paste("Step", 5, "of 10"))
+        
+        # Jahresrechnung-Bericht erstellen
+        JahresrechnungErstellen(toc(), df_Render())
+        shiny::incProgress(1/10, detail = paste("Step", 6, "of 10"))
+        
+        # Bericht(e) Abrechnung pro Filmforführung erstellen
+        df_mapping__ <- mapping(data_env$df_mapping$Datum, data_env$df_mapping$Suisanummer)
+        AbrechnungErstellen(
+          df_mapping__, 
+          get("df_Abrechnung", envir = data_env), df_Render = df_Render(), toc = toc()
+        )
+        source("source/read_and_convert_wordPress.R", local = WordPress_env)
+        shiny::incProgress(1/10, detail = paste("step", 7, "of 10"))
+        
+        FilmvorschlagErstellen(toc(),df_Render())
+        shiny::incProgress(1/10, detail = paste("step", 8, "of 10"))
+        
+        # Create webserver data
+        webserver()
+        shiny::incProgress(1/10, detail = paste("step", 9, "of 10"))
+        
+      },
+      error = function(e) {
+        ausgabe_text(paste("Alles erstellen mit Webserver\nFehler beim Bericht erstellen:\n", e$message))
       }
-    )
-    End_date_choose(Sys.Date() + ((max(datum_vektor) - Sys.Date()) |> as.integer()))
-    file_exists(file.exists("output/webserver/index.html"))
+      )
+      End_date_choose(Sys.Date() + ((max(datum_vektor) - Sys.Date()) |> as.integer()))
+      file_exists(file.exists("output/webserver/index.html"))
+      shiny::incProgress(1/10, detail = paste("Step", 10, "of 10"))
+    })
   })
 
   # Überwachung Inhaltsverzeichniss
