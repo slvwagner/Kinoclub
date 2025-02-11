@@ -58,6 +58,7 @@ if (any(installed_packages == FALSE)) {
 ```
 
 ## Run the Appliction
+Die Application wird mit dem standard Browser des Systems geöffnet. Die Adresse ist: <http://127.0.0.1:8080/>  
 
 ```         
     source("GUI.R")
