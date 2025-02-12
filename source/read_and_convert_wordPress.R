@@ -454,15 +454,10 @@ class(x) <- c("hyperlink")
 writeData(wb_xlsx, c_sheet_name, 
           x = x,
           startRow = 2, startCol = 11)
+# Write formula 
 writeFormula(wb_xlsx, c_sheet_name, 
              x = paste0('=HYPERLINK(K',2:(nrow(df_Filmvorschlag)+1),', "Link")'), 
              startRow = 2, startCol = 10)
-
-# # Apply text wrapping to prevent text from overflowing
-# addStyle(wb_xlsx, c_sheet_name, 
-#          createStyle(wrapText = TRUE), 
-#          rows = 1:(nrow(df) + 1), cols = 11, gridExpand = TRUE)
-# 
 
 
 
