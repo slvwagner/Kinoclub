@@ -435,16 +435,16 @@ date_style <- createStyle(numFmt = "dd.mm.yyyy")
 # Define a style (Font size 14 and bold)
 style_bold_large <- createStyle(fontSize = 16, textDecoration = "bold", wrapText = TRUE)
 
-# Apply style to an entire column
+# Apply style for Filmtitel 
 addStyle(wb_xlsx, c_sheet_name, style_bold_large, rows = 2:(nrow(df_Filmvorschlag) + 1), cols = 2, gridExpand = TRUE)
 
-# Add style to the desired columns
+# Add wrap text to columns
 for (col in 3:11) {
   addStyle(wb_xlsx, sheet = c_sheet_name, style = wrap_text, 
            rows = 1:(nrow(df_Filmvorschlag) + 1), cols = col, gridExpand = TRUE)
 }
 
-# Apply date format to the desired columns
+# Apply date format columns
 for (ii in c(4,8)) {
   addStyle(wb_xlsx, sheet = c_sheet_name, 
            style = date_style, 
@@ -461,7 +461,7 @@ writeData(wb_xlsx, c_sheet_name,
           x = x,
           startRow = 2, startCol = 11)
 
-# Write formula  
+# Write formula Link zum Trailer
 writeFormula(wb_xlsx, c_sheet_name, 
              x = paste0('=HYPERLINK(K',2:(nrow(df_Filmvorschlag)+1),', "Link")'), 
              startRow = 2, startCol = 10)
