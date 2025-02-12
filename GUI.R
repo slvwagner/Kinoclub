@@ -1441,9 +1441,9 @@ server <- function(input, output, session) {
         shiny::tags$h4("Webserver:")
       },
       if (file_exists()) {
-        shiny::tags$a(href = "reports/index.html",
+        shiny::tags$a(href = "reports",
                       "Site-map",
-                      target = "_blank",
+                      # target = "_blank",
                       style = "font-size: 24px;")
       },
       shiny::tags$h4("Filme in der gewählten Periode"),
