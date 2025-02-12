@@ -407,19 +407,24 @@ capitalize_first <- function(x) {
 df_Filmvorschlag <- df_Filmvorschlag|>
   mutate(Link = "", 
          Filmtitel = lapply(Filmtitel, capitalize_first)|>unlist()
-         )
+         )|>
+  rename(Genre = Schlagwörter, 
+         `Erscheinungs- datum` = Erscheinungsdatum,
+         `Kinoklub- mitglied` = Kinoklubmitglied
+         )|>
+  arrange(desc(`Erscheinungs- datum`))
 df_Filmvorschlag
 
-
-capitalize_first
-
-# Example
-capitalize_first("example")  # "Example"
-capitalize_first("r programming")  # "R programming"
 
 
 ################################################################################################################################
 library(openxlsx)
+
+# Create the workbook and build it with the data
+wb_xlsx <- buildWorkbook(df_Filmvorschlag, asTable = T, tableStyle = "TableStyleMedium2")
+c_sheet_name <- "Filmvorschläge"
+names(wb_xlsx) <- c_sheet_name
+
 
 # Define the style for text wrapping
 wrap_text <- createStyle(wrapText = TRUE)
@@ -427,16 +432,17 @@ wrap_text <- createStyle(wrapText = TRUE)
 # Define the style for date formatting
 date_style <- createStyle(numFmt = "dd.mm.yyyy")
 
-# Create the workbook and build it with the data
-wb_xlsx <- buildWorkbook(df_Filmvorschlag, asTable = T, tableStyle = "TableStyleMedium2")
-c_sheet_name <- "Filmvorschläge"
-names(wb_xlsx) <- c_sheet_name
+# Apply style to an entire column
+addStyle(wb_xlsx, c_sheet_name, style_bold_large, rows = 2:(nrow(df_Filmvorschlag) + 1), cols = 2, gridExpand = TRUE)
 
-# Add style to the desired columnsg
+# Add style to the desired columns
 for (col in 3:11) {
   addStyle(wb_xlsx, sheet = c_sheet_name, style = wrap_text, 
            rows = 1:(nrow(df_Filmvorschlag) + 1), cols = col, gridExpand = TRUE)
 }
+
+# Define a style (Font size 14 and bold)
+style_bold_large <- createStyle(fontSize = 16, textDecoration = "bold", wrapText = TRUE)
 
 # Apply date format to the desired columns
 for (ii in c(4,8)) {
@@ -454,19 +460,19 @@ class(x) <- c("hyperlink")
 writeData(wb_xlsx, c_sheet_name, 
           x = x,
           startRow = 2, startCol = 11)
-# Write formula 
+
+# Write formula  
 writeFormula(wb_xlsx, c_sheet_name, 
              x = paste0('=HYPERLINK(K',2:(nrow(df_Filmvorschlag)+1),', "Link")'), 
              startRow = 2, startCol = 10)
 
-
-
 # Set column widths
-setColWidths(wb_xlsx, c_sheet_name, cols = 11, widths = 50)
 setColWidths(wb_xlsx, sheet = c_sheet_name, 
-             cols =   c( 1,  2,  3), 
-             widths = c(15, 15, 80)
+             cols =   c( 1,  2,  3,    4,    10, 11), 
+             widths = c(15, 30, 80,12.14, 16.43, 50)
 )
+
+
 
 # Insert plots to the workbook
 addWorksheet(wb_xlsx, "Plot")
