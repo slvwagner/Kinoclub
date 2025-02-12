@@ -432,6 +432,9 @@ wrap_text <- createStyle(wrapText = TRUE)
 # Define the style for date formatting
 date_style <- createStyle(numFmt = "dd.mm.yyyy")
 
+# Define a style (Font size 14 and bold)
+style_bold_large <- createStyle(fontSize = 16, textDecoration = "bold", wrapText = TRUE)
+
 # Apply style to an entire column
 addStyle(wb_xlsx, c_sheet_name, style_bold_large, rows = 2:(nrow(df_Filmvorschlag) + 1), cols = 2, gridExpand = TRUE)
 
@@ -440,9 +443,6 @@ for (col in 3:11) {
   addStyle(wb_xlsx, sheet = c_sheet_name, style = wrap_text, 
            rows = 1:(nrow(df_Filmvorschlag) + 1), cols = col, gridExpand = TRUE)
 }
-
-# Define a style (Font size 14 and bold)
-style_bold_large <- createStyle(fontSize = 16, textDecoration = "bold", wrapText = TRUE)
 
 # Apply date format to the desired columns
 for (ii in c(4,8)) {
