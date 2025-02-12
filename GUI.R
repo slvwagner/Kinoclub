@@ -1038,9 +1038,8 @@ server <- function(input, output, session) {
     shiny::withProgress(message = "Running script...", value = 0, {
       shiny::incProgress(1/5, detail = paste("Step", 1, "of 5"))
       paste0(
-        "Bericht:\nFilmumfrage auswertung ausgeführt",
-        "\nDie Exceldatei kann jetzt heruntergeladen werden, oder finde die Dateien hier:",
-        "\n", getwd(), "/output/data/Filmvorschläge.xlsx"
+        "Filmumfrage (Wordpress daten) auswertung ausgeführt.",
+        "\nDie Exceldatei kann jetzt heruntergeladen werden."
       ) |>
         ausgabe_text()
       
