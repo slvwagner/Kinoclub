@@ -1438,10 +1438,10 @@ server <- function(input, output, session) {
       actionButton("open_Spez", "Spezialpreise"),
       actionButton("open_Verleih", "Verleiherabgaben"),
       if (file_exists()) {
-        shiny::tags$h4("Webserver:")
+        shiny::tags$h4("Berichte:")
       },
       if (file_exists()) {
-        shiny::tags$a(href = "reports",
+        shiny::tags$a(href = "reports/index.html",
                       "Site-map",
                       # target = "_blank",
                       style = "font-size: 24px;")
