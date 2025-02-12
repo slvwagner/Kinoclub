@@ -398,8 +398,24 @@ df_Filmvorschlag <- df_Filmvorschlag|>
          `Post Modified Date` = as.Date(`Post Modified Date`)
          )
 
+capitalize_first <- function(x) {
+  paste0(toupper(substr(x, 1, 1)), substr(x, 2, nchar(x)))
+}
 # used to insert pictures
 # df_Filmvorschlag$pict <- c_picts
+
+df_Filmvorschlag <- df_Filmvorschlag|>
+  mutate(Link = "", 
+         Filmtitel = lapply(Filmtitel, capitalize_first)|>unlist()
+         )
+df_Filmvorschlag
+
+
+capitalize_first
+
+# Example
+capitalize_first("example")  # "Example"
+capitalize_first("r programming")  # "R programming"
 
 
 ################################################################################################################################
@@ -412,25 +428,66 @@ wrap_text <- createStyle(wrapText = TRUE)
 date_style <- createStyle(numFmt = "dd.mm.yyyy")
 
 # Create the workbook and build it with the data
-wb_xlsx <- buildWorkbook(df_Filmvorschlag, asTable = TRUE, tableStyle = "TableStyleMedium2")
+wb_xlsx <- buildWorkbook(df_Filmvorschlag, asTable = T, tableStyle = "TableStyleMedium2")
 c_sheet_name <- "Filmvorschläge"
 names(wb_xlsx) <- c_sheet_name
 
 # Add style to the desired columnsg
-for (col in 3:10) {
+for (col in 3:11) {
   addStyle(wb_xlsx, sheet = c_sheet_name, style = wrap_text, 
            rows = 1:(nrow(df_Filmvorschlag) + 1), cols = col, gridExpand = TRUE)
 }
 
 # Apply date format to the desired columns
 for (ii in c(4,8)) {
-  addStyle(wb_xlsx, sheet = c_sheet_name, style = date_style, rows = 2:(nrow(df_Filmvorschlag) + 1), cols = ii, gridExpand = TRUE)
+  addStyle(wb_xlsx, sheet = c_sheet_name, 
+           style = date_style, 
+           rows = 2:(nrow(df_Filmvorschlag) + 1), 
+           cols = ii, 
+           gridExpand = TRUE
+           )
 }
 
-# Format column 10 as hyperlinks
+# Format column 11 as hyperlinks
 x <- df_Filmvorschlag$`Link zum Trailer`
-class(x) <- "hyperlink"
-writeData(wb_xlsx, c_sheet_name, x = x, startRow = 2, startCol = 10)
+class(x) <- c("hyperlink")
+writeData(wb_xlsx, c_sheet_name, 
+          x = x,
+          startRow = 2, startCol = 11)
+writeFormula(wb_xlsx, c_sheet_name, 
+             x = paste0('=HYPERLINK(K',2:(nrow(df_Filmvorschlag)+1),', "Link")'), 
+             startRow = 2, startCol = 10)
+
+# # Apply text wrapping to prevent text from overflowing
+# addStyle(wb_xlsx, c_sheet_name, 
+#          createStyle(wrapText = TRUE), 
+#          rows = 1:(nrow(df) + 1), cols = 11, gridExpand = TRUE)
+# 
+
+
+
+# Set column widths
+setColWidths(wb_xlsx, c_sheet_name, cols = 11, widths = 50)
+setColWidths(wb_xlsx, sheet = c_sheet_name, 
+             cols =   c( 1,  2,  3), 
+             widths = c(15, 15, 80)
+)
+
+# Insert plots to the workbook
+addWorksheet(wb_xlsx, "Plot")
+
+insertImage(
+  wb_xlsx,  sheet = "Plot",  file = c_fileName,
+  startRow = 1,  startCol = 1,
+  width = 25,  height = 3 + nrow(df_Filmvorschlag) * 0.35,
+  units = "cm"
+)
+
+# Save the workbook to a file
+saveWorkbook(wb_xlsx, file = "output/data/Filmvorschläge.xlsx", overwrite = TRUE)
+
+writeLines("Wordpress daten ausgewertet")
+
 
 # # Insert images in column 11, starting at row 2
 # c_path <- "output/data/pict"
@@ -451,24 +508,3 @@ writeData(wb_xlsx, c_sheet_name, x = x, startRow = 2, startCol = 10)
 #     )
 #   }
 # }
-
-# Set column widths
-setColWidths(wb_xlsx, sheet = c_sheet_name, 
-             cols =   c( 1,  2,  3, 11), 
-             widths = c(15, 15, 80, 50)
-)
-
-# Insert plots to the workbook
-addWorksheet(wb_xlsx, "Plot")
-
-insertImage(
-  wb_xlsx,  sheet = "Plot",  file = c_fileName,
-  startRow = 1,  startCol = 1,
-  width = 25,  height = 3 + nrow(df_Filmvorschlag) * 0.35,
-  units = "cm"
-)
-
-# Save the workbook to a file
-saveWorkbook(wb_xlsx, file = "output/data/Filmvorschläge.xlsx", overwrite = TRUE)
-
-writeLines("Wordpress daten ausgewertet")
