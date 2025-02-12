@@ -1,5 +1,5 @@
 ---
-title: "Abrechnung Filmvorführung"
+title: "Abrechnung Filmvorführung:"
 output: 
   html_document:
     css: Kinoklub_dark.css
