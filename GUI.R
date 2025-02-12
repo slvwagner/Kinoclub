@@ -398,7 +398,7 @@ webserver <- function() {
         # Read the image crop and resize and save
         image_read(input_path)|>
           image_crop(geometry = "992x992+0+0")|>
-          image_resize("400x400")|>
+          image_resize("200x200")|>
           image_write(input_path)
         
         writeLines(".", sep = "")
@@ -1064,14 +1064,13 @@ server <- function(input, output, session) {
     })
   })
 
-  # Überwachung Button Erstelle Abrechnung (source("user_settings.R"))
+  # Überwachung Button "Alles erstellen"
   shiny::observeEvent(input$ErstelleAbrechnung, {
     shiny::withProgress(message = "Running script...", value = 0, {
       shiny::incProgress(1/10, detail = paste("Step", 1, "of 10"))
       # User interaction
       paste0(
-        "Script wurde korrekt ausgeführt.",
-        "\nWebserver erstellt.",
+        "Alles wurde neu erstellt",
         paste0("\n", (paste0(getwd(), "/output/webserver/", "index.html")),
                sep = ""
         )
@@ -1108,6 +1107,7 @@ server <- function(input, output, session) {
           df_mapping__, 
           get("df_Abrechnung", envir = data_env), df_Render = df_Render(), toc = toc()
         )
+        source("source/procinema.R", local = WordPress_env)
         source("source/read_and_convert_wordPress.R", local = WordPress_env)
         shiny::incProgress(1/10, detail = paste("step", 7, "of 10"))
         
@@ -1120,7 +1120,7 @@ server <- function(input, output, session) {
         
       },
       error = function(e) {
-        ausgabe_text(paste("Alles erstellen mit Webserver\nFehler beim Bericht erstellen:\n", e$message))
+        ausgabe_text(paste("Alles neu erstellen\nFehler beim Bericht erstellen:\n", e$message))
       }
       )
       End_date_choose(Sys.Date() + ((max(datum_vektor) - Sys.Date()) |> as.integer()))
@@ -1385,15 +1385,15 @@ server <- function(input, output, session) {
 
 
       # Button zum Ausführen von Code Alles erstellen mit Webserver
-      shiny::actionButton("ErstelleAbrechnung", "Alles erstellen mit Webserver"),
+      shiny::actionButton("ErstelleAbrechnung", "Alles neu erstellen"),
       # Add tooltips using shinyBS
       shinyBS::bsTooltip(
         id = "ErstelleAbrechnung",
-        title = "Achtung die Ausführung braucht Zeit!",
+        title = "Achtung die Ausführung kann viel Zeit in anspruchnehmen!",
         placement = "right",
         trigger = "hover"
       ),
-      shiny::tags$h5("**********************"),
+      shiny::tags$hr(),
 
       # Inhaltsverzeichnis
       shiny::selectInput(
