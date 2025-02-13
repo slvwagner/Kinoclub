@@ -894,12 +894,12 @@ AbrechnungErstellen <- function(mapping, df_Abrechnung, df_Render, toc) {
   }
 }
 
-# Daten einlesen
 # Envirnoment for Data read in
-calculate_warnings <- ""
-ausgabe_text <- "Daten wurden eingelesen."
 data_env <- new.env()
 
+# Daten einlesen
+calculate_warnings <- ""
+ausgabe_text <- "Daten wurden eingelesen."
 tryCatch({
   # Fehler abfangen
   calculate_warnings <- capture.output({
@@ -958,24 +958,24 @@ if (!dir.exists("output/webserver")) {
 shiny::addResourcePath("reports", "output/webserver")
 
 
-# # UI-Definition fluid page
-# ui <- shiny::fluidPage(
-#   shiny::tags$head(
-#     shiny::tags$link(rel = "stylesheet", type = "text/css", href = "custom_styles/Kinoklub_dark_gui.css")
-#   ),
-#   paste("Kinoklub GUI", c_script_version) |>
-#     shiny::titlePanel(),
-#   shiny::sidebarLayout(
-#     # Render the side panel
-#     shiny::sidebarPanel(
-#       shiny::uiOutput("dynamicContent_input_panel")
-#     ),
-#     # Render the main panel
-#     shiny::mainPanel(
-#       shiny::uiOutput("dynamicContent_output_panel")
-#     )
-#   )
-# )
+# UI-Definition fluid page
+ui <- shiny::fluidPage(
+  shiny::tags$head(
+    shiny::tags$link(rel = "stylesheet", type = "text/css", href = "custom_styles/Kinoklub_dark_gui.css")
+  ),
+  paste("Kinoklub GUI", c_script_version) |>
+    shiny::titlePanel(),
+  shiny::sidebarLayout(
+    # Render the side panel
+    shiny::sidebarPanel(
+      shiny::uiOutput("dynamicContent_input_panel")
+    ),
+    # Render the main panel
+    shiny::mainPanel(
+      shiny::uiOutput("dynamicContent_output_panel")
+    )
+  )
+)
 
 
 # UI-Definition bs4Dash
@@ -983,7 +983,7 @@ library(bs4Dash)
 ui <- dashboardPage(
   dashboardHeader(title = paste("Kinoklub GUI", c_script_version)),
   dashboardSidebar(shiny::uiOutput("dynamicContent_input_panel")),
-  dashboardBody(shiny::uiOutput("dynamicContent_output_panel")),
+  dashboardBody(shiny::uiOutput("dynamicContent_output_panel"))
 )
 
 # Server-Logik
@@ -1331,7 +1331,7 @@ server <- function(input, output, session) {
     })
   })
   
-  # Überwachung Inhaltsverzeichniss
+  # Überwachung Input: Inhaltsverzeichniss
   shiny::observeEvent(input$Inhaltsverzeichnis, {
     print(clc)
     toc(input$Inhaltsverzeichnis)
@@ -1339,7 +1339,7 @@ server <- function(input, output, session) {
     file_exists(file.exists("output/webserver/index.html"))
   })
   
-  # Überwachung Ausgabeformat
+  # Überwachung Input: Ausgabeformat
   shiny::observeEvent(input$render_option, {
     print(clc)
     
@@ -1393,21 +1393,6 @@ server <- function(input, output, session) {
     }
   )
 
-  # Reder: Update table with all the dates in the selected range
-  output$dateTable <- shiny::renderTable({
-    if (exists("data_env")) {
-      start_datum <- input$dateRange |> min()
-      end_datum <- input$dateRange |> max()
-      
-      get("df_Abrechnung", envir = data_env) |>
-        filter(between(Datum, start_datum, end_datum)) |>
-        arrange(desc(Datum), desc(Anfang)) |>
-        mutate(Datum = format(Datum, "%d.%m.%Y"),
-               Zeit = format(Anfang, "%H%M")) |>
-        select(Datum, Zeit, Filmtitel, `Suisa Nummer`)
-    }
-  })
-  
   # Download Handler Wordpress
   output$downloadWordPress <- downloadHandler(
     filename = function() {
@@ -1426,12 +1411,7 @@ server <- function(input, output, session) {
     }
   )
   
-  # Render: Systemrückmeldungen aktualisieren
-  output$ausgabe <- renderText({
-    ausgabe_text()
-  })
-  
-  # file upload handler
+  # Upload handler
   file_data <- shiny::reactive({
     shiny::req(input$file)
     file_path <- input$file$datapath
@@ -1446,11 +1426,13 @@ server <- function(input, output, session) {
       file.copy(from = file_path,
                 to = save_path,
                 overwrite = TRUE)
+      
       # user interaction
       paste0(
         "Die Datei \"",
         file_name,
-        "\" wurde eingelesen und im Verzeichniss \n.../Kinoklub",
+        "\" wurde eingelesen und im Verzeichniss ",
+        "\n",getwd(),"/Kinoklub",
         save_path,
         " abgespeichert"
       ) |>
@@ -1544,14 +1526,35 @@ server <- function(input, output, session) {
     }
   })
   
-  # txt file rendering
+  # Read selected sheet data
+  selected_data <- shiny::reactive({
+    shiny::req(file_data(), input$selected_sheet)
+    col_env$get_excel_data(file_data()$path)[[input$selected_sheet]]
+  })
+  
+  # Reder: Update table with all the dates in the selected range
+  output$dateTable <- shiny::renderTable({
+    if (exists("data_env")) {
+      start_datum <- input$dateRange |> min()
+      end_datum <- input$dateRange |> max()
+      
+      get("df_Abrechnung", envir = data_env) |>
+        filter(between(Datum, start_datum, end_datum)) |>
+        arrange(desc(Datum), desc(Anfang)) |>
+        mutate(Datum = format(Datum, "%d.%m.%Y"),
+               Zeit = format(Anfang, "%H%M")) |>
+        select(Datum, Zeit, Filmtitel, `Suisa Nummer`)
+    }
+  })
+  
+  # Render: txt file rendering
   output$text_output <- shiny::renderPrint({
     shiny::req(file_data()$type %in% c("txt", "csv"))
     file_data()$data |>
       writeLines()
   })
   
-  # Render dynamic sheet selection UI
+  # Render: dynamic sheet selection UI
   output$sheet_selector <- shiny::renderUI({
     shiny::req(file_data())
     shiny::selectInput("selected_sheet",
@@ -1559,19 +1562,18 @@ server <- function(input, output, session) {
                        choices = file_data()$sheets)
   })
   
-  # Read selected sheet data
-  selected_data <- shiny::reactive({
-    shiny::req(file_data(), input$selected_sheet)
-    col_env$get_excel_data(file_data()$path)[[input$selected_sheet]]
+  # Render: Systemrückmeldungen aktualisieren
+  output$ausgabe <- renderText({
+    ausgabe_text()
   })
   
-  # Render selected sheet contents
+  # Render: selected sheet contents
   output$table_output <- shiny::renderTable({
     shiny::req(selected_data())
     selected_data()
   })
   
-  # Dynamically update the input panel content
+  # Render: Dynamically update the input panel content
   output$dynamicContent_input_panel <- shiny::renderUI({
     shiny::tagList(
       # File input handler
@@ -1687,7 +1689,7 @@ server <- function(input, output, session) {
     )
   })
   
-  # Dynamically update the output panel content
+  # Render: Dynamically update the output panel content
   output$dynamicContent_output_panel <- shiny::renderUI({
     shiny::tagList(
       shiny::actionButton("open_einkauf", "Einkauf Kiosk"),
