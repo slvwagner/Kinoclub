@@ -958,32 +958,45 @@ if (!dir.exists("output/webserver")) {
 shiny::addResourcePath("reports", "output/webserver")
 
 
-# UI-Definition fluid page
-ui <- shiny::fluidPage(
-  shiny::tags$head(
-    shiny::tags$link(rel = "stylesheet", type = "text/css", href = "custom_styles/Kinoklub_dark_gui.css")
-  ),
-  paste("Kinoklub GUI", c_script_version) |>
-    shiny::titlePanel(),
-  shiny::sidebarLayout(
-    # Render the side panel
-    shiny::sidebarPanel(
-      shiny::uiOutput("dynamicContent_input_panel")
-    ),
-    # Render the main panel
-    shiny::mainPanel(
-      shiny::uiOutput("dynamicContent_output_panel")
-    )
-  )
-)
+# # UI-Definition fluid page
+# ui <- shiny::fluidPage(
+#   shiny::tags$head(
+#     shiny::tags$link(rel = "stylesheet", type = "text/css", href = "custom_styles/Kinoklub_dark_gui.css")
+#   ),
+#   paste("Kinoklub GUI", c_script_version) |>
+#     shiny::titlePanel(),
+#   shiny::sidebarLayout(
+#     # Render the side panel
+#     shiny::sidebarPanel(
+#       shiny::uiOutput("dynamicContent_input_panel")
+#     ),
+#     # Render the main panel
+#     shiny::mainPanel(
+#       shiny::uiOutput("dynamicContent_output_panel")
+#     )
+#   )
+# )
 
 
 # UI-Definition bs4Dash
 library(bs4Dash)
 ui <- dashboardPage(
+  dark = TRUE,  # Force dark mode
   dashboardHeader(title = paste("Kinoklub GUI", c_script_version)),
   dashboardSidebar(shiny::uiOutput("dynamicContent_input_panel")),
-  dashboardBody(shiny::uiOutput("dynamicContent_output_panel"))
+  dashboardBody(shiny::uiOutput("dynamicContent_output_panel")),
+  controlbar = dashboardControlbar(
+    id = "controlbar",
+    skin = "dark",
+    controlbarMenu(
+      id = "controlbarMenu",
+      controlbarItem(
+        title = "Help",
+        icon = icon("question-circle"),
+        p("This is a custom help section.")
+      )
+    )
+  )
 )
 
 # Server-Logik
