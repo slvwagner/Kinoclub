@@ -174,6 +174,7 @@ instert_picts <- function(raw_rmd, output_dir, index, fileNames, url) {
   return(raw_rmd)
 }
 
+# function to create a site-map
 webserver <- function() {
   # Alle Bilder löschen die nicht als html vorhanden sind
   if(dir.exists("output/pict")){
@@ -632,7 +633,6 @@ webserver <- function() {
   
 }
 
-
 # Erstellen der Abrechnung pro Filmvorführung
 AbrechnungErstellen <- function(mapping, df_Abrechnung, df_Render, toc) {
   for (ii in mapping$index) {
@@ -649,7 +649,7 @@ AbrechnungErstellen <- function(mapping, df_Abrechnung, df_Render, toc) {
     c_temp1 <- df_Abrechnung |>
       filter(Datum == (mapping |> filter(index == ii) |> select(Datum) |> pull()),
              `Suisa Nummer` == (mapping|> filter(index == ii) |>select(Suisanummer)|>pull())
-             ) |>
+      ) |>
       mutate(
         Anfang = paste0(lubridate::hour(Anfang), ":", lubridate::minute(Anfang) |> as.character() |> formatC(format = "0", width = 2) |> str_replace(SPC, "0")),
         Datum = paste0(day(Datum), ".", month(Datum), ".", year(Datum))
@@ -686,13 +686,13 @@ AbrechnungErstellen <- function(mapping, df_Abrechnung, df_Render, toc) {
                       output_dir = "output",
                       envir = data_env
     )
-
+    
     # user interaction
     print(clc)
     paste("Bericht: \nFilmabrechnung vom", mapping |> filter(index == ii) |> select(user_Datum) |> pull(), "erstellt") |>
       writeLines()
     
-
+    
     # Muss eine Verleiherrechnung erstellt werden?
     if (mapping |> filter(index == ii) |> select(CreateReportVerleiherabrechnung) |> pull()) {
       # Einlesen template der Verleiherabrechnung
@@ -794,7 +794,8 @@ if(!dir.exists("output/webserver")) {
 }
 shiny::addResourcePath("reports", "output/webserver")
 
-# UI-Definition
+
+# UI-Definition fluid page
 ui <- shiny::fluidPage(
   shiny::tags$head(
     shiny::tags$link(rel = "stylesheet", type = "text/css", href = "custom_styles/Kinoklub_dark_gui.css")
@@ -813,9 +814,23 @@ ui <- shiny::fluidPage(
   )
 )
 
+# # UI-Definition bs4Dash
+# library(bs4Dash)
+# ui <- dashboardPage(
+#   dashboardHeader(
+#     title = paste("Kinoklub GUI", c_script_version)
+#   ),
+#   dashboardSidebar(
+#     shiny::uiOutput("dynamicContent_input_panel")
+#   ),
+#   dashboardBody(
+#     shiny::uiOutput("dynamicContent_output_panel")
+#   ),
+# )
+
 # Server-Logik
 server <- function(input, output, session) {
-
+  
   # open Excel Einkauf
   shiny::observeEvent(input$open_einkauf, {
     c_file <- list.files(path = "Input")
@@ -824,13 +839,13 @@ server <- function(input, output, session) {
     # take the latest date 
     if(length(c_file) > 1) {
       df_temp <- tibble(file = c_file,
-             date = dmy(c_file)
-             )|>
+                        date = dmy(c_file)
+      )|>
         arrange(date)
-  
+      
       c_file <- df_temp$file[nrow(df_temp)]
     }
-
+    
     file_path <- paste0(getwd(),"/Input/", c_file)  # Update this with your actual file path
     if (file.exists(file_path)) {
       shell.exec(file_path)  # Opens the file in Excel
@@ -973,9 +988,9 @@ server <- function(input, output, session) {
       file_exists(file.exists("output/webserver/index.html"))
       shiny::incProgress(1/5, detail = paste("Step", 5, "of 5"))
     })
-
+    
   })
-
+  
   # Überwachung Button Statistik
   shiny::observeEvent(input$Statistik, {
     shiny::withProgress(message = "Running script...", value = 0, {
@@ -1004,7 +1019,7 @@ server <- function(input, output, session) {
     })
     
   })
-
+  
   # Überwachung Button Jahresrechnung
   shiny::observeEvent(input$Jahresrechnung, {
     shiny::withProgress(message = "Running script...", value = 0, {
@@ -1032,7 +1047,7 @@ server <- function(input, output, session) {
       shiny::incProgress(1/5, detail = paste("Step", 5, "of 5"))
     })
   })
-
+  
   # Überwachung Button Wordpress
   shiny::observeEvent(input$wordpress, {
     shiny::withProgress(message = "Running script...", value = 0, {
@@ -1062,7 +1077,7 @@ server <- function(input, output, session) {
       file_exists(file.exists("output/webserver/index.html"))
     })
   })
-
+  
   # Überwachung Button "Alles erstellen"
   shiny::observeEvent(input$ErstelleAbrechnung, {
     shiny::withProgress(message = "Running script...", value = 0, {
@@ -1127,7 +1142,7 @@ server <- function(input, output, session) {
       shiny::incProgress(1/10, detail = paste("Step", 10, "of 10"))
     })
   })
-
+  
   # Überwachung Inhaltsverzeichniss
   shiny::observeEvent(input$Inhaltsverzeichnis, {
     print(clc)
@@ -1135,47 +1150,47 @@ server <- function(input, output, session) {
     print(toc())
     file_exists(file.exists("output/webserver/index.html"))
   })
-
+  
   # Überwachung Ausgabeformat
   shiny::observeEvent(input$render_option, {
     print(clc)
-
+    
     df_Render(
       switch(input$render_option,
-        "1" = tibble::tibble(
-          Render = c("html_document"),
-          fileExt = c(".html")
-        ),
-        "2" = tibble::tibble(
-          Render = c("word_document"),
-          fileExt = c(".docx")
-        ),
-        "3" = tibble::tibble(
-          Render = c("pdf_document"),
-          fileExt = c(".pdf")
-        ),
-        "4" = tibble::tibble(
-          Render = c("html_document", "word_document"),
-          fileExt = c(".html", ".docx")
-        ),
-        "5" = tibble::tibble(
-          Render = c("html_document", "pdf_document"),
-          fileExt = c(".html", ".pdf")
-        ),
-        "6" = tibble::tibble(
-          Render = c("word_document", "pdf_document"),
-          fileExt = c(".docx", ".pdf")
-        ),
-        "7" = tibble::tibble(
-          Render = c("html_document", "word_document", "pdf_document"),
-          fileExt = c(".html", ".docx", ".pdf")
-        ),
-        stop("\nDie verwendete Renderoption is nicht definiert")
+             "1" = tibble::tibble(
+               Render = c("html_document"),
+               fileExt = c(".html")
+             ),
+             "2" = tibble::tibble(
+               Render = c("word_document"),
+               fileExt = c(".docx")
+             ),
+             "3" = tibble::tibble(
+               Render = c("pdf_document"),
+               fileExt = c(".pdf")
+             ),
+             "4" = tibble::tibble(
+               Render = c("html_document", "word_document"),
+               fileExt = c(".html", ".docx")
+             ),
+             "5" = tibble::tibble(
+               Render = c("html_document", "pdf_document"),
+               fileExt = c(".html", ".pdf")
+             ),
+             "6" = tibble::tibble(
+               Render = c("word_document", "pdf_document"),
+               fileExt = c(".docx", ".pdf")
+             ),
+             "7" = tibble::tibble(
+               Render = c("html_document", "word_document", "pdf_document"),
+               fileExt = c(".html", ".docx", ".pdf")
+             ),
+             stop("\nDie verwendete Renderoption is nicht definiert")
       )
     )
     file_exists(file.exists("output/webserver/index.html"))
   })
-
+  
   # Download Handler Werbung
   output$downloadExcel <- downloadHandler(
     filename = function() {
@@ -1185,7 +1200,7 @@ server <- function(input, output, session) {
       write.xlsx(data_env$df_Besucherzahlen, file = file, asTable = TRUE, overwrite = TRUE)
     }
   )
-
+  
   # Download Handler Wordpress
   output$downloadWordPress <- downloadHandler(
     filename = function() {
@@ -1212,7 +1227,7 @@ server <- function(input, output, session) {
     if (exists("data_env")){
       start_datum <- input$dateRange |> min()
       end_datum <- input$dateRange |> max()
-    
+      
       get("df_Abrechnung", envir = data_env) |>
         filter(between(Datum, start_datum, end_datum)) |>
         arrange(desc(Datum), desc(Anfang))|>
@@ -1243,7 +1258,7 @@ server <- function(input, output, session) {
       # Read all sheet names
       sheet_names <- openxlsx::getSheetNames(save_path)
       return(list(type = "xlsx", path = save_path, sheets = sheet_names))
-
+      
     } else if (file_ext == "txt") { # save txt files
       if(file_name == "Procinema.txt" | file_name == "procinema.txt"){ # save Procinema.txt file
         # Define save path
@@ -1318,7 +1333,7 @@ server <- function(input, output, session) {
     shiny::req(selected_data())
     selected_data()
   })
-
+  
   # Dynamically update the input panel content
   output$dynamicContent_input_panel <- shiny::renderUI({
     shiny::tagList(
@@ -1332,7 +1347,7 @@ server <- function(input, output, session) {
       shiny::uiOutput("sheet_selector"),  # Dynamic sheet selector
       
       # Button Daten Einlesen
-      shiny::shiny("DatenEinlesen", "Neue, Hochgeladenen Dateien Einlesen"),
+      shiny::actionButton("DatenEinlesen", "Neue, Hochgeladenen Dateien Einlesen"),
       
       shiny::tags$hr(),
       # Add tooltips using shinyBS
@@ -1354,7 +1369,7 @@ server <- function(input, output, session) {
         format = "dd.mm.yyyy", # Set input format to German (DD.MM.YYYY)
         separator = " bis " # Separator for the two dates in German
       ),
-
+      
       # Button zum Ausführen von Code Filmabrechnunge(n) erstellen
       shiny::actionButton("Abrechnung", "Filmabrechnunge(n) erstellen"),
       # Add tooltips using shinyBS
@@ -1365,24 +1380,24 @@ server <- function(input, output, session) {
         trigger = "hover"
       ),
       shiny::tags$hr(),
-
+      
       # Button zum Ausführen von Code Statistik erstellen
       shiny::actionButton("Statistik", "Statistik erstellen"),
-
+      
       # Button zum Ausführen von Code Jahresrechnung erstellen
       shiny::actionButton("Jahresrechnung", "Jahresrechnung erstellen"),
       shiny::tags$hr(),
-
+      
       # Button zum Download der Werbung
       shiny::downloadButton("downloadExcel", "Download Werbung"),
       shiny::tags$hr(),
-
+      
       # Button zum Ausführen von Code Filmumfrage Wordpress auswerten
       shiny::actionButton("wordpress", "Filmumfrage Wordpress auswerten"),
       shiny::downloadButton("downloadWordPress", "Download Filmvorschläge"),
       shiny::tags$hr(),
-
-
+      
+      
       # Button zum Ausführen von Code Alles erstellen mit Webserver
       shiny::actionButton("ErstelleAbrechnung", "Alles neu erstellen"),
       # Add tooltips using shinyBS
@@ -1393,7 +1408,7 @@ server <- function(input, output, session) {
         trigger = "hover"
       ),
       shiny::tags$hr(),
-
+      
       # Inhaltsverzeichnis
       shiny::selectInput(
         inputId = "Inhaltsverzeichnis",
@@ -1404,7 +1419,7 @@ server <- function(input, output, session) {
         ),
         selected = TRUE # Default value
       ),
-
+      
       # Ausgabeformat
       shiny::selectInput(
         inputId = "render_option",
@@ -1433,10 +1448,10 @@ server <- function(input, output, session) {
   # Dynamically update the output panel content
   output$dynamicContent_output_panel <- shiny::renderUI({
     shiny::tagList(
-      shiny::shiny("open_einkauf", "Einkauf Kiosk"),
-      shiny::shiny("open_EinAus", "Einnahmen und Ausgaben"),
-      shiny::shiny("open_Spez", "Spezialpreise"),
-      shiny::shiny("open_Verleih", "Verleiherabgaben"),
+      shiny::actionButton("open_einkauf", "Einkauf Kiosk"),
+      shiny::actionButton("open_EinAus", "Einnahmen und Ausgaben"),
+      shiny::actionButton("open_Spez", "Spezialpreise"),
+      shiny::actionButton("open_Verleih", "Verleiherabgaben"),
       if (file_exists()) {
         shiny::tags$h4("Berichte:")
       },
@@ -1461,7 +1476,7 @@ server <- function(input, output, session) {
 
 # Run the app
 shiny::runApp(
-  shinyApp(ui = ui, server = server),
+  shiny::shinyApp(ui = ui, server = server),
   port = 8080, # Replace 8080 with your desired port
   launch.browser = TRUE # Automatically open in the system's default browser
 )
