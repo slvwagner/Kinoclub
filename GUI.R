@@ -1332,7 +1332,7 @@ server <- function(input, output, session) {
       shiny::uiOutput("sheet_selector"),  # Dynamic sheet selector
       
       # Button Daten Einlesen
-      actionButton("DatenEinlesen", "Neue, Hochgeladenen Dateien Einlesen"),
+      shiny::shiny("DatenEinlesen", "Neue, Hochgeladenen Dateien Einlesen"),
       
       shiny::tags$hr(),
       # Add tooltips using shinyBS
@@ -1433,10 +1433,10 @@ server <- function(input, output, session) {
   # Dynamically update the output panel content
   output$dynamicContent_output_panel <- shiny::renderUI({
     shiny::tagList(
-      actionButton("open_einkauf", "Einkauf Kiosk"),
-      actionButton("open_EinAus", "Einnahmen und Ausgaben"),
-      actionButton("open_Spez", "Spezialpreise"),
-      actionButton("open_Verleih", "Verleiherabgaben"),
+      shiny::shiny("open_einkauf", "Einkauf Kiosk"),
+      shiny::shiny("open_EinAus", "Einnahmen und Ausgaben"),
+      shiny::shiny("open_Spez", "Spezialpreise"),
+      shiny::shiny("open_Verleih", "Verleiherabgaben"),
       if (file_exists()) {
         shiny::tags$h4("Berichte:")
       },
