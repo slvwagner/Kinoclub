@@ -174,6 +174,7 @@ instert_picts <- function(raw_rmd, output_dir, index, fileNames, url) {
   return(raw_rmd)
 }
 
+# function to create a site-map
 webserver <- function() {
   # Alle Bilder löschen die nicht als html vorhanden sind
   if(dir.exists("output/pict")){
@@ -632,7 +633,6 @@ webserver <- function() {
   
 }
 
-
 # Erstellen der Abrechnung pro Filmvorführung
 AbrechnungErstellen <- function(mapping, df_Abrechnung, df_Render, toc) {
   for (ii in mapping$index) {
@@ -794,23 +794,32 @@ if(!dir.exists("output/webserver")) {
 }
 shiny::addResourcePath("reports", "output/webserver")
 
+
 # UI-Definition
-ui <- shiny::fluidPage(
-  shiny::tags$head(
-    shiny::tags$link(rel = "stylesheet", type = "text/css", href = "custom_styles/Kinoklub_dark_gui.css")
+library(bs4Dash)
+
+ui <- dashboardPage(
+  dashboardHeader(title = paste("Kinoklub GUI", c_script_version)),
+  dashboardSidebar(shiny::uiOutput("dynamicContent_input_panel")
+                   ),
+  dashboardBody(
+    shiny::uiOutput("dynamicContent_output_panel")
   ),
-  paste("Kinoklub GUI", c_script_version) |>
-    shiny::titlePanel(),
-  shiny::sidebarLayout(
-    # Render the side panel
-    shiny::sidebarPanel(
-      shiny::uiOutput("dynamicContent_input_panel")
-    ),
-    # Render the main panel
-    shiny::mainPanel(
-      shiny::uiOutput("dynamicContent_output_panel")
-    )
-  )
+  # shiny::tags$head(
+  #   shiny::tags$link(rel = "stylesheet", type = "text/css", href = "custom_styles/Kinoklub_dark_gui.css")
+  # ),
+  # paste("Kinoklub GUI", c_script_version) |>
+  #   shiny::titlePanel(),
+  # shiny::sidebarLayout(
+  #   # Render the side panel
+  #   shiny::sidebarPanel(
+  #     shiny::uiOutput("dynamicContent_input_panel")
+  #   ),
+  #   # Render the main panel
+  #   shiny::mainPanel(
+  #     shiny::uiOutput("dynamicContent_output_panel")
+  #   )
+  # )
 )
 
 # Server-Logik
