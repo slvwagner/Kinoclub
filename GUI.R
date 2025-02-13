@@ -981,6 +981,7 @@ shiny::addResourcePath("reports", "output/webserver")
 # UI-Definition bs4Dash
 library(bs4Dash)
 ui <- dashboardPage(
+  help = TRUE,
   dark = TRUE,  # Force dark mode
   dashboardHeader(title = paste("Kinoklub GUI", c_script_version)),
   dashboardSidebar(shiny::uiOutput("dynamicContent_input_panel")),
@@ -1003,86 +1004,137 @@ ui <- dashboardPage(
 server <- function(input, output, session) {
   # Überwachung Button: open Excel Einkauf
   shiny::observeEvent(input$open_einkauf, {
-    c_file <- list.files(path = "Input")
-    c_file <- c_file[str_detect(c_file, "Einkauf")]
-    
-    # take the latest date
-    if (length(c_file) > 1) {
-      df_temp <- tibble(file = c_file, date = dmy(c_file)) |>
-        arrange(date)
+    shiny::withProgress(message = "Running script...", value = 0, {
+      shiny::incProgress(1 / 2, detail = paste("Step", 1, "of 2"))
+      ausgabe_text("Die Excel-Datei Einkauf Kiosk wurde geöffnet.")
       
-      c_file <- df_temp$file[nrow(df_temp)]
-    }
-    
-    file_path <- paste0(getwd(), "/Input/", c_file)  # Update this with your actual file path
-    if (file.exists(file_path)) {
-      shell.exec(file_path)  # Opens the file in Excel
-    } else {
-      showModal(
-        modalDialog(
-          title = "Error",
-          "File not found! Check the file path.",
-          easyClose = TRUE
+      c_file <- list.files(path = "Input")
+      c_file <- c_file[str_detect(c_file, "Einkauf")]
+      # take the latest date
+      if (length(c_file) > 1) {
+        df_temp <- tibble(file = c_file, date = dmy(c_file)) |>
+          arrange(date)
+        
+        c_file <- df_temp$file[nrow(df_temp)]
+      }
+      
+      file_path <- paste0(getwd(), "/Input/", c_file)  # Update this with your actual file path
+      if (file.exists(file_path)) {
+        tryCatch({
+          # Warnings abfangen
+          capture.output({
+            shell.exec(file_path)  # Opens the file in Excel
+          }, type = "message")
+        }, error = function(e) {
+          # Fehler abfangen
+            ausgabe_text(e$message)
+        })
+      } else {
+        showModal(
+          modalDialog(
+            title = "Error",
+            "File not found! Check the file path.",
+            easyClose = TRUE
+          )
         )
-      )
-    }
+      }
+      shiny::incProgress(2 / 2, detail = paste("Step", 2, "of 2"))
+    })
   })
   
   # Überwachung Button: open Excel Einnahmen und Ausgaben
   shiny::observeEvent(input$open_EinAus, {
-    c_file <- list.files(path = "Input")
-    c_file <- c_file[str_detect(c_file, "Einnahmen")]
-    
-    file_path <- paste0(getwd(), "/Input/", c_file)
-    if (file.exists(file_path)) {
-      shell.exec(file_path)  # Opens the file in Excel
-    } else {
-      showModal(
-        modalDialog(
-          title = "Error",
-          "File not found! Check the file path.",
-          easyClose = TRUE
+    shiny::withProgress(message = "Running script...", value = 0, {
+      shiny::incProgress(1 / 2, detail = paste("Step", 1, "of 2"))
+      ausgabe_text("Die Excel-Datei Einnahmen und Ausganben wurde geöffnet.")
+      c_file <- list.files(path = "Input")
+      c_file <- c_file[str_detect(c_file, "Einnahmen")]
+      file_path <- paste0(getwd(), "/Input/", c_file)
+      if (file.exists(file_path)) {
+        tryCatch({
+          # Warnings abfangen
+          capture.output({
+            shell.exec(file_path)  # Opens the file in Excel
+          }, type = "message")
+        }, error = function(e) {
+          # Fehler abfangen
+          ausgabe_text(e$message)
+        })
+      } else {
+        showModal(
+          modalDialog(
+            title = "Error",
+            "File not found! Check the file path.",
+            easyClose = TRUE
+          )
         )
-      )
-    }
+      }
+      shiny::incProgress(1 / 2, detail = paste("Step", 2, "of 2"))
+    })
   })
   
   # Überwachung Button: open Excel Spezialpreise
   shiny::observeEvent(input$open_Spez, {
-    c_file <- list.files(path = "Input")
-    c_file <- c_file[str_detect(c_file, "Spezial")]
-    
-    file_path <- paste0(getwd(), "/Input/", c_file)
-    if (file.exists(file_path)) {
-      shell.exec(file_path)  # Opens the file in Excel
-    } else {
-      showModal(
-        modalDialog(
-          title = "Error",
-          "File not found! Check the file path.",
-          easyClose = TRUE
+    shiny::withProgress(message = "Running script...", value = 0, {
+      shiny::incProgress(1 / 2, detail = paste("Step", 1, "of 2"))
+      ausgabe_text("Die Excel-Datei Spezialpreise wurde geöffnet.")
+      c_file <- list.files(path = "Input")
+      c_file <- c_file[str_detect(c_file, "Spezial")]
+      
+      file_path <- paste0(getwd(), "/Input/", c_file)
+      if (file.exists(file_path)) {
+        tryCatch({
+          # Warnings abfangen
+          capture.output({
+            shell.exec(file_path)  # Opens the file in Excel
+          }, type = "message")
+        }, error = function(e) {
+          # Fehler abfangen
+          ausgabe_text(e$message)
+        })
+      } else {
+        showModal(
+          modalDialog(
+            title = "Error",
+            "File not found! Check the file path.",
+            easyClose = TRUE
+          )
         )
-      )
-    }
+      }
+      shiny::incProgress(2 / 2, detail = paste("Step", 2, "of 2"))
+    })
   })
   
   # Überwachung Button: open Excel Verleiherabgaben Excel
   shiny::observeEvent(input$open_Verleih, {
-    c_file <- list.files(path = "Input")
-    c_file <- c_file[str_detect(c_file, "Verleiher")]
-    
-    file_path <- paste0(getwd(), "/Input/", c_file)
-    if (file.exists(file_path)) {
-      shell.exec(file_path)  # Opens the file in Excel
-    } else {
-      showModal(
-        modalDialog(
-          title = "Error",
-          "File not found! Check the file path.",
-          easyClose = TRUE
+    shiny::withProgress(message = "Running script...", value = 0, {
+      shiny::incProgress(1 / 2, detail = paste("Step", 1, "of 2"))
+      ausgabe_text("Die Excel-Datei Verleiherabgaben wurde geöffnet.")
+      c_file <- list.files(path = "Input")
+      c_file <- c_file[str_detect(c_file, "Verleiher")]
+      
+      file_path <- paste0(getwd(), "/Input/", c_file)
+      if (file.exists(file_path)) {
+        tryCatch({
+          # Warnings abfangen
+          capture.output({
+            shell.exec(file_path)  # Opens the file in Excel
+          }, type = "message")
+        }, error = function(e) {
+          # Fehler abfangen
+          ausgabe_text(e$message)
+        })
+      } else {
+        showModal(
+          modalDialog(
+            title = "Error",
+            "File not found! Check the file path.",
+            easyClose = TRUE
+          )
         )
-      )
-    }
+      }
+      shiny::incProgress(2 / 2, detail = paste("Step", 2, "of 2"))
+    })
   })
   
   # Überwachung Button Daten Einlesen
